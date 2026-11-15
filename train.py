@@ -6,10 +6,51 @@ from pathlib import Path
 
 import torch
 import yaml
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 from iva_nano.data import TokenBlockDataset, load_approved_texts, train_tokenizer
 from iva_nano.model import IVANano
+
+
+def learning_rate_at_step(step, cfg):
+    """Linear warmup followed by cosine decay to min_learning_rate."""
+    base = float(cfg["learning_rate"])
+    minimum = float(cfg.get("min_learning_rate", base))
+    warmup = int(cfg.get("warmup_steps", 0))
+    total = max(1, int(cfg["max_steps"]))
+    if warmup > 0 and step < warmup:
+        return base * (step + 1) / warmup
+    if total <= warmup:
+        return minimum
+    progress = min(1.0, max(0.0, (step - warmup) / (total - warmup)))
+    return minimum + 0.5 * (base - minimum) * (1.0 + math.cos(math.pi * progress))
+
+
+@torch.no_grad()
+def evaluate(model, loader, device, max_batches=20):
+    if loader is None:
+        return None
+    model.eval()
+    losses = []
+    for batch_index, (x, y) in enumerate(loader):
+        if batch_index >= max_batches:
+            break
+        _, loss = model(x.to(device), y.to(device))
+        losses.append(float(loss.item()))
+    model.train()
+    return sum(losses) / len(losses) if losses else None
+
+
+def save_checkpoint(path, model, optimizer, config, step):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({
+        "model": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+        "model_config": config["model"],
+        "training_config": config["training"],
+        "step": step,
+        "parameter_count": model.parameter_count(),
+    }, path)
 
 
 def main():
@@ -44,46 +85,85 @@ def main():
         )
 
     dataset = TokenBlockDataset(texts, str(tokenizer_path), int(config["model"]["context_length"]))
-    if len(dataset) == 0:
+    if len(dataset) < 1:
         raise ValueError("Not enough tokenized text for one context block")
+
+    eval_loader = None
+    if len(dataset) >= 20:
+        eval_size = max(1, int(len(dataset) * 0.05))
+        train_size = len(dataset) - eval_size
+        train_set, eval_set = random_split(
+            dataset, [train_size, eval_size],
+            generator=torch.Generator().manual_seed(seed),
+        )
+        eval_loader = DataLoader(eval_set, batch_size=1 if args.smoke_test else int(train_cfg["batch_size"]))
+    else:
+        train_set = dataset
+        print("Evaluation split skipped: fewer than 20 token blocks")
+
+    batch_size = 1 if args.smoke_test else int(train_cfg["batch_size"])
     loader = DataLoader(
-        dataset, batch_size=1 if args.smoke_test else int(train_cfg["batch_size"]),
-        shuffle=True, num_workers=int(train_cfg.get("num_workers", 0)),
+        train_set, batch_size=batch_size, shuffle=True,
+        num_workers=int(train_cfg.get("num_workers", 0)),
     )
 
     model = IVANano(config["model"]).to(device)
     print(f"Parameters: {model.parameter_count():,}")
     print(f"Device: {device}")
-    print(f"Training blocks: {len(dataset)}")
+    print(f"Training blocks: {len(train_set)}")
+    print(f"Evaluation blocks: {len(eval_loader.dataset) if eval_loader else 0}")
 
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=float(train_cfg["learning_rate"]),
         weight_decay=float(train_cfg["weight_decay"]),
     )
     max_steps = 1 if args.smoke_test else int(train_cfg["max_steps"])
+    accumulation = 1 if args.smoke_test else max(1, int(train_cfg.get("gradient_accumulation_steps", 1)))
+    eval_interval = max(1, int(train_cfg.get("eval_interval", 100)))
+    save_interval = max(1, int(train_cfg.get("save_interval", 250)))
+    max_grad_norm = float(train_cfg["max_grad_norm"])
+
     model.train()
+    optimizer.zero_grad(set_to_none=True)
     step = 0
+    micro_step = 0
+    running_loss = 0.0
     while step < max_steps:
         for x, y in loader:
+            lr = learning_rate_at_step(step, train_cfg) if not args.smoke_test else float(train_cfg["learning_rate"])
+            for group in optimizer.param_groups:
+                group["lr"] = lr
             x, y = x.to(device), y.to(device)
             _, loss = model(x, y)
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), float(train_cfg["max_grad_norm"]))
+            (loss / accumulation).backward()
+            running_loss += float(loss.item())
+            micro_step += 1
+            if micro_step % accumulation != 0 and step + 1 < max_steps:
+                continue
+
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
             step += 1
-            if step % 10 == 0 or step == 1:
-                print(json.dumps({"step": step, "loss": round(float(loss.item()), 5)}))
+
+            if step == 1 or step % 10 == 0:
+                print(json.dumps({
+                    "step": step,
+                    "loss": round(running_loss / accumulation, 5),
+                    "learning_rate": lr,
+                }))
+            running_loss = 0.0
+
+            if eval_loader and step % eval_interval == 0:
+                val_loss = evaluate(model, eval_loader, device)
+                print(json.dumps({"step": step, "validation_loss": round(val_loss, 5)}))
+            if step % save_interval == 0:
+                save_checkpoint(out_dir / f"iva_nano_step_{step}.pt", model, optimizer, config, step)
             if step >= max_steps:
                 break
 
     checkpoint = out_dir / "iva_nano_checkpoint.pt"
-    torch.save({
-        "model": model.state_dict(),
-        "model_config": config["model"],
-        "step": step,
-        "parameter_count": model.parameter_count(),
-    }, checkpoint)
+    save_checkpoint(checkpoint, model, optimizer, config, step)
     print(f"Saved checkpoint: {checkpoint}")
 
 
