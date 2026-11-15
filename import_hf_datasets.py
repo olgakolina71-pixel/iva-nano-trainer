@@ -1,10 +1,10 @@
-"""Stream selected, license-reviewed Hugging Face datasets into separate UTF-8 text files.
+"""Acquire candidate Hugging Face datasets into quarantine, never auto-approve them.
 
 Install: pip install -r requirements.txt
 Run: python import_hf_datasets.py
-The script streams rows, caps records, filters obvious non-Russian rows, deduplicates,
-and writes a per-source manifest. It does not claim that a dataset card alone proves
-the rights of every underlying item; review source provenance before production use.
+The script streams bounded rows, filters obvious non-Russian rows, deduplicates,
+and writes per-source provenance. Every entry remains pending_rights_review because
+a dataset-card license declaration is not independent proof of underlying rights.
 """
 import hashlib
 import json
