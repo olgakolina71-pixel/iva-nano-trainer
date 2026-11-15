@@ -37,6 +37,12 @@ python prepare_auxiliary_text.py --assoc-csv data/imported/assoc_safe.csv --sent
 
 This writes `data/raw/kartaslov_auxiliary.txt` and `data/manifest.json`, which match the trainer defaults. The converter expects semicolon-delimited `word/assoc/is_safe` and `term/tag` fields. It deliberately does **not** turn the semantic hierarchy or letter-frequency matrix into fake prose. The generated lines teach simple lexical associations and sentiment labels; they are a small auxiliary dataset, not enough to produce a capable conversational model. The source license remains CC BY-NC-SA 4.0, so training and derivatives must respect non-commercial and share-alike terms.
 
+## Corpus quality gate
+
+Full IVA Nano training now refuses to start unless the tokenized corpus contains at least 1,000,000 tokens (`training.minimum_training_tokens`). This is only a minimum engineering guardrail, not enough data to make a capable assistant. A serious pretraining run needs a much larger, diverse, rights-reviewed corpus; plan for tens or hundreds of millions of tokens as an initial research target, then measure validation quality.
+
+A candidate Russian-language source is [Imperius/ru-classic](https://huggingface.co/datasets/Imperius/ru-classic). Its dataset card declares CC0 for the compilation and describes 866 MB of cleaned Russian classical literature from 61 authors. It is useful for learning Russian prose style, but the card explicitly warns that it is not intended for modern factual QA and may contain rare OCR artifacts. Review the dataset card and underlying rights before use; it is not a modern conversation corpus. Do not mix it with the existing CC BY-NC-SA KartaSlov data without preserving each source's separate license and attribution metadata.
+
 ## Train
 
 Put reviewed, permitted UTF-8 text files under `data/raw/` and create `data/manifest.json` with license and attribution for every source. Then:
