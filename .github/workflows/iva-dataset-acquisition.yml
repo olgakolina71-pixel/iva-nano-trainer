@@ -1,0 +1,32 @@
+name: IVA dataset acquisition
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  import-reviewed-datasets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check importer syntax
+        run: python -m py_compile import_hf_datasets.py
+      - name: Stream and filter selected CC0 datasets
+        run: python import_hf_datasets.py
+      - name: Upload text snapshots and provenance manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-reviewed-russian-datasets
+          path: |
+            data/raw/hf/
+            data/hf_manifest.json
+          retention-days: 7
