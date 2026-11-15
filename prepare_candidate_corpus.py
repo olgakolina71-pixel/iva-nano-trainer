@@ -11,7 +11,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-SPACE = re.compile(r"\\s+")
+SPACE = re.compile(r"\s+")
 CYRILLIC = re.compile(r"[А-Яа-яЁё]")
 
 
@@ -33,7 +33,7 @@ def flatten_strings(value):
 
 def normalize_text(value):
     value = unicodedata.normalize("NFC", html.unescape(value))
-    value = value.replace("\\x00", " ")
+    value = value.replace("\x00", " ")
     return SPACE.sub(" ", value).strip()
 
 
@@ -46,10 +46,10 @@ def source_documents(path, dataset_id):
                 if line:
                     parts.append(line)
                 elif parts:
-                    yield "\\n".join(parts)
+                    yield "\n".join(parts)
                     parts = []
         if parts:
-            yield "\\n".join(parts)
+            yield "\n".join(parts)
         return
 
     with path.open(encoding="utf-8-sig") as handle:
@@ -62,7 +62,7 @@ def source_documents(path, dataset_id):
                     decoded = json.loads(line)
                     parts = flatten_strings(decoded)
                     if parts:
-                        yield "\\n".join(parts)
+                        yield "\n".join(parts)
                         continue
                 except json.JSONDecodeError:
                     pass
@@ -90,7 +90,7 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
         target = output_dir / f"{dataset_id}.txt"
         seen = set()
         records = characters = duplicates = rejected = 0
-        with target.open("w", encoding="utf-8", newline="\\n") as output:
+        with target.open("w", encoding="utf-8", newline="\n") as output:
             for raw in source_documents(source_path, dataset_id):
                 text = normalize_text(raw)
                 if len(text) < (1 if dataset_id == "small_life_dialogues_cc0" else 40):
@@ -105,7 +105,7 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
                     duplicates += 1
                     continue
                 seen.add(digest)
-                output.write(text + "\\n\\n")
+                output.write(text + "\n\n")
                 records += 1
                 characters += len(text)
 
