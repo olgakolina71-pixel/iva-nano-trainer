@@ -1,0 +1,37 @@
+name: IVA Micro data-and-training smoke run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-and-train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Import only reviewed lexical datasets
+        run: python import_datasets.py --only assoc_safe kartaslovsent
+      - name: Convert lexical annotations to attributed Russian examples
+        run: python prepare_auxiliary_text.py --assoc-csv data/imported/assoc_safe.csv --sentiment-csv data/imported/kartaslovsent.csv
+      - name: Train tiny CPU diagnostic model
+        run: python train.py --config configs/iva_micro_smoke.yaml --data-dir data/raw --manifest data/manifest.json --out-dir checkpoints
+      - name: Generate a diagnostic continuation
+        run: python generate.py --checkpoint checkpoints/artifacts/iva_nano_checkpoint.pt --tokenizer checkpoints/iva_micro_smoke.model --prompt "Слово «кот» вызывает ассоциацию" --max-new-tokens 30 --device cpu
+      - name: Upload diagnostic artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-micro-smoke-artifacts
+          path: |
+            checkpoints/artifacts/
+            checkpoints/iva_micro_smoke.model
+            data/manifest.json
+          retention-days: 7
