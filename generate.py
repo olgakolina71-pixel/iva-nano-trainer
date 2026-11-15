@@ -36,7 +36,7 @@ def generate(model, tokenizer, prompt, device, max_new_tokens=80, temperature=0.
 
 def main():
     parser = argparse.ArgumentParser(description="Generate text with a trained IVA Nano checkpoint.")
-    parser.add_argument("--checkpoint", default="checkpoints/artifacts/iva_nano_checkpoint.pt")
+    parser.add_argument("--checkpoint", default="checkpoints/artifacts/iva_nano_40m_checkpoint.pt")
     parser.add_argument("--tokenizer", default="checkpoints/iva_tokenizer.model")
     parser.add_argument("--prompt", required=True)
     parser.add_argument("--max-new-tokens", type=int, default=80)
