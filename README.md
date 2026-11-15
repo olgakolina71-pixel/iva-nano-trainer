@@ -37,6 +37,16 @@ python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw --out-dir
 
 The CSV import directory is separate from `data/raw/` to prevent accidental training on unreviewed structured files.
 
+## Generate text
+
+After a checkpoint and tokenizer have been trained, run:
+
+```bash
+python generate.py --prompt "Привет! Расскажи о себе:" --max-new-tokens 80 --temperature 0.8 --top-k 40
+```
+
+Sampling controls reduce uncontrolled randomness, but they cannot create language understanding. Coherent output depends on a sufficiently large, clean, licensed text corpus and successful training. The four imported CSVs are not yet converted into general pretraining text, so they do not by themselves make IVA a fluent conversational model.
+
 ## Model
 
 - Decoder-only Transformer, configurable near 40M parameters.
