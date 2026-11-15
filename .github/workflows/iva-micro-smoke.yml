@@ -28,15 +28,26 @@ jobs:
         run: |
           python generate.py --checkpoint checkpoints/artifacts/iva_nano_checkpoint.pt --tokenizer checkpoints/iva_micro_smoke.model --prompt "Слово «кот» вызывает ассоциацию" --max-new-tokens 30 --device cpu | tee checkpoints/artifacts/generation_sample.txt
       - name: Capture Cloudflare API status
+        continue-on-error: true
         run: |
           python - <<'PY'
-          import json, urllib.request
+          import json
+          import urllib.error
+          import urllib.request
+
           url = "https://iva-ai-studio.olgakolina71.workers.dev/api/status"
-          with urllib.request.urlopen(url, timeout=20) as response:
-              data = json.load(response)
+          result = {"ok": False, "url": url}
+          try:
+              with urllib.request.urlopen(url, timeout=20) as response:
+                  result = {"ok": True, "http_status": response.status, "data": json.load(response)}
+          except urllib.error.HTTPError as error:
+              result.update({"http_status": error.code, "error": "Cloudflare returned an HTTP error"})
+          except (urllib.error.URLError, TimeoutError) as error:
+              result.update({"error": "Cloudflare status request failed", "reason": str(error.reason if hasattr(error, "reason") else error)})
+
           with open("checkpoints/artifacts/cloudflare_worker_status.json", "w", encoding="utf-8") as f:
-              json.dump(data, f, ensure_ascii=False, indent=2)
-          print(json.dumps(data, ensure_ascii=False))
+              json.dump(result, f, ensure_ascii=False, indent=2)
+          print(json.dumps(result, ensure_ascii=False))
           PY
       - name: Upload diagnostic artifacts
         uses: actions/upload-artifact@v4
