@@ -1,0 +1,32 @@
+model_id: iva-nano-40m-sft
+model:
+  vocab_size: 24000
+  context_length: 1024
+  d_model: 528
+  n_layers: 8
+  n_heads: 8
+  mlp_ratio: 4
+  dropout: 0.0
+  tie_embeddings: true
+
+tokenizer:
+  model_prefix: iva_tokenizer
+  vocab_size: 24000
+  model_type: bpe
+
+training:
+  checkpoint_name: iva_nano_sft_checkpoint.pt
+  seed: 42
+  batch_size: 2
+  gradient_accumulation_steps: 8
+  max_steps: 2000
+  minimum_training_tokens: 200000
+  learning_rate: 0.00001
+  min_learning_rate: 0.000001
+  weight_decay: 0.05
+  warmup_steps: 100
+  eval_interval: 100
+  save_interval: 500
+  max_grad_norm: 1.0
+  num_workers: 2
+  device: auto
