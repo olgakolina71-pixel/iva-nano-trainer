@@ -13,6 +13,25 @@ from pathlib import Path
 
 SPACE = re.compile(r"\s+")
 CYRILLIC = re.compile(r"[А-Яа-яЁё]")
+EMAIL = re.compile(r"\\b[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}\\b")
+PHONE = re.compile(r"(?<!\\w)(?:\\+?7|8)?[\\s(.-]*\\d{3}[\\s).-]*\\d{3}[\\s.-]*\\d{2}[\\s.-]*\\d{2}(?!\\w)")
+STUDENT_NAME_CLASS = re.compile(
+    r"\\b[А-ЯЁ][а-яё-]{2,}\\s+[А-ЯЁ][а-яё-]{2,}\\s+\\d{1,2}\\s*[«\\\"]"
+)
+PERSONAL_LABEL = re.compile(
+    r"\\b(?:ФИО|выполнил[а]?|подготовил[а]?|ученик|ученица)\\s*[:\\-]?\\s*"
+    r"[А-ЯЁ][а-яё-]+(?:\\s+[А-ЯЁ][а-яё-]+){1,2}",
+    re.IGNORECASE,
+)
+
+
+def has_personal_markers(text):
+    return bool(
+        EMAIL.search(text)
+        or PHONE.search(text)
+        or STUDENT_NAME_CLASS.search(text)
+        or PERSONAL_LABEL.search(text)
+    )
 
 
 def flatten_strings(value):
@@ -89,7 +108,7 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
 
         target = output_dir / f"{dataset_id}.txt"
         seen = set()
-        records = characters = duplicates = rejected = 0
+        records = characters = duplicates = rejected = personal_rejected = 0
         with target.open("w", encoding="utf-8", newline="\n") as output:
             for raw in source_documents(source_path, dataset_id):
                 text = normalize_text(raw)
@@ -121,13 +140,13 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
             "preparation": {
                 "method": "json-aware-normalization-and-exact-dedup-v1",
                 "duplicates_removed": duplicates,
-                "records_rejected": rejected,
+                "records_rejected": rejected,\n                "records_rejected_personal_markers": personal_rejected,
             },
             # Deliberately preserve use/rights_status. This script never approves data.
         })
         print(
             f"{dataset_id}: {records:,} records, {characters:,} characters, "
-            f"{duplicates:,} duplicates removed, {rejected:,} rejected; "
+            f"{duplicates:,} duplicates removed, {rejected:,} rejected, {personal_rejected:,} personal-data flagged; "
             f"rights={entry.get('rights_status', 'unspecified')}"
         )
 
