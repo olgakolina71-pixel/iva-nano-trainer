@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader, random_split
 
 from iva_nano.data import TokenBlockDataset, load_approved_texts, train_tokenizer
 from iva_nano.model import IVANano
+from iva_nano.storage import LocalArtifactStore
 
 
 def learning_rate_at_step(step, cfg):
@@ -41,16 +42,15 @@ def evaluate(model, loader, device, max_batches=20):
     return sum(losses) / len(losses) if losses else None
 
 
-def save_checkpoint(path, model, optimizer, config, step):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({
+def save_checkpoint(store, name, model, optimizer, config, step):
+    return store.save_checkpoint(name, {
         "model": model.state_dict(),
         "optimizer": optimizer.state_dict(),
         "model_config": config["model"],
         "training_config": config["training"],
         "step": step,
         "parameter_count": model.parameter_count(),
-    }, path)
+    }, torch)
 
 
 def main():
@@ -76,6 +76,9 @@ def main():
     texts = load_approved_texts(args.data_dir, args.manifest)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    import os
+    artifact_root = Path(os.environ.get("IVA_ARTIFACT_DIR", str(out_dir / "artifacts")))
+    artifact_store = LocalArtifactStore(artifact_root)
     tok_cfg = config["tokenizer"]
     tokenizer_path = out_dir / (tok_cfg["model_prefix"] + ".model")
     if not tokenizer_path.exists():
@@ -158,12 +161,11 @@ def main():
                 val_loss = evaluate(model, eval_loader, device)
                 print(json.dumps({"step": step, "validation_loss": round(val_loss, 5)}))
             if step % save_interval == 0:
-                save_checkpoint(out_dir / f"iva_nano_step_{step}.pt", model, optimizer, config, step)
+                save_checkpoint(artifact_store, f"iva_nano_step_{step}.pt", model, optimizer, config, step)
             if step >= max_steps:
                 break
 
-    checkpoint = out_dir / "iva_nano_checkpoint.pt"
-    save_checkpoint(checkpoint, model, optimizer, config, step)
+    checkpoint = save_checkpoint(artifact_store, "iva_nano_checkpoint.pt", model, optimizer, config, step)
     print(f"Saved checkpoint: {checkpoint}")
 
 
