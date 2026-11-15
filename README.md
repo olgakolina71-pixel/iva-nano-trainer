@@ -55,6 +55,8 @@ python import_hf_datasets.py
 python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --manifest data/hf_manifest.json --out-dir checkpoints
 ```
 
+**Do not run the training command while the manifest entries are pending.** First review source provenance, underlying content rights, and quality; only then explicitly mark an approved entry `use: training` and `rights_status: reviewed_approved`. The importer intentionally does not make this decision.
+
 Read [data/DATASET_SOURCES.md](data/DATASET_SOURCES.md) before use. The importer keeps the sources separate and does not include the KartaSlov non-commercial dataset, forum posts, or sources with unclear rights.
 
 ## Train
