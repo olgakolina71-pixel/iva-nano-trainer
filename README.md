@@ -128,7 +128,7 @@ python prepare_sft.py --manifest data/hf_manifest.json --dataset-id small_life_d
 After a Nano base checkpoint exists and the reviewed dialogue/instruction corpus is prepared, run:
 
 ```bash
-python train.py --config configs/iva_nano_sft.yaml --data-dir data/sft --manifest data/sft_manifest.json --out-dir checkpoints/sft --tokenizer-path checkpoints/iva_tokenizer.model --resume checkpoints/artifacts/iva_nano_40m_checkpoint.pt --reset-optimizer --additional-steps
+python train.py --config configs/iva_nano_sft.yaml --data-dir data/sft --manifest data/sft/manifest.json --out-dir checkpoints/sft --tokenizer-path checkpoints/iva_tokenizer.model --resume checkpoints/artifacts/iva_nano_40m_checkpoint.pt --reset-optimizer --additional-steps
 ```
 
 This loads the base weights, keeps the original tokenizer, and starts a fresh lower-learning-rate optimizer. The SFT manifest must list only reviewed, attributed training text files inside `data/sft/`.
