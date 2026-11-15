@@ -19,7 +19,7 @@ jobs:
           cache: "pip"
       - run: pip install -r requirements.txt
       - name: Compile Python files
-        run: python -m compileall -q iva_nano train.py generate.py import_datasets.py prepare_auxiliary_text.py tests
+        run: python -m compileall -q iva_nano train.py generate.py chat.py import_datasets.py import_hf_datasets.py prepare_auxiliary_text.py tests
       - name: Run importer tests
         run: python -m unittest discover -s tests -v
       - name: Check model forward pass
@@ -39,4 +39,19 @@ jobs:
           assert logits.shape == (2, 16, 128)
           assert loss is not None and torch.isfinite(loss)
           print("CPU model smoke test passed")
+          PY
+
+      - name: Verify IVA Nano parameter target
+        run: |
+          python - <<'PY'
+          import yaml
+          cfg = yaml.safe_load(open("configs/iva_nano_40m.yaml", encoding="utf-8"))
+          m = cfg["model"]
+          d, v, ctx = m["d_model"], m["vocab_size"], m["context_length"]
+          layers, ratio = m["n_layers"], m["mlp_ratio"]
+          params = v*d + ctx*d + layers*(4*d*d + 8*d*d + 9*d) + 2*d
+          if not m.get("tie_embeddings", True):
+              params += v*d
+          assert params == 40_015_008, params
+          print(f"IVA Nano parameter target verified: {params:,}")
           PY
