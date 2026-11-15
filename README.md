@@ -119,7 +119,13 @@ The default Nano run refuses corpora below 100M tokens. The configured schedule 
 
 ### Instruction fine-tuning
 
-After a Nano base checkpoint exists and a separate reviewed dialogue/instruction corpus is prepared:
+After a Nano base checkpoint exists, first review the dialogue source's provenance and terms. In `data/hf_manifest.json`, set that one source entry to `use: training` and `rights_status: reviewed_approved` only after the review is complete. Then prepare the separate SFT corpus:
+
+```bash
+python prepare_sft.py --manifest data/hf_manifest.json --dataset-id small_life_dialogues_cc0
+```
+
+After a Nano base checkpoint exists and the reviewed dialogue/instruction corpus is prepared, run:
 
 ```bash
 python train.py --config configs/iva_nano_sft.yaml --data-dir data/sft --manifest data/sft_manifest.json --out-dir checkpoints/sft --tokenizer-path checkpoints/iva_tokenizer.model --resume checkpoints/artifacts/iva_nano_40m_checkpoint.pt --reset-optimizer --additional-steps
