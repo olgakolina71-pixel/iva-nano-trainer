@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from prepare_candidate_corpus import prepare
+from prepare_candidate_corpus import prepare, source_documents
 
 
 class CandidateCorpusTests(unittest.TestCase):
@@ -13,8 +13,8 @@ class CandidateCorpusTests(unittest.TestCase):
             raw = root / "raw"
             raw.mkdir()
             (raw / "education.txt").write_text(
-                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\\n'
-                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\\n',
+                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\n'
+                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\n',
                 encoding="utf-8",
             )
             manifest = root / "input.json"
@@ -39,11 +39,10 @@ class CandidateCorpusTests(unittest.TestCase):
             self.assertNotIn("[", text)
 
     def test_dialogue_turns_stay_together(self):
-        from prepare_candidate_corpus import source_documents
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "dialogue.txt"
             path.write_text(
-                "### Пользователь:\\nПривет\\n### IVA:\\nЗдравствуйте\\n\\n",
+                "### Пользователь:\nПривет\n### IVA:\nЗдравствуйте\n\n",
                 encoding="utf-8",
             )
             docs = list(source_documents(path, "small_life_dialogues_cc0"))
