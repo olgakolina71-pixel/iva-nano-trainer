@@ -1,4 +1,4 @@
-name: IVA dataset acquisition
+name: IVA candidate dataset acquisition (quarantine)
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  import-reviewed-datasets:
+  acquire-quarantined-candidates:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
