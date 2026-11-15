@@ -91,6 +91,16 @@ def main():
     if len(dataset) < 1:
         raise ValueError("Not enough tokenized text for one context block")
 
+    token_count = int(dataset.tokens.numel())
+    minimum_tokens = int(train_cfg.get("minimum_training_tokens", 1_000_000))
+    print(f"Corpus tokens: {token_count:,}")
+    if not args.smoke_test and token_count < minimum_tokens:
+        raise ValueError(
+            f"Corpus is too small for full training: {token_count:,} tokens; "
+            f"minimum configured threshold is {minimum_tokens:,}. "
+            "Add more reviewed, licensed text. Use --smoke-test only for pipeline checks."
+        )
+
     eval_loader = None
     if len(dataset) >= 20:
         eval_size = max(1, int(len(dataset) * 0.05))
