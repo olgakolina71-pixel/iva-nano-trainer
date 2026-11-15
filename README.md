@@ -60,6 +60,8 @@ python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --mani
 Read [data/DATASET_SOURCES.md](data/DATASET_SOURCES.md) before use. The importer keeps the sources separate and does not include the KartaSlov non-commercial dataset, forum posts, or sources with unclear rights.
 
 ## Normalize candidate datasets (quarantine-safe)
+The first acquired snapshot was normalized and measured; see [the corpus and privacy-screening report](reports/candidate-corpus-2026-11-15.json). The report records 12,558 records flagged by heuristic personal-data checks. This is not legal or privacy clearance.
+
 
 After downloading the acquisition artifact and extracting its `raw/hf/` files into the repository, normalize the JSON-encoded educational rows, preserve multi-line dialogue turns, remove exact duplicate records, flag obvious student-name/class identifiers, email addresses and phone numbers, and write a separate manifest:
 
