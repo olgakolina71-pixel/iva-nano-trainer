@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from prepare_candidate_corpus import prepare, source_documents
+from prepare_candidate_corpus import has_personal_markers, prepare, source_documents
 
 
 class CandidateCorpusTests(unittest.TestCase):
@@ -49,6 +49,11 @@ class CandidateCorpusTests(unittest.TestCase):
             self.assertEqual(len(docs), 1)
             self.assertIn("### Пользователь:", docs[0])
             self.assertIn("### IVA:", docs[0])
+
+    def test_obvious_student_identifiers_are_flagged(self):
+        self.assertTrue(has_personal_markers("Презентацию подготовила Строковой Натальи 10 «Б»."))
+        self.assertTrue(has_personal_markers("Контакт: test@example.com"))
+        self.assertFalse(has_personal_markers("Объяснение принципа работы нейронной сети."))
 
 
 if __name__ == "__main__":
