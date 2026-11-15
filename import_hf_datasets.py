@@ -6,6 +6,7 @@ The script streams rows, caps records, filters obvious non-Russian rows, dedupli
 and writes a per-source manifest. It does not claim that a dataset card alone proves
 the rights of every underlying item; review source provenance before production use.
 """
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -94,8 +95,8 @@ def extract_rows(source):
             language = str(row.get("language", row.get("lang", ""))).lower()
             if language and language not in {"ru", "russian", "русский"}:
                 continue
-            q = clean(flatten(row.get("question", row.get("prompt", "")), source["max_chars"]), source["max_chars"])
-            a = clean(flatten(row.get("answer", row.get("response", "")), source["max_chars"]), source["max_chars"])
+            q = clean(flatten(row.get("question", row.get("prompt", ""))), source["max_chars"])
+            a = clean(flatten(row.get("answer", row.get("response", ""))), source["max_chars"])
             text = f"Вопрос: {q} Ответ: {a}" if q and a else ""
             if text and russian_enough(text):
                 yield text
@@ -124,7 +125,7 @@ def main():
         try:
             with target.open("w", encoding="utf-8") as handle:
                 for text in extract_rows(source):
-                    digest_key = hash(text)
+                    digest_key = hashlib.sha256(text.encode("utf-8")).hexdigest()
                     if digest_key in seen:
                         continue
                     seen.add(digest_key)
