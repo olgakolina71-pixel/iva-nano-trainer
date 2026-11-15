@@ -97,7 +97,7 @@ def extract_rows(source):
                 continue
             q = clean(flatten(row.get("question", row.get("prompt", ""))), source["max_chars"], min_chars=1)
             a = clean(flatten(row.get("answer", row.get("response", ""))), source["max_chars"], min_chars=1)
-            text = f"Вопрос: {q} Ответ: {a}" if q and a else ""
+            text = f"### Пользователь:\n{q}\n### IVA:\n{a}" if q and a else ""
             if text and russian_enough(text):
                 yield text
         return
