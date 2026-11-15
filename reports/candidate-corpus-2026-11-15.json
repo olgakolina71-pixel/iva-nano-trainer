@@ -47,13 +47,16 @@
       "rejected_short": 0,
       "flagged_possible_personal_data": 0,
       "rights_status": "dataset_card_claim_unverified",
-      "use": "pending_rights_review"
+      "use": "pending_rights_review",
+      "source_card_claimed_records": 50000,
+      "verification_note": "Acquired snapshot contains only 105 records, far below the 50,000-dialogue claim in the dataset card; reconcile the source/version and acquisition before considering it for SFT."
     }
   ],
   "limitations": [
     "Personal-data detection is heuristic and may have false positives and false negatives; human privacy review is still required.",
     "Dataset-card license declarations have not been independently verified; all sources remain quarantined.",
     "Character counts are not tokenizer token counts.",
-    "No IVA Nano pretraining or SFT was performed."
+    "No IVA Nano pretraining or SFT was performed.",
+    "The dialogue dataset card claims 50,000 pairs, but this acquired snapshot contains only 105; this discrepancy is unresolved."
   ]
 }
