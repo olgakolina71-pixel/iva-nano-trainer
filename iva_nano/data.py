@@ -55,6 +55,7 @@ def train_tokenizer(texts, prefix: str, vocab_size: int, model_type: str = "bpe"
         unk_id=1,
         bos_id=2,
         eos_id=3,
+        hard_vocab_limit=False,
     )
     corpus.unlink(missing_ok=True)
     return str(prefix_path) + ".model"
