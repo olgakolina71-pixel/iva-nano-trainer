@@ -93,3 +93,64 @@ Sampling controls reduce uncontrolled randomness, but they cannot create languag
 ## Cloudflare integration
 
 Worker catalog: `/api/datasets`; CSV proxy: `/api/datasets/{id}/raw`. The importer uses these existing routes. Do not put API tokens in Git. **No R2 dependency:** IVA is designed to work without Cloudflare R2 for the next several years. Dataset snapshots stay in the trainer's `data/imported/` directory; checkpoints are saved to a persistent filesystem volume. Set `IVA_ARTIFACT_DIR` to that volume's path. The local artifact store writes checkpoints atomically and records SHA-256 checksums in `artifact_manifest.json`. Do not use GitHub commits or D1 as a substitute for large binary storage: D1 is for metadata, and GitHub Actions runner disks are temporary. If a training machine is ephemeral, copy artifacts to persistent storage before it shuts down. Workers remain the API/control plane, not PyTorch pretraining machines. No R2 bucket, billing activation, or payment card is required.
+
+
+## IVA Nano 40M: staged training
+
+The Nano configuration now targets **40,015,008 trainable parameters** (528-wide, 8-layer decoder-only Transformer, 8 attention heads, 24k SentencePiece vocabulary, 1,024-token context). The training config is intentionally separate from the 173k-parameter Micro diagnostic.
+
+The full-pretraining guard is set to 100 million tokens as a minimum engineering gate; the initial research target is 800 million tokens. These are not guarantees of quality. A 40M model trained from random initialization needs a diverse, clean corpus and substantially more compute than the 20-step CPU smoke test. Use a CUDA-capable machine for a real run. GitHub-hosted CPU Actions are for validation and smoke tests, not the full pretraining job.
+
+### Rights review is required before training
+
+The Hugging Face acquisition workflow now writes each downloaded dataset with `use: pending_rights_review` and `rights_status: dataset_card_claim_unverified`. This is deliberate: a dataset card's CC0 claim is not independent proof of the rights to every underlying item. The standard loader ignores these pending entries. Review source provenance and terms first; only then may a maintainer explicitly change the relevant manifest entry to `use: training`. Keep each source's own license and attribution. Do not mix the KartaSlov CC BY-NC-SA material into a commercial model or remove its share-alike obligations.
+
+The dialogue source is converted into explicit `### Пользователь:` / `### IVA:` turns, suitable for a later instruction-tuning stage. It remains quarantined until rights review.
+
+### Pretraining
+
+After adding enough reviewed, diverse Russian text and approving its manifest entries:
+
+```bash
+python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --manifest data/hf_manifest.json --out-dir checkpoints
+```
+
+The default Nano run refuses corpora below 100M tokens. The configured schedule is 100,000 optimizer steps. Do not launch this on a short-lived CPU runner and expect a useful model.
+
+### Instruction fine-tuning
+
+After a Nano base checkpoint exists and a separate reviewed dialogue/instruction corpus is prepared:
+
+```bash
+python train.py --config configs/iva_nano_sft.yaml --data-dir data/sft --manifest data/sft_manifest.json --out-dir checkpoints/sft --tokenizer-path checkpoints/iva_tokenizer.model --resume checkpoints/artifacts/iva_nano_40m_checkpoint.pt --reset-optimizer --additional-steps
+```
+
+This loads the base weights, keeps the original tokenizer, and starts a fresh lower-learning-rate optimizer. The SFT manifest must list only reviewed, attributed training text files inside `data/sft/`.
+
+### Chat locally
+
+After training, place the checkpoint and matching tokenizer at the paths below, then run:
+
+```bash
+python chat.py
+```
+
+Or use explicit paths:
+
+```bash
+python chat.py --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt --tokenizer checkpoints/iva_tokenizer.model
+```
+
+The CLI supports multi-turn history, `/reset`, and `/exit`. It is an inference interface, not a substitute for instruction fine-tuning. A base-pretrained model may continue text without reliably following instructions.
+
+### Resume a pretraining run
+
+```bash
+python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --manifest data/hf_manifest.json --out-dir checkpoints --tokenizer-path checkpoints/iva_tokenizer.model --resume checkpoints/artifacts/iva_nano_40m_checkpoint.pt --additional-steps
+```
+
+Checkpoints include model ID, architecture, optimizer state, step count, parameter count, and tokenizer path. Set `IVA_ARTIFACT_DIR` to a persistent local volume; GitHub Actions artifacts expire after 7 days. No Cloudflare R2 or paid storage is required.
+
+## Honest project status
+
+The repository now contains the staged model/training/inference pipeline, but **there is still no trained IVA Nano checkpoint**. The previous successful run trained only IVA Micro (173,312 parameters) for 20 CPU steps on lexical examples. It did not pretrain Nano or verify conversational quality. A real Nano model will exist only after a long GPU training run on a rights-reviewed corpus, followed by instruction tuning and evaluation.
