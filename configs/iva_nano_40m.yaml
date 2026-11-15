@@ -18,6 +18,7 @@ training:
   batch_size: 2
   gradient_accumulation_steps: 8
   max_steps: 1000
+  minimum_training_tokens: 1000000
   learning_rate: 0.0003
   min_learning_rate: 0.00003
   weight_decay: 0.1
