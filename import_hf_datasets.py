@@ -16,7 +16,7 @@ from datasets import load_dataset
 OUT = Path("data/raw/hf")
 MANIFEST = Path("data/hf_manifest.json")
 CYRILLIC = re.compile(r"[А-Яа-яЁё]")
-SPACE = re.compile(r"\\s+")
+SPACE = re.compile(r"\s+")
 
 SOURCES = [
     {
@@ -79,9 +79,9 @@ def russian_enough(text):
     return sum(1 for ch in letters if CYRILLIC.fullmatch(ch)) / len(letters) >= 0.20
 
 
-def clean(text, max_chars):
-    text = SPACE.sub(" ", text.replace("\\x00", " ")).strip()
-    if len(text) < 80:
+def clean(text, max_chars, min_chars=1):
+    text = SPACE.sub(" ", text.replace("\x00", " ")).strip()
+    if len(text) < min_chars:
         return ""
     return text[:max_chars]
 
@@ -95,8 +95,8 @@ def extract_rows(source):
             language = str(row.get("language", row.get("lang", ""))).lower()
             if language and language not in {"ru", "russian", "русский"}:
                 continue
-            q = clean(flatten(row.get("question", row.get("prompt", ""))), source["max_chars"])
-            a = clean(flatten(row.get("answer", row.get("response", ""))), source["max_chars"])
+            q = clean(flatten(row.get("question", row.get("prompt", ""))), source["max_chars"], min_chars=1)
+            a = clean(flatten(row.get("answer", row.get("response", ""))), source["max_chars"], min_chars=1)
             text = f"Вопрос: {q} Ответ: {a}" if q and a else ""
             if text and russian_enough(text):
                 yield text
@@ -109,7 +109,7 @@ def extract_rows(source):
         stream = load_dataset(repo, **kwargs)
         for row in stream:
             parts = [clean(flatten(row.get(field, "")), source["max_chars"], min_chars=80) for field in source["text_fields"]]
-            text = "\\n".join(part for part in parts if part)
+            text = "\n".join(part for part in parts if part)
             if text and russian_enough(text):
                 yield text
 
@@ -129,7 +129,7 @@ def main():
                     if digest_key in seen:
                         continue
                     seen.add(digest_key)
-                    handle.write(text + "\\n\n")
+                    handle.write(text + "\n\n")
                     count += 1
                     chars += len(text)
                     if count >= source["max_records"]:
