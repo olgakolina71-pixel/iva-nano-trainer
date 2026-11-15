@@ -21,11 +21,10 @@ def read_rows(path):
         sample = handle.read(4096)
         handle.seek(0)
         try:
-            dialect = csv.Sniffer().sniff(sample, delimiters=";,\t")
+            delimiter = csv.Sniffer().sniff(sample, delimiters=";,\t").delimiter
         except csv.Error:
-            dialect = csv.excel
-            dialect.delimiter = ";"
-        reader = csv.DictReader(handle, dialect=dialect)
+            delimiter = ";"
+        reader = csv.DictReader(handle, delimiter=delimiter)
         if not reader.fieldnames:
             raise ValueError(f"{path}: missing CSV header")
         for row in reader:
