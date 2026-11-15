@@ -45,7 +45,7 @@ A candidate Russian-language source is [Imperius/ru-classic](https://huggingface
 
 ## Import additional Russian datasets
 
-A separate manual workflow is available at **Actions → IVA dataset acquisition → Run workflow**. It streams bounded subsets of three dataset-card-CC0 sources into separate UTF-8 text files and produces `data/hf_manifest.json` with per-source provenance. The workflow uploads the snapshots and manifest as a 7-day artifact. It does not train IVA Nano.
+A separate manual workflow is available at **Actions → IVA candidate dataset acquisition (quarantine) → Run workflow**. It streams bounded subsets of three candidate sources into separate UTF-8 text files and produces `data/hf_manifest.json` with per-source provenance. All entries remain `pending_rights_review`; the dataset-card license declarations are not independent proof of rights. The workflow uploads the snapshots and manifest as a 7-day artifact. It does not train IVA Nano.
 
 To run locally:
 
