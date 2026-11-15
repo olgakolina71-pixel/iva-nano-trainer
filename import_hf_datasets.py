@@ -45,7 +45,7 @@ SOURCES = [
         "license": "CC0-1.0",
         "attribution": "nyuuzyou/edutexts; https://huggingface.co/datasets/nyuuzyou/edutexts",
         "url": "https://huggingface.co/datasets/nyuuzyou/edutexts",
-        "notes": "Educational presentations and documents, primarily Russian with some Ukrainian and English. Dataset card declares CC0. Filtered by Cyrillic ratio; inspect quality and source provenance.",
+        "notes": "Educational presentations and documents, primarily Russian with some Ukrainian and English. Dataset card declares CC0. JSON-encoded text arrays are decoded before truncation. Requires source-rights, personal-data, school/student-name and quality review; Cyrillic filtering alone is not sufficient.",
     },
     {
         "id": "small_life_dialogues_cc0",
@@ -65,8 +65,24 @@ SOURCES = [
 
 
 def flatten(value):
+    """Convert plain or JSON-encoded dataset fields into readable text.
+
+    Some source rows store slide/document text as a JSON-encoded array inside
+    a string. Decode valid JSON before applying character limits; otherwise
+    the model would learn brackets, quotes and escape sequences as prose.
+    """
     if isinstance(value, str):
+        stripped = value.strip()
+        if stripped.startswith(("[", "{")):
+            try:
+                decoded = json.loads(stripped)
+            except json.JSONDecodeError:
+                return value
+            if isinstance(decoded, (list, tuple, dict)):
+                return flatten(decoded)
         return value
+    if isinstance(value, dict):
+        return " ".join(flatten(item) for item in value.values() if item is not None)
     if isinstance(value, (list, tuple)):
         return " ".join(flatten(item) for item in value if item is not None)
     return ""
