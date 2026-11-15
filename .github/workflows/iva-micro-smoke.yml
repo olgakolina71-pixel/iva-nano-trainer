@@ -25,7 +25,19 @@ jobs:
       - name: Train tiny CPU diagnostic model
         run: python train.py --config configs/iva_micro_smoke.yaml --data-dir data/raw --manifest data/manifest.json --out-dir checkpoints
       - name: Generate a diagnostic continuation
-        run: python generate.py --checkpoint checkpoints/artifacts/iva_nano_checkpoint.pt --tokenizer checkpoints/iva_micro_smoke.model --prompt "Слово «кот» вызывает ассоциацию" --max-new-tokens 30 --device cpu
+        run: |
+          python generate.py --checkpoint checkpoints/artifacts/iva_nano_checkpoint.pt --tokenizer checkpoints/iva_micro_smoke.model --prompt "Слово «кот» вызывает ассоциацию" --max-new-tokens 30 --device cpu | tee checkpoints/artifacts/generation_sample.txt
+      - name: Capture Cloudflare API status
+        run: |
+          python - <<'PY'
+          import json, urllib.request
+          url = "https://iva-ai-studio.olgakolina71.workers.dev/api/status"
+          with urllib.request.urlopen(url, timeout=20) as response:
+              data = json.load(response)
+          with open("checkpoints/artifacts/cloudflare_worker_status.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, ensure_ascii=False, indent=2)
+          print(json.dumps(data, ensure_ascii=False))
+          PY
       - name: Upload diagnostic artifacts
         uses: actions/upload-artifact@v4
         with:
