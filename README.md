@@ -59,6 +59,16 @@ python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --mani
 
 Read [data/DATASET_SOURCES.md](data/DATASET_SOURCES.md) before use. The importer keeps the sources separate and does not include the KartaSlov non-commercial dataset, forum posts, or sources with unclear rights.
 
+## Normalize candidate datasets (quarantine-safe)
+
+After downloading the acquisition artifact and extracting its `raw/hf/` files into the repository, normalize the JSON-encoded educational rows, preserve multi-line dialogue turns, remove exact duplicate records, and write a separate manifest:
+
+```bash
+python prepare_candidate_corpus.py --input-dir data/raw/hf --input-manifest data/hf_manifest.json --output-dir data/normalized_candidates --output-manifest data/normalized_candidates/manifest.json
+```
+
+This step does **not** approve any dataset. It preserves each source's license, attribution, `use`, and `rights_status`; all sources currently remain quarantined. The output is for inspection and corpus-quality analysis only until rights are independently reviewed. It does not train a model.
+
 ## Train
 
 Put reviewed, permitted UTF-8 text files under `data/raw/` and create `data/manifest.json` with license and attribution for every source. Then:
