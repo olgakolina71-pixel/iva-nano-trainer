@@ -142,7 +142,7 @@ def main():
             raise RuntimeError(f"{source['id']}: no usable Russian records; no manifest written")
         entries.append({
             "id": source["id"],
-            "path": str(target.resolve()),
+            "path": target.as_posix(),
             "license": source["license"],
             "attribution": source["attribution"],
             "source_url": source["url"],
