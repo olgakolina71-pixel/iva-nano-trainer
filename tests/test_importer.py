@@ -2,7 +2,7 @@ import csv
 import io
 import unittest
 
-from iva_nano.importer import ALLOWED_DATASETS, EXPECTED_LICENSE, _validate_csv
+from iva_nano.importer import ALLOWED_DATASETS, EXPECTED_LICENSE, ImportErrorSafe, _validate_csv
 
 
 class ImporterTests(unittest.TestCase):
@@ -17,7 +17,7 @@ class ImporterTests(unittest.TestCase):
         self.assertEqual(_validate_csv(raw, "test"), 3)
 
     def test_empty_csv_is_rejected(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ImportErrorSafe):
             _validate_csv(b"", "test")
 
 
