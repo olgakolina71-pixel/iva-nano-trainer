@@ -60,7 +60,7 @@ def sentiment_lines(path):
         raise ValueError(f"{path}: no usable sentiment rows; expected term and tag")
 
 
-def prepare(assoc_csv, sentiment_csv, output_dir):
+def prepare(assoc_csv, sentiment_csv, output_dir, manifest_path):
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
     text_path = out / "kartaslov_auxiliary.txt"
@@ -87,8 +87,9 @@ def prepare(assoc_csv, sentiment_csv, output_dir):
             "limitations": "Auxiliary lexical examples only; not a general-purpose Russian conversation corpus."
         }]
     }
-    manifest_path = out / "manifest.json"
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    manifest_file = Path(manifest_path)
+    manifest_file.parent.mkdir(parents=True, exist_ok=True)
+    manifest_file.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return {"sentences": len(lines), "text": str(text_path), "manifest": str(manifest_path)}
 
 
@@ -96,9 +97,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--assoc-csv")
     parser.add_argument("--sentiment-csv")
-    parser.add_argument("--output-dir", default="data")
+    parser.add_argument("--output-dir", default="data/raw")
+    parser.add_argument("--manifest", default="data/manifest.json")
     args = parser.parse_args()
-    result = prepare(args.assoc_csv, args.sentiment_csv, args.output_dir)
+    result = prepare(args.assoc_csv, args.sentiment_csv, args.output_dir, args.manifest)
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
