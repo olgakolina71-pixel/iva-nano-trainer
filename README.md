@@ -137,7 +137,7 @@ After adding enough reviewed, diverse Russian text and approving its manifest en
 python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --manifest data/hf_manifest.json --out-dir checkpoints
 ```
 
-The default Nano run refuses corpora below 100M tokens. The configured schedule is 100,000 optimizer steps. Do not launch this on a short-lived CPU runner and expect a useful model.
+The default Nano run refuses corpora below 100M tokens. The configured schedule is 50,000 optimizer steps. At batch size 2, gradient accumulation 8, and 1,024 tokens per sequence, that is approximately 819 million token exposures. Do not launch this on a short-lived CPU runner and expect a useful model.
 
 ### Instruction fine-tuning
 
