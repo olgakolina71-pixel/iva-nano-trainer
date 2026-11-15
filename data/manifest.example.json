@@ -1,0 +1,11 @@
+{
+  "datasets": [
+    {
+      "id": "replace-with-real-dataset-id",
+      "path": "data/raw/example.txt",
+      "license": "replace-with-exact-license",
+      "attribution": "replace-with-required-attribution-and-source",
+      "use": "training"
+    }
+  ]
+}
