@@ -75,6 +75,16 @@ A manual GitHub Actions workflow is available at **Actions → IVA Micro data-an
 
 This is a pipeline test, **not IVA Nano 40M training** and not proof of fluent Russian. Its purpose is to verify end-to-end data import, tokenizer creation, optimization, checkpoint saving, and generation without requiring R2 or a GPU. The workflow is manual so it does not consume runner time on every code change.
 
+## Evaluate a trained checkpoint
+
+After a checkpoint and its matching tokenizer exist, evaluate it on a deterministic held-out 5% split of the approved corpus and save sample generations:
+
+```bash
+python evaluate.py --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt --tokenizer checkpoints/iva_tokenizer.model --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --manifest data/hf_manifest.json --output checkpoints/evaluation_report.json
+```
+
+The report includes held-out cross-entropy, perplexity, checkpoint metadata, and three fixed prompt samples. Perplexity measures fit to the evaluation corpus; it does not prove factual accuracy or instruction-following. Read the generated samples manually.
+
 ## Generate text
 
 After a checkpoint and tokenizer have been trained, run:
