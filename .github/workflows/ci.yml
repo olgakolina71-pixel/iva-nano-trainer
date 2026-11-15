@@ -19,7 +19,7 @@ jobs:
           cache: "pip"
       - run: pip install -r requirements.txt
       - name: Compile Python files
-        run: python -m compileall -q iva_nano train.py generate.py chat.py import_datasets.py import_hf_datasets.py prepare_auxiliary_text.py prepare_sft.py tests
+        run: python -m compileall -q iva_nano train.py generate.py chat.py evaluate.py import_datasets.py import_hf_datasets.py prepare_auxiliary_text.py prepare_sft.py tests
       - name: Run importer tests
         run: python -m unittest discover -s tests -v
       - name: Check model forward pass
