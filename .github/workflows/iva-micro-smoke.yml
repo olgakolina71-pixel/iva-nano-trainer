@@ -26,7 +26,7 @@ jobs:
         run: python train.py --config configs/iva_micro_smoke.yaml --data-dir data/raw --manifest data/manifest.json --out-dir checkpoints
       - name: Generate a diagnostic continuation
         run: |
-          python generate.py --checkpoint checkpoints/artifacts/iva_nano_checkpoint.pt --tokenizer checkpoints/iva_micro_smoke.model --prompt "Слово «кот» вызывает ассоциацию" --max-new-tokens 30 --device cpu | tee checkpoints/artifacts/generation_sample.txt
+          python generate.py --checkpoint checkpoints/artifacts/iva_micro_checkpoint.pt --tokenizer checkpoints/iva_micro_smoke.model --prompt "Слово «кот» вызывает ассоциацию" --max-new-tokens 30 --device cpu | tee checkpoints/artifacts/generation_sample.txt
       - name: Capture Cloudflare API status
         continue-on-error: true
         run: |
