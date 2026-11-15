@@ -43,6 +43,20 @@ Full IVA Nano training now refuses to start unless the tokenized corpus contains
 
 A candidate Russian-language source is [Imperius/ru-classic](https://huggingface.co/datasets/Imperius/ru-classic). Its dataset card declares CC0 for the compilation and describes 866 MB of cleaned Russian classical literature from 61 authors. It is useful for learning Russian prose style, but the card explicitly warns that it is not intended for modern factual QA and may contain rare OCR artifacts. Review the dataset card and underlying rights before use; it is not a modern conversation corpus. Do not mix it with the existing CC BY-NC-SA KartaSlov data without preserving each source's separate license and attribution metadata.
 
+## Import additional Russian datasets
+
+A separate manual workflow is available at **Actions → IVA dataset acquisition → Run workflow**. It streams bounded subsets of three dataset-card-CC0 sources into separate UTF-8 text files and produces `data/hf_manifest.json` with per-source provenance. The workflow uploads the snapshots and manifest as a 7-day artifact. It does not train IVA Nano.
+
+To run locally:
+
+```bash
+pip install -r requirements.txt
+python import_hf_datasets.py
+python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --manifest data/hf_manifest.json --out-dir checkpoints
+```
+
+Read [data/DATASET_SOURCES.md](data/DATASET_SOURCES.md) before use. The importer keeps the sources separate and does not include the KartaSlov non-commercial dataset, forum posts, or sources with unclear rights.
+
 ## Train
 
 Put reviewed, permitted UTF-8 text files under `data/raw/` and create `data/manifest.json` with license and attribution for every source. Then:
