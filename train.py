@@ -14,7 +14,7 @@ from iva_nano.storage import LocalArtifactStore
 
 
 def learning_rate_at_step(step, cfg):
-    """Linear warmup followed by cosine decay to min_learning_rate."""
+    """Linear warmup followed by cosine decay."""
     base = float(cfg["learning_rate"])
     minimum = float(cfg.get("min_learning_rate", base))
     warmup = int(cfg.get("warmup_steps", 0))
@@ -28,7 +28,7 @@ def learning_rate_at_step(step, cfg):
 
 
 @torch.no_grad()
-def evaluate(model, loader, device, max_batches=20):
+def evaluate(model, loader, device, max_batches=100):
     if loader is None:
         return None
     model.eval()
@@ -42,28 +42,35 @@ def evaluate(model, loader, device, max_batches=20):
     return sum(losses) / len(losses) if losses else None
 
 
-def save_checkpoint(store, name, model, optimizer, config, step):
+def save_checkpoint(store, name, model, optimizer, config, step, tokenizer_path):
     return store.save_checkpoint(name, {
         "model": model.state_dict(),
         "optimizer": optimizer.state_dict(),
         "model_config": config["model"],
         "training_config": config["training"],
+        "model_id": config.get("model_id", "iva-nano"),
         "step": step,
         "parameter_count": model.parameter_count(),
+        "tokenizer_path": str(tokenizer_path),
     }, torch)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train IVA Nano on licensed local text.")
+    parser = argparse.ArgumentParser(description="Train or continue an IVA decoder-only language model.")
     parser.add_argument("--config", default="configs/iva_nano_40m.yaml")
     parser.add_argument("--data-dir", default="data/raw")
     parser.add_argument("--manifest", default="data/manifest.json")
     parser.add_argument("--out-dir", default="checkpoints")
+    parser.add_argument("--tokenizer-path", help="Reuse an existing SentencePiece model.")
+    parser.add_argument("--resume", help="Resume model weights and optimizer from a checkpoint.")
+    parser.add_argument("--reset-optimizer", action="store_true", help="Load model weights but start a fresh optimizer (useful for supervised fine-tuning).")
+    parser.add_argument("--additional-steps", action="store_true", help="Treat training.max_steps as extra steps after the checkpoint step.")
     parser.add_argument("--smoke-test", action="store_true")
     args = parser.parse_args()
 
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     train_cfg = config["training"]
+    model_id = config.get("model_id", "iva-nano")
     seed = int(train_cfg.get("seed", 42))
     random.seed(seed)
     torch.manual_seed(seed)
@@ -72,6 +79,8 @@ def main():
     device = ("cuda" if torch.cuda.is_available() else "cpu") if device_name == "auto" else device_name
     if device == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA was requested but is not available")
+    if device not in {"cpu", "cuda"}:
+        raise ValueError("training.device must be auto, cpu, or cuda")
 
     texts = load_approved_texts(args.data_dir, args.manifest)
     out_dir = Path(args.out_dir)
@@ -79,9 +88,12 @@ def main():
     import os
     artifact_root = Path(os.environ.get("IVA_ARTIFACT_DIR", str(out_dir / "artifacts")))
     artifact_store = LocalArtifactStore(artifact_root)
+
     tok_cfg = config["tokenizer"]
-    tokenizer_path = out_dir / (tok_cfg["model_prefix"] + ".model")
+    tokenizer_path = Path(args.tokenizer_path) if args.tokenizer_path else out_dir / (tok_cfg["model_prefix"] + ".model")
     if not tokenizer_path.exists():
+        if args.tokenizer_path:
+            raise FileNotFoundError(f"Requested tokenizer does not exist: {tokenizer_path}")
         train_tokenizer(
             texts, str(out_dir / tok_cfg["model_prefix"]),
             int(tok_cfg["vocab_size"]), tok_cfg.get("model_type", "bpe"),
@@ -92,13 +104,14 @@ def main():
         raise ValueError("Not enough tokenized text for one context block")
 
     token_count = int(dataset.tokens.numel())
-    minimum_tokens = int(train_cfg.get("minimum_training_tokens", 1_000_000))
+    minimum_tokens = int(train_cfg.get("minimum_training_tokens", 100_000_000))
+    print(f"Model ID: {model_id}")
     print(f"Corpus tokens: {token_count:,}")
     if not args.smoke_test and token_count < minimum_tokens:
         raise ValueError(
             f"Corpus is too small for full training: {token_count:,} tokens; "
             f"minimum configured threshold is {minimum_tokens:,}. "
-            "Add more reviewed, licensed text. Use --smoke-test only for pipeline checks."
+            "Add more reviewed, licensed and diverse text. Use --smoke-test only for pipeline checks."
         )
 
     eval_loader = None
@@ -109,7 +122,10 @@ def main():
             dataset, [train_size, eval_size],
             generator=torch.Generator().manual_seed(seed),
         )
-        eval_loader = DataLoader(eval_set, batch_size=1 if args.smoke_test else int(train_cfg["batch_size"]))
+        eval_loader = DataLoader(
+            eval_set,
+            batch_size=1 if args.smoke_test else int(train_cfg["batch_size"]),
+        )
     else:
         train_set = dataset
         print("Evaluation split skipped: fewer than 20 token blocks")
@@ -119,40 +135,77 @@ def main():
         train_set, batch_size=batch_size, shuffle=True,
         num_workers=int(train_cfg.get("num_workers", 0)),
     )
+    if len(loader) == 0:
+        raise ValueError("Training dataloader is empty")
 
     model = IVANano(config["model"]).to(device)
-    print(f"Parameters: {model.parameter_count():,}")
-    print(f"Device: {device}")
-    print(f"Training blocks: {len(train_set)}")
-    print(f"Evaluation blocks: {len(eval_loader.dataset) if eval_loader else 0}")
-
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=float(train_cfg["learning_rate"]),
         weight_decay=float(train_cfg["weight_decay"]),
     )
-    max_steps = 1 if args.smoke_test else int(train_cfg["max_steps"])
+    start_step = 0
+    if args.resume:
+        resume_path = Path(args.resume)
+        if not resume_path.exists():
+            raise FileNotFoundError(f"Resume checkpoint not found: {resume_path}")
+        saved = torch.load(resume_path, map_location=device, weights_only=False)
+        if saved.get("model_config") != config["model"]:
+            raise ValueError("Checkpoint model architecture does not match the selected config")
+        model.load_state_dict(saved["model"])
+        start_step = int(saved.get("step", 0))
+        if not args.reset_optimizer and saved.get("optimizer"):
+            optimizer.load_state_dict(saved["optimizer"])
+        print(f"Resumed {saved.get('model_id', 'unknown model')} at step {start_step:,}")
+
+    configured_steps = 1 if args.smoke_test else int(train_cfg["max_steps"])
+    total_steps = start_step + configured_steps if args.additional_steps else configured_steps
+    if total_steps <= start_step:
+        raise ValueError(
+            f"Checkpoint already reached step {start_step}; target is {total_steps}. "
+            "Use --additional-steps to train for more steps."
+        )
+    schedule_cfg = dict(train_cfg)
+    schedule_cfg["max_steps"] = total_steps
+
+    print(f"Parameters: {model.parameter_count():,}")
+    print(f"Device: {device}")
+    print(f"Training blocks: {len(train_set):,}")
+    print(f"Evaluation blocks: {len(eval_loader.dataset) if eval_loader else 0:,}")
+    print(f"Target optimizer steps: {total_steps:,}")
+
     accumulation = 1 if args.smoke_test else max(1, int(train_cfg.get("gradient_accumulation_steps", 1)))
     eval_interval = max(1, int(train_cfg.get("eval_interval", 100)))
     save_interval = max(1, int(train_cfg.get("save_interval", 250)))
     max_grad_norm = float(train_cfg["max_grad_norm"])
+    checkpoint_name = train_cfg.get("checkpoint_name", "iva_nano_checkpoint.pt")
 
     model.train()
     optimizer.zero_grad(set_to_none=True)
-    step = 0
-    micro_step = 0
-    running_loss = 0.0
-    metrics = {"model_id": config.get("model_id", "iva-micro"), "parameter_count": model.parameter_count(), "device": device, "max_steps": max_steps, "train_loss": [], "validation_loss": []}
-    while step < max_steps:
-        for x, y in loader:
-            lr = learning_rate_at_step(step, train_cfg) if not args.smoke_test else float(train_cfg["learning_rate"])
+    step = start_step
+    metrics = {
+        "model_id": model_id,
+        "parameter_count": model.parameter_count(),
+        "device": device,
+        "start_step": start_step,
+        "target_steps": total_steps,
+        "corpus_tokens": token_count,
+        "train_loss": [],
+        "validation_loss": [],
+    }
+
+    while step < total_steps:
+        for batch_index, (x, y) in enumerate(loader):
+            window_start = (batch_index // accumulation) * accumulation
+            window_size = min(accumulation, len(loader) - window_start)
+            lr = learning_rate_at_step(step, schedule_cfg) if not args.smoke_test else float(train_cfg["learning_rate"])
             for group in optimizer.param_groups:
                 group["lr"] = lr
             x, y = x.to(device), y.to(device)
             _, loss = model(x, y)
-            (loss / accumulation).backward()
-            running_loss += float(loss.item())
-            micro_step += 1
-            if micro_step % accumulation != 0 and step + 1 < max_steps:
+            (loss / window_size).backward()
+
+            is_update = ((batch_index + 1) % accumulation == 0) or (batch_index + 1 == len(loader))
+            if not is_update:
                 continue
 
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
@@ -160,23 +213,33 @@ def main():
             optimizer.zero_grad(set_to_none=True)
             step += 1
 
-            if step == 1 or step % 10 == 0:
-                item = {"step": step, "loss": round(running_loss / accumulation, 5), "learning_rate": lr}
+            if step == start_step + 1 or step % 10 == 0:
+                item = {"step": step, "loss": round(float(loss.item()), 5), "learning_rate": lr}
                 metrics["train_loss"].append(item)
                 print(json.dumps(item))
-            running_loss = 0.0
 
             if eval_loader and step % eval_interval == 0:
                 val_loss = evaluate(model, eval_loader, device)
                 item = {"step": step, "validation_loss": round(val_loss, 5)}
                 metrics["validation_loss"].append(item)
                 print(json.dumps(item))
+
             if step % save_interval == 0:
-                save_checkpoint(artifact_store, f"iva_nano_step_{step}.pt", model, optimizer, config, step)
-            if step >= max_steps:
+                save_checkpoint(
+                    artifact_store, f"{model_id.replace('-', '_')}_step_{step}.pt",
+                    model, optimizer, config, step, tokenizer_path,
+                )
+            if step >= total_steps:
                 break
 
-    checkpoint = save_checkpoint(artifact_store, "iva_nano_checkpoint.pt", model, optimizer, config, step)
+    final_validation = evaluate(model, eval_loader, device) if eval_loader else None
+    if final_validation is not None:
+        metrics["final_validation_loss"] = round(final_validation, 5)
+        metrics["validation_loss"].append({"step": step, "validation_loss": round(final_validation, 5)})
+
+    checkpoint = save_checkpoint(
+        artifact_store, checkpoint_name, model, optimizer, config, step, tokenizer_path,
+    )
     metrics["completed_steps"] = step
     metrics["checkpoint"] = str(checkpoint)
     metrics["final_train_loss"] = metrics["train_loss"][-1]["loss"] if metrics["train_loss"] else None
