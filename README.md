@@ -47,6 +47,12 @@ python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw --out-dir
 
 The CSV import directory is separate from `data/raw/` to prevent accidental training on unreviewed structured files.
 
+## Run the first real diagnostic training
+
+A manual GitHub Actions workflow is available at **Actions → IVA Micro data-and-training smoke run → Run workflow**. It imports only the two reviewed lexical datasets (associations and sentiment), converts them into attributed Russian examples, trains a deliberately tiny CPU model for 20 steps, generates one diagnostic continuation, and uploads the checkpoint/tokenizer as a short-lived artifact (7 days).
+
+This is a pipeline test, **not IVA Nano 40M training** and not proof of fluent Russian. Its purpose is to verify end-to-end data import, tokenizer creation, optimization, checkpoint saving, and generation without requiring R2 or a GPU. The workflow is manual so it does not consume runner time on every code change.
+
 ## Generate text
 
 After a checkpoint and tokenizer have been trained, run:
