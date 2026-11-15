@@ -131,6 +131,7 @@ def main():
     step = 0
     micro_step = 0
     running_loss = 0.0
+    metrics = {"model_id": config.get("model_id", "iva-micro"), "parameter_count": model.parameter_count(), "device": device, "max_steps": max_steps, "train_loss": [], "validation_loss": []}
     while step < max_steps:
         for x, y in loader:
             lr = learning_rate_at_step(step, train_cfg) if not args.smoke_test else float(train_cfg["learning_rate"])
@@ -150,23 +151,29 @@ def main():
             step += 1
 
             if step == 1 or step % 10 == 0:
-                print(json.dumps({
-                    "step": step,
-                    "loss": round(running_loss / accumulation, 5),
-                    "learning_rate": lr,
-                }))
+                item = {"step": step, "loss": round(running_loss / accumulation, 5), "learning_rate": lr}
+                metrics["train_loss"].append(item)
+                print(json.dumps(item))
             running_loss = 0.0
 
             if eval_loader and step % eval_interval == 0:
                 val_loss = evaluate(model, eval_loader, device)
-                print(json.dumps({"step": step, "validation_loss": round(val_loss, 5)}))
+                item = {"step": step, "validation_loss": round(val_loss, 5)}
+                metrics["validation_loss"].append(item)
+                print(json.dumps(item))
             if step % save_interval == 0:
                 save_checkpoint(artifact_store, f"iva_nano_step_{step}.pt", model, optimizer, config, step)
             if step >= max_steps:
                 break
 
     checkpoint = save_checkpoint(artifact_store, "iva_nano_checkpoint.pt", model, optimizer, config, step)
+    metrics["completed_steps"] = step
+    metrics["checkpoint"] = str(checkpoint)
+    metrics["final_train_loss"] = metrics["train_loss"][-1]["loss"] if metrics["train_loss"] else None
+    metrics_path = artifact_root / "training_metrics.json"
+    metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Saved checkpoint: {checkpoint}")
+    print(f"Saved metrics: {metrics_path}")
 
 
 if __name__ == "__main__":
