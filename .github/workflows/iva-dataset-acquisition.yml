@@ -25,7 +25,7 @@ jobs:
       - name: Upload text snapshots and provenance manifest
         uses: actions/upload-artifact@v4
         with:
-          name: iva-reviewed-russian-datasets
+          name: iva-quarantined-russian-candidates
           path: |
             data/raw/hf/
             data/hf_manifest.json
