@@ -1,3 +1,4 @@
+model_id: iva-micro-smoke
 model:
   vocab_size: 1024
   context_length: 128
@@ -14,10 +15,12 @@ tokenizer:
   model_type: bpe
 
 training:
+  checkpoint_name: iva_micro_checkpoint.pt
   seed: 42
   batch_size: 2
   gradient_accumulation_steps: 2
   max_steps: 20
+  minimum_training_tokens: 1
   learning_rate: 0.0005
   min_learning_rate: 0.00005
   weight_decay: 0.1
