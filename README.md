@@ -4,64 +4,46 @@ A separate Python/PyTorch training project for the IVA Nano language model.
 
 ## Current status
 
-This repository contains the **initial training scaffold**, not a trained 40M-parameter model. It does not contain model weights or a GPU runtime. The Cloudflare Worker remains the API/control plane; model pretraining must run on a separate machine or compute service.
+This repository contains a training scaffold and a **Cloudflare dataset import pipeline**. It is not a trained 40M-parameter model and has no hosted GPU runtime. The Cloudflare Worker is the API/control plane; PyTorch training runs separately.
 
-## Design
+## Import approved datasets
 
-- Decoder-only Transformer (GPT-style), configurable near 40M parameters.
-- SentencePiece BPE tokenizer.
-- Text-only training from local UTF-8 `.txt` files.
-- Dataset license/attribution manifest required before preparing data.
-- Checkpoints and metrics written locally.
-- GitHub Actions performs code and CPU smoke checks only; it is not a free GPU training service.
-
-## Setup
-
-Python 3.11 is recommended.
+The importer reads the Worker catalog, checks the allowlist, usage status, exact license and attribution, downloads the CSV through the Worker proxy, validates UTF-8/CSV structure, calculates SHA-256, and writes a local manifest.
 
 ```bash
-python -m venv .venv
-# Linux/macOS:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+python import_datasets.py
 ```
 
-## Prepare data
+Optional selection:
 
-Put permitted UTF-8 text files under `data/raw/`. Review the dataset terms yourself and record the source, license, attribution, and permitted use in `data/manifest.json`. Do not add private, personal, or unlicensed material.
-
-Example manifest:
-
-```json
-{
-  "datasets": [
-    {
-      "id": "example-corpus",
-      "path": "data/raw/example.txt",
-      "license": "CC BY 4.0",
-      "attribution": "Dataset author and source URL",
-      "use": "training"
-    }
-  ]
-}
+```bash
+python import_datasets.py --only assoc_safe kartaslovsent
 ```
 
-The trainer refuses to run if the manifest is missing or a dataset entry has no license or attribution. This is a basic safeguard, not legal advice.
+Files are written to `data/imported/`. The importer does not bypass the Cloudflare license gate and rejects missing or mismatched license metadata.
+
+**Important data distinction:** these four sources are not all general-purpose text corpora. Association and sentiment datasets are task-oriented; the Open Semantics hierarchy and Orfo letter matrix are auxiliary structured data. Imported CSVs are therefore marked `auxiliary_only_pending_schema_review` and are **not automatically fed into language-model pretraining**. Each schema needs a reviewed conversion/learning objective first.
+
+All four currently carry CC BY-NC-SA 4.0 metadata. This is a non-commercial, share-alike license with attribution requirements. Keep the project non-commercial unless the rights situation is separately reviewed. The importer records attribution and checks the license label, but that is not legal advice or proof of upstream ownership.
 
 ## Train
+
+Put reviewed, permitted UTF-8 text files under `data/raw/` and create `data/manifest.json` with license and attribution for every source. Then:
 
 ```bash
 python train.py --config configs/iva_nano_40m.yaml --data-dir data/raw --out-dir checkpoints
 ```
 
-The first run trains a SentencePiece tokenizer from the local text files. Keep datasets and checkpoints out of Git.
+The CSV import directory is separate from `data/raw/` to prevent accidental training on unreviewed structured files.
+
+## Model
+
+- Decoder-only Transformer, configurable near 40M parameters.
+- SentencePiece BPE tokenizer.
+- Local text training and local checkpoints.
+- GitHub Actions runs code checks and a small CPU model smoke test only; it is not a free GPU training service.
 
 ## Cloudflare integration
 
-The Cloudflare Worker should coordinate status and API requests; it should not run PyTorch pretraining inside a Worker. A future authenticated callback can publish run status and checkpoint metadata. Never commit API tokens or secrets.
-
-## Important
-
-The current scaffold is not connected to the Cloudflare dataset proxy yet. Dataset import, checksum verification, remote checkpoint storage, resumable jobs, and a secure Worker callback are planned follow-up tasks. No paid service or payment card is required to inspect or run the CPU smoke test.
+Worker catalog: `/api/datasets`; CSV proxy: `/api/datasets/{id}/raw`. The importer uses these existing routes. Do not put API tokens in Git. Large checkpoints need a separate storage/compute solution; Workers are not PyTorch pretraining machines.
