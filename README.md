@@ -27,6 +27,16 @@ Files are written to `data/imported/`. The importer does not bypass the Cloudfla
 
 All four currently carry CC BY-NC-SA 4.0 metadata. This is a non-commercial, share-alike license with attribution requirements. Keep the project non-commercial unless the rights situation is separately reviewed. The importer records attribution and checks the license label, but that is not legal advice or proof of upstream ownership.
 
+## Prepare auxiliary Russian examples
+
+After importing the approved CSVs, convert only the association and sentiment tables into attributed Russian training lines:
+
+```bash
+python prepare_auxiliary_text.py --assoc-csv data/imported/assoc_safe.csv --sentiment-csv data/imported/kartaslovsent.csv
+```
+
+This writes `data/raw/kartaslov_auxiliary.txt` and `data/manifest.json`, which match the trainer defaults. The converter expects semicolon-delimited `word/assoc/is_safe` and `term/tag` fields. It deliberately does **not** turn the semantic hierarchy or letter-frequency matrix into fake prose. The generated lines teach simple lexical associations and sentiment labels; they are a small auxiliary dataset, not enough to produce a capable conversational model. The source license remains CC BY-NC-SA 4.0, so training and derivatives must respect non-commercial and share-alike terms.
+
 ## Train
 
 Put reviewed, permitted UTF-8 text files under `data/raw/` and create `data/manifest.json` with license and attribution for every source. Then:
