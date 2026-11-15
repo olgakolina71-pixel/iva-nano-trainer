@@ -20,7 +20,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Check importer syntax
         run: python -m py_compile import_hf_datasets.py
-      - name: Stream and filter selected CC0 datasets
+      - name: Download bounded candidates; keep all pending rights review
         run: python import_hf_datasets.py
       - name: Upload text snapshots and provenance manifest
         uses: actions/upload-artifact@v4
