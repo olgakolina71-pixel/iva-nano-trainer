@@ -1,0 +1,59 @@
+{
+  "report_id": "iva-candidate-corpus-2026-11-15",
+  "source_artifact": {
+    "workflow_run_id": 43760684918,
+    "artifact_id": 14180676206,
+    "sha256": "fe2cd8de07d1de6ccd7d2954419fccfaf6c67d2410df75f54d87af8c5040642d",
+    "uncompressed_bytes": 731544685
+  },
+  "processing": "JSON-aware text normalization, whitespace normalization, exact per-source deduplication, short-record rejection, and heuristic flagging of obvious personal-data markers.",
+  "totals": {
+    "input_records": 200105,
+    "retained_records": 187288,
+    "retained_characters": 352868163,
+    "exact_duplicates_removed": 73,
+    "too_short_or_empty_rejected": 186,
+    "records_flagged_for_possible_personal_data": 12558
+  },
+  "datasets": [
+    {
+      "id": "ru_classic_cc0",
+      "input_records": 100000,
+      "retained_records": 99678,
+      "retained_characters": 36552024,
+      "duplicates_removed": 17,
+      "rejected_short": 0,
+      "flagged_possible_personal_data": 305,
+      "rights_status": "dataset_card_claim_unverified",
+      "use": "pending_rights_review"
+    },
+    {
+      "id": "ru_edutexts_cc0",
+      "input_records": 100000,
+      "retained_records": 87505,
+      "retained_characters": 316307272,
+      "duplicates_removed": 56,
+      "rejected_short": 186,
+      "flagged_possible_personal_data": 12253,
+      "rights_status": "dataset_card_claim_unverified",
+      "use": "pending_rights_review"
+    },
+    {
+      "id": "small_life_dialogues_cc0",
+      "input_records": 105,
+      "retained_records": 105,
+      "retained_characters": 8867,
+      "duplicates_removed": 0,
+      "rejected_short": 0,
+      "flagged_possible_personal_data": 0,
+      "rights_status": "dataset_card_claim_unverified",
+      "use": "pending_rights_review"
+    }
+  ],
+  "limitations": [
+    "Personal-data detection is heuristic and may have false positives and false negatives; human privacy review is still required.",
+    "Dataset-card license declarations have not been independently verified; all sources remain quarantined.",
+    "Character counts are not tokenizer token counts.",
+    "No IVA Nano pretraining or SFT was performed."
+  ]
+}
