@@ -39,7 +39,7 @@ This writes `data/raw/kartaslov_auxiliary.txt` and `data/manifest.json`, which m
 
 ## Corpus quality gate
 
-Full IVA Nano training now refuses to start unless the tokenized corpus contains at least 1,000,000 tokens (`training.minimum_training_tokens`). This is only a minimum engineering guardrail, not enough data to make a capable assistant. A serious pretraining run needs a much larger, diverse, rights-reviewed corpus; plan for tens or hundreds of millions of tokens as an initial research target, then measure validation quality.
+Full IVA Nano training now refuses to start unless the tokenized corpus contains at least 100,000,000 tokens (`training.minimum_training_tokens`). This is only a minimum engineering guardrail, not enough by itself to make a capable assistant. The initial research target is 800,000,000 tokens, with quality measured on a held-out validation set.
 
 A candidate Russian-language source is [Imperius/ru-classic](https://huggingface.co/datasets/Imperius/ru-classic). Its dataset card declares CC0 for the compilation and describes 866 MB of cleaned Russian classical literature from 61 authors. It is useful for learning Russian prose style, but the card explicitly warns that it is not intended for modern factual QA and may contain rare OCR artifacts. Review the dataset card and underlying rights before use; it is not a modern conversation corpus. Do not mix it with the existing CC BY-NC-SA KartaSlov data without preserving each source's separate license and attribution metadata.
 
