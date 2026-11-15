@@ -108,7 +108,7 @@ def extract_rows(source):
             kwargs["name"] = config
         stream = load_dataset(repo, **kwargs)
         for row in stream:
-            parts = [clean(flatten(row.get(field, "")), source["max_chars"]) for field in source["text_fields"]]
+            parts = [clean(flatten(row.get(field, "")), source["max_chars"], min_chars=80) for field in source["text_fields"]]
             text = "\\n".join(part for part in parts if part)
             if text and russian_enough(text):
                 yield text
