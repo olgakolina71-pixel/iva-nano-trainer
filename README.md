@@ -61,13 +61,13 @@ Read [data/DATASET_SOURCES.md](data/DATASET_SOURCES.md) before use. The importer
 
 ## Normalize candidate datasets (quarantine-safe)
 
-After downloading the acquisition artifact and extracting its `raw/hf/` files into the repository, normalize the JSON-encoded educational rows, preserve multi-line dialogue turns, remove exact duplicate records, and write a separate manifest:
+After downloading the acquisition artifact and extracting its `raw/hf/` files into the repository, normalize the JSON-encoded educational rows, preserve multi-line dialogue turns, remove exact duplicate records, flag obvious student-name/class identifiers, email addresses and phone numbers, and write a separate manifest:
 
 ```bash
 python prepare_candidate_corpus.py --input-dir data/raw/hf --input-manifest data/hf_manifest.json --output-dir data/normalized_candidates --output-manifest data/normalized_candidates/manifest.json
 ```
 
-This step does **not** approve any dataset. It preserves each source's license, attribution, `use`, and `rights_status`; all sources currently remain quarantined. The output is for inspection and corpus-quality analysis only until rights are independently reviewed. It does not train a model.
+This step does **not** approve any dataset. It preserves each source's license, attribution, `use`, and `rights_status`; all sources currently remain quarantined. The output is for inspection and corpus-quality analysis only until rights are independently reviewed. It does not train a model. Automated personal-data checks are only a first filter; they do not replace a human privacy review.
 
 ## Train
 
