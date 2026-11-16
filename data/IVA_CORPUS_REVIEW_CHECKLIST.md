@@ -7,7 +7,7 @@ not an approval mechanism.
 
 - Source: `Imperius/ru-classic`
 - Snapshot artifact: acquisition run `43893010799`
-- Screened candidate artifact: screening run `43897243942`
+- Screened candidate artifact: screening run `43902555939`
 - Candidate artifact name: `iva-classic-screened-candidate-pending-review`
 - Declared license: CC0 on the dataset card; this declaration is not independent
   proof that every underlying work and edition is free of third-party rights.
@@ -50,5 +50,8 @@ not an approval mechanism.
 
 **NOT APPROVED FOR TRAINING.** The privacy screening and quality/duplicate audit
 workflows produce candidate reports only. They do not verify ownership, grant
-permissions, or approve the corpus. No IVA Nano training checkpoint is created
-by these workflows.
+permissions, or approve the corpus. The screened candidate contains Tolstoy's
+`Война и мир` (including a record labelled `Первый вариант романа`), but the
+same record's editorial introduction describes modern editorial sources. This
+confirms presence, not clearance of the complete edition or corpus. No IVA Nano
+training checkpoint is created by these workflows.
