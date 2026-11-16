@@ -1,0 +1,43 @@
+name: IVA AI Academy (evaluate IVA answers)
+
+on:
+  workflow_dispatch:
+    inputs:
+      input_path:
+        description: "Repository path to a JSONL file containing real IVA answers"
+        required: true
+        default: "data/academy/iva_answers.jsonl"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate-iva:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Evaluate existing IVA answers with independent teachers
+        env:
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          LLM7_API_KEY: ${{ secrets.LLM7_API_KEY }}
+          OVH_AI_ENDPOINTS_ACCESS_TOKEN: ${{ secrets.OVH_AI_ENDPOINTS_ACCESS_TOKEN }}
+        run: |
+          python evaluate_iva_answers.py --input "${{ inputs.input_path }}" --output data/academy/evaluation_report.json
+
+      - name: Upload evaluation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-answer-evaluation-${{ github.run_number }}
+          path: data/academy/evaluation_report.json
+          if-no-files-found: warn
+          retention-days: 7
