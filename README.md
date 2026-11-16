@@ -247,3 +247,10 @@ claims are checked against the dataset card, but underlying rights and sample
 contents still require review. Sources with unresolved privacy or upstream-rights
 issues remain on hold and are never auto-imported. No dataset in this registry is
 silently enabled for training.
+
+## Download a catalogued candidate dataset
+
+Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run workflow** and select one of the five entries marked `candidate` in `data/dataset_candidates.json`. The workflow downloads the selected Hugging Face repository snapshot into a 7-day Actions artifact. It does not commit large data files into Git history and does not train the model.
+
+The workflow deliberately excludes entries marked `hold` (including education text with previously detected personal-data risks, forum posts, and mixed-provenance conversations). All downloaded snapshots remain quarantined: a dataset-card license label is not independent rights verification. Review provenance, underlying rights, privacy, schema, and sample quality before any training use. The Wikipedia candidate is CC BY-SA and the Medium-Life/everyday-dialogue candidates are CC BY; preserve attribution and comply with their license conditions.
+
