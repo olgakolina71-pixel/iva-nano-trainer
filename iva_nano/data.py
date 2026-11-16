@@ -13,6 +13,29 @@ SFT_TURN = re.compile(
 )
 
 
+
+def validate_reviewed_training_manifest(manifest_path: str):
+    """Require explicit human approval before any non-smoke training run."""
+    manifest_file = Path(manifest_path)
+    if not manifest_file.exists():
+        raise FileNotFoundError(f"Dataset manifest not found: {manifest_file}")
+    manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+    entries = manifest.get("datasets", [])
+    approved = [item for item in entries if item.get("use") == "training"]
+    if not approved:
+        raise ValueError("No dataset is explicitly approved with use='training'")
+    invalid = [
+        item.get("id", "<unknown>") for item in approved
+        if item.get("rights_status") != "reviewed_approved"
+    ]
+    if invalid:
+        raise ValueError(
+            "Training blocked: human rights review is not recorded for: "
+            + ", ".join(invalid)
+        )
+    return approved
+
+
 def load_approved_texts(data_dir: str, manifest_path: str):
     root = Path(data_dir)
     manifest_file = Path(manifest_path)
