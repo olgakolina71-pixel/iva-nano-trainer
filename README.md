@@ -355,3 +355,12 @@ python preflight_iva.py --config configs/iva_nano_40m.yaml --data-dir data/raw/h
 ```
 
 The report is saved to `reports/iva-nano-preflight.json`. It counts tokens with the matching tokenizer (or a temporary tokenizer trained only from explicitly approved sources), checks usable context blocks, and reports pending sources separately. It never changes rights-review status and never starts training. A blocked report is expected until the manifest contains reviewed, approved sources and enough text.
+
+
+## Quarantined corpus acquisition and guarded Nano pretraining
+
+The `IVA dataset acquisition and quarantine audit` workflow downloads bounded Russian-language candidate snapshots from the configured Hugging Face sources, records source metadata, and runs aggregate duplicate/language/possible-contact-data screening. The workflow artifact is named `iva-russian-corpus-quarantine` and is retained for 30 days. These files are **not approved for training**.
+
+Every candidate remains `use: pending_rights_review` and `rights_status: dataset_card_claim_unverified`. The quality audit is heuristic and cannot establish copyright clearance or guarantee removal of personal data. A reviewer must inspect source provenance, actual samples, privacy signals, and license obligations before changing a manifest entry.
+
+Full training is guarded by `validate_reviewed_training_manifest`: each source used for a non-smoke training run must explicitly have `use: training` and `rights_status: reviewed_approved`. The `IVA Nano reviewed pretraining` workflow also checks the configured minimum of 100 million tokens, runs bounded chunks (default 1,000 optimizer steps), and uploads a resumable checkpoint artifact. It does not start automatically after candidate acquisition.
