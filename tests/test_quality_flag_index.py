@@ -17,12 +17,13 @@ class QualityFlagIndexTests(unittest.TestCase):
                 "Обычная строка\n"
                 + ("А" * 12) + "\n"
                 + ("Б" * 10001) + "\n"
-                + "ошибка \\ufffd кодировки\n",
+                + "ошибка \ufffd кодировки\n",
                 encoding="utf-8",
             )
 
             report = inspect(source, index, report_path)
-            rows = [json.loads(line) for line in index.read_text(encoding="utf-8").splitlines()]
+            index_text = index.read_text(encoding="utf-8")
+            rows = [json.loads(line) for line in index_text.splitlines()]
 
         self.assertEqual(report["records_scanned"], 4)
         self.assertEqual(report["flagged_records"], 3)
@@ -31,7 +32,7 @@ class QualityFlagIndexTests(unittest.TestCase):
         self.assertIn("over_10000_characters", rows[1]["flags"])
         self.assertEqual(rows[2], {"line": 4, "flags": ["replacement_character"]})
         self.assertFalse(report["training_approved"])
-        self.assertNotIn("Б" * 10, index.read_text(encoding="utf-8"))
+        self.assertNotIn("Б" * 10, index_text)
 
 
 if __name__ == "__main__":
