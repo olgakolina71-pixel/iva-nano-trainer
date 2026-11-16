@@ -53,11 +53,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: checkpoints
       - name: Validate approved corpus and count tokens
+        env:
+          IVA_DATA_DIR: ${{ inputs.data_dir }}
+          IVA_MANIFEST: ${{ inputs.manifest }}
         run: |
           python preflight_iva.py \
             --config configs/iva_nano_40m.yaml \
-            --data-dir "${{ inputs.data_dir }}" \
-            --manifest "${{ inputs.manifest }}" \
+            --data-dir "$IVA_DATA_DIR" \
+            --manifest "$IVA_MANIFEST" \
             --tokenizer checkpoints/iva_tokenizer.model \
             --output reports/iva-nano-preflight.json
       - name: Create bounded run configuration
