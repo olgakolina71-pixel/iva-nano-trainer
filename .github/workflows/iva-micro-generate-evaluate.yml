@@ -1,0 +1,75 @@
+name: IVA Micro — generate real answers and evaluate
+
+on:
+  workflow_dispatch:
+    inputs:
+      providers:
+        description: "Independent evaluator providers"
+        required: true
+        default: "pollinations,kilo,llm7,ovh"
+        type: string
+  push:
+    paths:
+      - "generate_iva_micro_answers.py"
+      - ".github/workflows/iva-micro-generate-evaluate.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  generate-and-evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download the real IVA Micro smoke checkpoint
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-micro-smoke-artifacts
+          run-id: 43850276928
+          github-token: ${{ github.token }}
+          path: micro-artifact
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch sentencepiece
+
+      - name: Generate genuine IVA Micro answers
+        run: |
+          python generate_iva_micro_answers.py \
+            --checkpoint micro-artifact/checkpoints/artifacts/iva_micro_checkpoint.pt \
+            --tokenizer micro-artifact/checkpoints/iva_micro_smoke.model \
+            --output data/academy/iva_answers.jsonl
+
+      - name: Evaluate answers with independent AI teachers
+        env:
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          LLM7_API_KEY: ${{ secrets.LLM7_API_KEY }}
+          OVH_AI_ENDPOINTS_ACCESS_TOKEN: ${{ secrets.OVH_AI_ENDPOINTS_ACCESS_TOKEN }}
+          PROVIDERS: ${{ inputs.providers || 'pollinations,kilo,llm7,ovh' }}
+        run: |
+          python evaluate_iva_answers.py \
+            --input data/academy/iva_answers.jsonl \
+            --output data/academy/evaluation_report.json \
+            --providers "$PROVIDERS"
+
+      - name: Upload generated answers and evaluation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-micro-real-answers-evaluation-${{ github.run_number }}
+          path: |
+            data/academy/iva_answers.jsonl
+            data/academy/evaluation_report.json
+          if-no-files-found: warn
+          retention-days: 7
