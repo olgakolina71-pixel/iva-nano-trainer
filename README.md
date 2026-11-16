@@ -320,21 +320,27 @@ A separate workflow, **Actions → IVA Micro — generate real answers and evalu
 **Important:** this checkpoint is the tiny 173k-parameter IVA Micro diagnostic trained for a short CPU smoke test. It is **not IVA Nano 40M**, is not a capable assistant, and may produce incoherent text. The workflow exists to test the generation-to-evaluation pipeline honestly. The source checkpoint artifact is temporary and expires after seven days, so this one-off workflow depends on that artifact remaining available. Nothing is automatically approved for training.
 
 
-## Optional short-answer search (Russian Wikipedia)
+## Wikipedia search and learning corpus
 
-The CLI can optionally retrieve up to three short Russian Wikipedia extracts for
-each user question and place them in the model prompt. This is retrieval context,
-not training: it does not update the checkpoint, and an undertrained model may
-still fail to summarize the snippets coherently.
+There are now two separate modes:
 
-Enable it with:
+1. **Live search during chat** adds up to three short extracts to the prompt. It does not update model weights:
+   ```bash
+   python chat.py --wiki-search
+   ```
+2. **Corpus collection** downloads longer extracts with page/revision provenance so they can be reviewed and later used for training:
+   ```bash
+   python collect_wikipedia.py "нейронные сети" "физика" "история России"
+   ```
+
+The collector appends pages to `data/wikipedia_candidates/`, avoids duplicate page revisions, and writes a manifest containing each page URL, page ID, revision ID, timestamp, attribution, and license. Wikipedia text is marked **CC BY-SA 4.0** and every new entry remains `use: pending_rights_review`; collection never silently approves or trains on it. Check page notices, provenance, privacy, and the applicable license obligations before approving any page. This is a technical workflow, not legal advice.
+
+After human review, explicitly change only the approved entries in `data/wikipedia_candidates/manifest.json` to `use: training` and `rights_status: reviewed_approved`. Then the standard trainer can read this corpus:
 
 ```bash
-python chat.py --wiki-search
+python train.py --config configs/iva_nano_40m.yaml --data-dir data/wikipedia_candidates --manifest data/wikipedia_candidates/manifest.json --out-dir checkpoints
 ```
 
-The search uses the public MediaWiki API without an API key, limits result count
-and excerpt size, and continues without search if the service is unavailable.
-Retrieved page URLs are included as source references. Search snippets are
-untrusted data, not instructions. The query is sent to Wikipedia; do not include
-private or sensitive information in search questions.
+**Important:** a few search results are nowhere near enough to train IVA Nano. The full-training gate still requires at least 100 million tokenized tokens (the initial research target is 800 million). Keep collecting a large, diverse, reviewed corpus; do not bypass the gate with `--smoke-test` and call that real training. When a real compatible checkpoint exists, use `--resume` to continue training from it. GitHub Actions CPU checks are not a free GPU training service.
+
+The collector and chat search use the public MediaWiki API without an API key and continue gracefully when search is unavailable. Search queries are sent to Wikipedia; do not include private or sensitive information.
