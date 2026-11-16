@@ -1,7 +1,8 @@
 """Normalize quarantined IVA text snapshots without approving their rights.
 
-Supports newline-delimited text, JSON arrays/objects, and blank-line-separated
-dialogue turns. Every source keeps its own provenance and existing rights gate.
+The script never prints source text or detected personal information. Records with
+obvious contact details or student-identifying markers are rejected. Rights
+metadata is copied unchanged; this is preparation, not legal approval.
 """
 import argparse
 import hashlib
@@ -11,21 +12,24 @@ import re
 import unicodedata
 from pathlib import Path
 
-SPACE = re.compile(r"\s+")
+SPACE = re.compile(r"\\s+")
 CYRILLIC = re.compile(r"[А-Яа-яЁё]")
-EMAIL = re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b")
-PHONE = re.compile(r"(?<!\w)(?:\+?7|8)?[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}(?!\w)")
+EMAIL = re.compile(r"\\b[\\w.+-]+@[\\w.-]+\\.[A-Za-z]{2,}\\b")
+PHONE = re.compile(
+    r"(?<!\\w)(?:\\+?7|8)?[\\s(.-]*\\d{3}[\\s).-]*\\d{3}[\\s.-]*\\d{2}[\\s.-]*\\d{2}(?!\\w)"
+)
 STUDENT_NAME_CLASS = re.compile(
-    r'\b[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\s+\d{1,2}\s*[«"]'
+    r"\\b[А-ЯЁ][а-яё-]{2,}\\s+[А-ЯЁ][а-яё-]{2,}\\s+\\d{1,2}\\s*[«\"]"
 )
 PERSONAL_LABEL = re.compile(
-    r"\b(?:ФИО|выполнил[а]?|подготовил[а]?|ученик|ученица)\s*[:\-]?\s*"
-    r"[А-ЯЁ][а-яё-]+(?:\s+[А-ЯЁ][а-яё-]+){1,2}",
+    r"\\b(?:ФИО|выполнил[а]?|подготовил[а]?|ученик|ученица)\\s*[:\\-]?\\s*"
+    r"[А-ЯЁ][а-яё-]+(?:\\s+[А-ЯЁ][а-яё-]+){1,2}",
     re.IGNORECASE,
 )
 
 
 def has_personal_markers(text):
+    """Conservative heuristic; this is not a complete PII detector."""
     return bool(
         EMAIL.search(text)
         or PHONE.search(text)
@@ -52,7 +56,7 @@ def flatten_strings(value):
 
 def normalize_text(value):
     value = unicodedata.normalize("NFC", html.unescape(value))
-    value = value.replace("\x00", " ")
+    value = value.replace("\\x00", " ")
     return SPACE.sub(" ", value).strip()
 
 
@@ -65,10 +69,10 @@ def source_documents(path, dataset_id):
                 if line:
                     parts.append(line)
                 elif parts:
-                    yield "\n".join(parts)
+                    yield "\\n".join(parts)
                     parts = []
         if parts:
-            yield "\n".join(parts)
+            yield "\\n".join(parts)
         return
 
     with path.open(encoding="utf-8-sig") as handle:
@@ -81,7 +85,7 @@ def source_documents(path, dataset_id):
                     decoded = json.loads(line)
                     parts = flatten_strings(decoded)
                     if parts:
-                        yield "\n".join(parts)
+                        yield "\\n".join(parts)
                         continue
                 except json.JSONDecodeError:
                     pass
@@ -101,7 +105,7 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
     for entry in entries:
         dataset_id = entry.get("id")
         if not dataset_id or not entry.get("license") or not entry.get("attribution"):
-            raise ValueError(f"Missing ID, license, or attribution: {entry}")
+            raise ValueError("Every dataset needs an ID, license, and attribution")
         source_path = input_dir / Path(entry["path"]).name
         if not source_path.is_file():
             raise FileNotFoundError(source_path)
@@ -109,28 +113,32 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
         target = output_dir / f"{dataset_id}.txt"
         seen = set()
         records = characters = duplicates = rejected = personal_rejected = 0
-        with target.open("w", encoding="utf-8", newline="\n") as output:
+        with target.open("w", encoding="utf-8", newline="\\n") as output:
             for raw in source_documents(source_path, dataset_id):
                 text = normalize_text(raw)
-                if len(text) < (1 if dataset_id == "small_life_dialogues_cc0" else 40):
+                min_chars = 1 if dataset_id == "small_life_dialogues_cc0" else 40
+                if len(text) < min_chars:
                     rejected += 1
                     continue
                 letters = [c for c in text if c.isalpha()]
-                if letters and sum(bool(CYRILLIC.fullmatch(c)) for c in letters) / len(letters) < 0.20:
+                if not letters or sum(bool(CYRILLIC.fullmatch(c)) for c in letters) / len(letters) < 0.20:
                     rejected += 1
+                    continue
+                if has_personal_markers(text):
+                    personal_rejected += 1
                     continue
                 digest = hashlib.sha256(text.casefold().encode("utf-8")).digest()
                 if digest in seen:
                     duplicates += 1
                     continue
                 seen.add(digest)
-                output.write(text + "\n\n")
+                output.write(text + "\\n\\n")
                 records += 1
                 characters += len(text)
 
         if records == 0:
             target.unlink(missing_ok=True)
-            raise ValueError(f"{dataset_id}: no usable records after normalization")
+            raise ValueError(f"{dataset_id}: no usable records after normalization and privacy filtering")
 
         output_entries.append({
             **entry,
@@ -138,15 +146,18 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
             "records": records,
             "characters": characters,
             "preparation": {
-                "method": "json-aware-normalization-and-exact-dedup-v1",
+                "method": "json-aware-normalization-exact-dedup-and-obvious-pii-rejection-v2",
                 "duplicates_removed": duplicates,
-                "records_rejected": rejected,\n                "records_rejected_personal_markers": personal_rejected,
+                "records_rejected": rejected,
+                "records_rejected_personal_markers": personal_rejected,
+                "privacy_scan_note": "Heuristic only; manual privacy review is still required.",
             },
             # Deliberately preserve use/rights_status. This script never approves data.
         })
         print(
-            f"{dataset_id}: {records:,} records, {characters:,} characters, "
-            f"{duplicates:,} duplicates removed, {rejected:,} rejected, {personal_rejected:,} personal-data flagged; "
+            f"{dataset_id}: {records:,} kept, {characters:,} characters, "
+            f"{duplicates:,} duplicates removed, {rejected:,} quality rejects, "
+            f"{personal_rejected:,} personal-marker rejects; "
             f"rights={entry.get('rights_status', 'unspecified')}"
         )
 
@@ -160,7 +171,9 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Normalize IVA candidate datasets without changing rights status.")
+    parser = argparse.ArgumentParser(
+        description="Normalize IVA candidate datasets without changing their rights status."
+    )
     parser.add_argument("--input-dir", default="data/raw/hf")
     parser.add_argument("--input-manifest", default="data/hf_manifest.json")
     parser.add_argument("--output-dir", default="data/normalized_candidates")
