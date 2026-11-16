@@ -9,9 +9,9 @@ import re
 from pathlib import Path
 
 CYRILLIC = re.compile(r"[А-Яа-яЁё]")
-EMAIL = re.compile(r"(?i)\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b")
-PHONE = re.compile(r"(?<!\\w)(?:\\+?\\d[\\d ()-]{8,}\\d)(?!\\w)")
-LONG_REPEAT = re.compile(r"(.)\\1{11,}")
+EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
+PHONE = re.compile(r"(?<!\w)(?:\+?\d[\d ()-]{8,}\d)(?!\w)")
+LONG_REPEAT = re.compile(r"(.)\1{11,}")
 
 
 def audit(manifest_path, root_dir):
