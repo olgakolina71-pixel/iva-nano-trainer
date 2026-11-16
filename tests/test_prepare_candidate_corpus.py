@@ -39,9 +39,9 @@ class CandidateCorpusTests(unittest.TestCase):
             self.assertNotIn("[", text)
 
     def test_normalization_preserves_dialogue_and_paragraph_breaks(self):
-        source = "  ### Пользователь:  \\r\\nПривет\\r\\n\\r\\n  ### IVA:\\t\\nЗдравствуйте  "
+        source = "  ### Пользователь:  \r\nПривет\r\n\r\n  ### IVA:\t\nЗдравствуйте  "
         normalized = normalize_text(source)
-        self.assertEqual(normalized, "### Пользователь:\\nПривет\\n\\n### IVA:\\nЗдравствуйте")
+        self.assertEqual(normalized, "### Пользователь:\nПривет\n\n### IVA:\nЗдравствуйте")
 
     def test_dialogue_turns_stay_together(self):
         with tempfile.TemporaryDirectory() as tmp:
