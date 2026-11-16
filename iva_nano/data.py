@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 
 
 SFT_TURN = re.compile(
-    r"### Пользователь:\\s*\\n(.*?)\\n### IVA:\\s*\\n(.*?)(?=\\n### Пользователь:\\s*\\n|\\Z)",
+    r"### Пользователь:\s*\n(.*?)\n### IVA:\s*\n(.*?)(?=\n### Пользователь:\s*\n|\\Z)",
     re.DOTALL,
 )
 
@@ -51,7 +51,7 @@ def train_tokenizer(texts, prefix: str, vocab_size: int, model_type: str = "bpe"
     prefix_path = Path(prefix)
     prefix_path.parent.mkdir(parents=True, exist_ok=True)
     corpus = prefix_path.with_suffix(".training.txt")
-    corpus.write_text("\\n".join(texts), encoding="utf-8")
+    corpus.write_text("\n".join(texts), encoding="utf-8")
     spm.SentencePieceTrainer.train(
         input=str(corpus),
         model_prefix=str(prefix_path),
@@ -87,14 +87,14 @@ def encode_training_texts(texts, tokenizer, assistant_only=False):
 
     examples = 0
     for source_text in texts:
-        documents = re.split(r"\\n\\s*\\n", source_text)
+        documents = re.split(r"\n\s*\n", source_text)
         for document in documents:
             for match in SFT_TURN.finditer(document.strip()):
                 user_text = match.group(1).strip()
                 assistant_text = match.group(2).strip()
                 if not user_text or not assistant_text:
                     continue
-                prompt = f"### Пользователь:\\n{user_text}\\n### IVA:\\n"
+                prompt = f"### Пользователь:\n{user_text}\n### IVA:\n"
                 prompt_ids = tokenizer.encode(prompt, out_type=int)
                 answer_ids = tokenizer.encode(assistant_text, out_type=int)
                 if not prompt_ids or not answer_ids:
