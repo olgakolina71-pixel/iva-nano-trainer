@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "policy": {
+    "meaning_of_free": "Prefer CC0 or documented public-domain material. A dataset with no license information is not automatically free to use.",
+    "approval_rule": "A dataset is not approved for training solely because a Hugging Face card displays a license. Check source provenance, sample contents, personal data, duplicates, and all upstream licenses.",
+    "statuses": [
+      "candidate",
+      "hold",
+      "excluded"
+    ],
+    "training_enabled": false
+  },
+  "datasets": [
+    {
+      "id": "imperius_ru_classic",
+      "hf_id": "Imperius/ru-classic",
+      "url": "https://huggingface.co/datasets/Imperius/ru-classic",
+      "language": "ru",
+      "role": "pretraining",
+      "declared_license": "CC0-1.0",
+      "reported_size": "866 MB; 6.9M rows",
+      "provenance_claim": "Russian classical literature from lib.ru; card states original works are public domain and compilation is CC0.",
+      "status": "candidate",
+      "reasons": [
+        "Strongest current candidate for Russian prose pretraining.",
+        "Old literary language; not a modern dialogue or factual-QA dataset.",
+        "Run OCR, duplication, and sample-quality checks before approval."
+      ]
+    },
+    {
+      "id": "sonexa_small_life_ru_eng",
+      "hf_id": "SonexaAI/Small-Life-Dataset-ru-eng",
+      "url": "https://huggingface.co/datasets/SonexaAI/Small-Life-Dataset-ru-eng",
+      "language": [
+        "ru",
+        "en"
+      ],
+      "role": "sft",
+      "declared_license": "CC0-1.0",
+      "reported_size": "50,000 dialogues; about 15 MB",
+      "provenance_claim": "Dataset card describes generated bilingual general-chat and coding dialogues.",
+      "status": "candidate",
+      "reasons": [
+        "Potential instruction/dialogue examples.",
+        "Inspect for repetitive templates, fabricated facts, and actual Russian share before use."
+      ]
+    },
+    {
+      "id": "sonexa_medium_life_ru_eng",
+      "hf_id": "SonexaAI/Medium-Life-Dataset-ru-eng",
+      "url": "https://huggingface.co/datasets/SonexaAI/Medium-Life-Dataset-ru-eng",
+      "language": [
+        "ru",
+        "en"
+      ],
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "150,000 dialogues; 140,000 train and 10,000 test",
+      "provenance_claim": "Dataset card describes programmatically generated bilingual coding and general-chat dialogues.",
+      "status": "candidate",
+      "reasons": [
+        "Potential supervised instruction data; preserve attribution and license notice.",
+        "Filter Russian examples and inspect quality before approval."
+      ]
+    },
+    {
+      "id": "kukunechka_russian_everyday_dialogues",
+      "hf_id": "kukunechka/russian-everyday-dialogues",
+      "url": "https://huggingface.co/datasets/kukunechka/russian-everyday-dialogues",
+      "language": "ru",
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "Dataset card does not establish a large corpus",
+      "provenance_claim": "Author says dialogues were written by a native Russian speaker.",
+      "status": "candidate",
+      "reasons": [
+        "Useful modern everyday Russian style.",
+        "Small; preserve author attribution and inspect examples."
+      ]
+    },
+    {
+      "id": "atbuba_ruwiki",
+      "hf_id": "atBuba/ruwiki-dataset",
+      "url": "https://huggingface.co/datasets/atBuba/ruwiki-dataset",
+      "language": "ru",
+      "role": "pretraining",
+      "declared_license": "CC-BY-SA-4.0",
+      "reported_size": "1,855,155 articles; about 642M words; 4.34 GB text",
+      "provenance_claim": "Prepared from official Russian Wikipedia dumps.",
+      "status": "candidate",
+      "reasons": [
+        "Large encyclopedic Russian text source.",
+        "Requires attribution and ShareAlike compliance; not a no-conditions dataset.",
+        "Review page-level imported-source notices and remove non-text/media material."
+      ]
+    },
+    {
+      "id": "nyuuzyou_edutexts",
+      "hf_id": "nyuuzyou/edutexts",
+      "url": "https://huggingface.co/datasets/nyuuzyou/edutexts",
+      "language": [
+        "ru",
+        "uk",
+        "en"
+      ],
+      "role": "pretraining",
+      "declared_license": "CC0-1.0",
+      "reported_size": "1,382,645 entries; about 304 MB",
+      "provenance_claim": "Dataset card claims public-domain dedication.",
+      "status": "hold",
+      "reasons": [
+        "Previously inspected candidate contained personal names, school/class identifiers, and possible contact details.",
+        "Do not train until a full privacy review, redaction, and provenance review are complete."
+      ]
+    },
+    {
+      "id": "nyuuzyou_ruforum",
+      "hf_id": "nyuuzyou/ruforum",
+      "url": "https://huggingface.co/datasets/nyuuzyou/ruforum",
+      "language": "ru",
+      "role": "pretraining_candidate",
+      "declared_license": "CC0-1.0",
+      "reported_size": "58,112,681 messages; about 3.79 GB",
+      "provenance_claim": "Dataset card claims CC0 and describes public forum messages through April 2025.",
+      "status": "hold",
+      "reasons": [
+        "User-generated forum text may contain personal data, sensitive content, harassment, and copyrighted excerpts.",
+        "CC0 claim on the compilation does not by itself prove every post is cleared.",
+        "Require source-level provenance, privacy filtering, and content-safety review."
+      ]
+    },
+    {
+      "id": "inkoziev_conversations",
+      "hf_id": "inkoziev/Conversations",
+      "url": "https://huggingface.co/datasets/inkoziev/Conversations",
+      "language": "ru",
+      "role": "sft_candidate",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "About 9 million dialogues according to the dataset card",
+      "provenance_claim": "Card describes jokes, literary works, forums, and synthetic dialogue.",
+      "status": "hold",
+      "reasons": [
+        "Mixed upstream literary/forum sources require source-by-source rights review.",
+        "Do not treat the repository-level CC-BY label as proof that every underlying text is reusable."
+      ]
+    }
+  ]
+}
