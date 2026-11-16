@@ -37,6 +37,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Download previous IVA Nano checkpoint (optional)
+        if: ${{ inputs.checkpoint_run_id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-nano-first-training-checkpoint
+          run-id: ${{ inputs.checkpoint_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: checkpoints
+
       - name: Download screened IVA corpus artifact
         uses: actions/download-artifact@v4
         with:
