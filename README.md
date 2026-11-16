@@ -276,7 +276,8 @@ python academy.py --mode openai --endpoint "https://YOUR-SERVER.example/v1/chat/
 
 The GET mode sends the prompt as a URL query parameter named `prompt`, or replaces
 `{prompt}` in the endpoint path; it optionally adds `model`. The POST mode sends
-a standard chat-completions payload.
+a standard chat-completions payload. Repeat `--endpoint` to configure fallback
+servers; IVA Academy tries them in order until one returns valid pairs.
 The response must contain a JSON array with `question` and `answer` fields.
 
 Output is written to `data/academy/candidates.txt` with a manifest that explicitly
