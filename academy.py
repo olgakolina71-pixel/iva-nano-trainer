@@ -33,13 +33,19 @@ def main():
         headers["Authorization"] = "Bearer " + key
 
     if args.mode == "get":
-        parts = urllib.parse.urlsplit(args.endpoint)
-        query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
-        query.append(("prompt", prompt))
-        if args.model != "default":
-            query.append(("model", args.model))
-        url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path,
-                                       urllib.parse.urlencode(query), parts.fragment))
+        if "{prompt}" in args.endpoint:
+            url = args.endpoint.replace("{prompt}", urllib.parse.quote(prompt, safe=""))
+            if args.model != "default":
+                separator = "&" if "?" in url else "?"
+                url += separator + urllib.parse.urlencode({"model": args.model})
+        else:
+            parts = urllib.parse.urlsplit(args.endpoint)
+            query = urllib.parse.parse_qsl(parts.query, keep_blank_values=True)
+            query.append(("prompt", prompt))
+            if args.model != "default":
+                query.append(("model", args.model))
+            url = urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path,
+                                           urllib.parse.urlencode(query), parts.fragment))
         request = urllib.request.Request(url, headers=headers)
     else:
         payload = {"model": args.model, "messages": [{"role": "user", "content": prompt}]}
