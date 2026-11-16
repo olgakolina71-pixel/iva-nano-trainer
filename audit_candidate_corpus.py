@@ -30,13 +30,14 @@ def audit(manifest_path, root_dir):
             continue
 
         seen = set()
+        duplicate_scan_limit = 500000
+        duplicate_scan_skipped = 0
         records = chars = letters = cyrillic = duplicates = 0
         emails = phones = low_cyrillic = repeated = 0
-        buffer = []
 
         def consume(text):
             nonlocal records, chars, letters, cyrillic, duplicates
-            nonlocal emails, phones, low_cyrillic, repeated
+            nonlocal emails, phones, low_cyrillic, repeated, duplicate_scan_skipped
             text = text.strip()
             if not text:
                 return
@@ -44,8 +45,9 @@ def audit(manifest_path, root_dir):
             chars += len(text)
             alpha = [ch for ch in text if ch.isalpha()]
             letters += len(alpha)
-            cyrillic += sum(bool(CYRILLIC.fullmatch(ch)) for ch in alpha)
-            if alpha and sum(bool(CYRILLIC.fullmatch(ch)) for ch in alpha) / len(alpha) < 0.5:
+            cyrillic_count = sum(bool(CYRILLIC.fullmatch(ch)) for ch in alpha)
+            cyrillic += cyrillic_count
+            if alpha and cyrillic_count / len(alpha) < 0.5:
                 low_cyrillic += 1
             emails += int(bool(EMAIL.search(text)))
             phones += int(bool(PHONE.search(text)))
@@ -53,25 +55,24 @@ def audit(manifest_path, root_dir):
             digest = hashlib.sha256(text.casefold().encode("utf-8")).digest()
             if digest in seen:
                 duplicates += 1
-            else:
+            elif len(seen) < duplicate_scan_limit:
                 seen.add(digest)
+            else:
+                duplicate_scan_skipped += 1
 
+        # Process line by line so very large plain-text corpora stay memory-safe.
         with resolved.open(encoding="utf-8", errors="replace") as handle:
             for line in handle:
                 if line.strip():
-                    buffer.append(line.rstrip())
-                elif buffer:
-                    consume("\n".join(buffer))
-                    buffer.clear()
-            if buffer:
-                consume("\n".join(buffer))
+                    consume(line.rstrip())
 
         results.append({
             "id": entry.get("id"), "use": entry.get("use"),
             "rights_status": entry.get("rights_status"),
             "records": records, "characters": chars,
             "cyrillic_letter_share": round(cyrillic / letters, 4) if letters else 0,
-            "exact_duplicates": duplicates,
+            "duplicate_records_detected": duplicates,
+            "duplicate_scan_skipped_after_limit": duplicate_scan_skipped,
             "possible_email_records": emails, "possible_phone_records": phones,
             "low_cyrillic_records": low_cyrillic,
             "long_character_repeat_records": repeated,
