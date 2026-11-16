@@ -20,7 +20,7 @@ def count_model_parameters(model_cfg):
     context = int(model_cfg["context_length"])
     layers = int(model_cfg["n_layers"])
     ratio = int(model_cfg["mlp_ratio"])
-    total = vocab * d + context * d + layers * (4 * d * d + 8 * d * d + 9 * d) + 2 * d
+    total = vocab * d + context * d + layers * (4 * d * d + 2 * ratio * d * d + (ratio + 5) * d) + 2 * d
     if not model_cfg.get("tie_embeddings", True):
         total += vocab * d
     return total
