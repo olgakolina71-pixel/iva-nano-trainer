@@ -73,8 +73,40 @@ def extract_pairs(raw, count):
     return valid
 
 
+def kilo_free_model(timeout):
+    """Select only a model explicitly advertised as zero-cost by Kilo's public catalog."""
+    request = urllib.request.Request(
+        "https://ai-gateway.kilo.ai/api/v1/models",
+        headers={"Accept": "application/json", "User-Agent": "IVA-AI-Academy/0.3"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        catalog = json.loads(response.read(4 * 1024 * 1024).decode("utf-8"))
+    models = catalog.get("data", []) if isinstance(catalog, dict) else []
+    free_ids = []
+    for model in models:
+        if not isinstance(model, dict) or not model.get("id"):
+            continue
+        pricing = model.get("pricing") or {}
+        if isinstance(pricing, dict):
+            values = [pricing.get("prompt"), pricing.get("completion")]
+            def is_zero(value):
+                try:
+                    return float(value) == 0.0
+                except (TypeError, ValueError):
+                    return str(value).strip().lower() in {"free", "0", "0.0"}
+            if all(is_zero(value) for value in values):
+                free_ids.append(model["id"])
+        if str(model["id"]).endswith(":free"):
+            free_ids.append(model["id"])
+    free_ids = sorted(set(free_ids))
+    if not free_ids:
+        raise RuntimeError("Kilo catalog did not advertise a model with an explicit zero price")
+    return free_ids[0]
+
+
 def ask_provider(name, count, timeout):
     cfg = PROVIDERS[name]
+    model = kilo_free_model(timeout) if name == "kilo" else cfg["model"]
     prompt = (
         f"Create exactly {count} original Russian question-answer pairs for a helpful assistant. "
         "Use varied everyday, educational, science, programming and creative topics. "
@@ -91,7 +123,7 @@ def ask_provider(name, count, timeout):
         headers["Authorization"] = "Bearer " + api_key
 
     payload = {
-        "model": cfg["model"],
+        "model": model,
         "messages": [
             {"role": "system", "content": "You generate clean supervised dialogue examples. Return valid JSON only."},
             {"role": "user", "content": prompt},
