@@ -18,11 +18,11 @@ def build_chat_prompt(tokenizer, messages, system_prompt, context_length, reserv
     retained = list(messages)
     budget = max(8, context_length - reserve_tokens)
     while True:
-        sections = [f"### Система:\\n{system_prompt}"]
+        sections = [f"### Система:\n{system_prompt}"]
         for role, content in retained:
             header = "Пользователь" if role == "user" else "IVA"
-            sections.append(f"### {header}:\\n{content}")
-        prompt = "\\n".join(sections) + "\\n### IVA:\\n"
+            sections.append(f"### {header}:\n{content}")
+        prompt = "\n".join(sections) + "\n### IVA:\n"
         ids = tokenizer.encode(prompt, out_type=int)
         if len(ids) <= budget or len(retained) <= 1:
             return ids[-budget:]
@@ -53,10 +53,10 @@ def answer(model, tokenizer, messages, system_prompt, device, max_new_tokens,
         generated.append(token_id)
         context = torch.cat([context, next_id.view(1, 1)], dim=1)
         partial = tokenizer.decode(generated)
-        if "\\n### Пользователь:" in partial or "\\n### IVA:" in partial:
+        if "\n### Пользователь:" in partial or "\n### IVA:" in partial:
             break
     result = tokenizer.decode(generated).strip()
-    for marker in ("\\n### Пользователь:", "\\n### IVA:"):
+    for marker in ("\n### Пользователь:", "\n### IVA:"):
         result = result.split(marker, 1)[0].strip()
     return result
 
@@ -107,9 +107,9 @@ def main():
     history = []
     while True:
         try:
-            user_text = input("\\nВы: ").strip()
+            user_text = input("\nВы: ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\\nДо встречи!")
+            print("\nДо встречи!")
             break
         if not user_text:
             continue
