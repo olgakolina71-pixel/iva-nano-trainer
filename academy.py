@@ -53,7 +53,11 @@ def main():
         raw = response.read(8 * 1024 * 1024 + 1)
     if len(raw) > 8 * 1024 * 1024:
         raise ValueError("Provider response too large")
-    result = json.loads(raw.decode("utf-8"))
+    decoded = raw.decode("utf-8", errors="replace")
+    try:
+        result = json.loads(decoded)
+    except json.JSONDecodeError:
+        result = decoded
     if isinstance(result, dict) and "choices" in result:
         result = result["choices"][0]["message"]["content"]
     elif isinstance(result, dict):
