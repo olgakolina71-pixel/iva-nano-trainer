@@ -15,6 +15,7 @@ tokenizer:
   model_type: bpe
 
 training:
+  objective: assistant_only
   checkpoint_name: iva_nano_sft_checkpoint.pt
   seed: 42
   batch_size: 2
