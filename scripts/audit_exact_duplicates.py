@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -26,6 +27,7 @@ def audit(path: Path) -> dict[str, int | str]:
     with tempfile.TemporaryDirectory(prefix="iva-duplicate-sort-") as temp_dir:
         process = subprocess.Popen(
             [sort_bin, "--parallel=2", "-T", temp_dir, "--", str(path)],
+            env={**os.environ, "LC_ALL": "C"},
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
