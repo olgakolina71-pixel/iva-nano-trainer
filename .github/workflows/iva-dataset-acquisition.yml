@@ -1,32 +1,57 @@
-name: IVA candidate dataset acquisition (quarantine)
+name: IVA dataset acquisition and quarantine audit
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "import_hf_datasets.py"
+      - "audit_candidate_corpus.py"
+      - ".github/workflows/iva-dataset-acquisition.yml"
+      - "requirements.txt"
 
 permissions:
   contents: read
 
+concurrency:
+  group: iva-dataset-acquisition
+  cancel-in-progress: false
+
 jobs:
-  acquire-quarantined-candidates:
+  acquire-and-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
-      - name: Install dependencies
+          cache: pip
+      - name: Install dataset dependencies
         run: pip install -r requirements.txt
-      - name: Check importer syntax
-        run: python -m py_compile import_hf_datasets.py
-      - name: Download bounded candidates; keep all pending rights review
+      - name: Acquire bounded public candidates into quarantine
         run: python import_hf_datasets.py
-      - name: Upload text snapshots and provenance manifest
+      - name: Screen text quality and privacy signals
+        run: python audit_candidate_corpus.py --manifest data/hf_manifest.json --root data/raw/hf
+      - name: Verify no candidate was auto-approved
+        run: |
+          python - <<'PY'
+          import json
+          manifest = json.load(open("data/hf_manifest.json", encoding="utf-8"))
+          for source in manifest["datasets"]:
+              assert source.get("use") == "pending_rights_review", source
+              assert source.get("rights_status") == "dataset_card_claim_unverified", source
+          print(f"Verified {len(manifest['datasets'])} candidates remain quarantined.")
+          PY
+      - name: Upload candidate corpus, provenance, and audit
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: iva-quarantined-russian-candidates
+          name: iva-russian-corpus-quarantine
           path: |
             data/raw/hf/
             data/hf_manifest.json
-          retention-days: 7
+            data/hf_import_errors.json
+            reports/candidate-quality-audit.json
+          retention-days: 30
+          if-no-files-found: warn
