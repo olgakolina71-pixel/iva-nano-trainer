@@ -9,7 +9,7 @@ import re
 from collections import Counter
 from pathlib import Path
 
-LONG_REPEAT = re.compile(r"(.)\\1{11,}")
+LONG_REPEAT = re.compile(r"(.)\1{11,}")
 
 
 def inspect(source: Path, index_path: Path, report_path: Path) -> dict:
@@ -23,13 +23,13 @@ def inspect(source: Path, index_path: Path, report_path: Path) -> dict:
     ) as index:
         for line_number, raw in enumerate(src, start=1):
             records += 1
-            value = raw.rstrip("\\r\\n")
+            value = raw.rstrip("\r\n")
             flags = []
             if len(value) > 20_000:
                 flags.append("over_20000_characters")
             elif len(value) > 10_000:
                 flags.append("over_10000_characters")
-            if "\\ufffd" in value:
+            if "\ufffd" in value:
                 flags.append("replacement_character")
             if LONG_REPEAT.search(value):
                 flags.append("long_character_repeat")
@@ -41,7 +41,7 @@ def inspect(source: Path, index_path: Path, report_path: Path) -> dict:
                     {"line": line_number, "flags": flags},
                     ensure_ascii=False,
                     separators=(",", ":"),
-                ) + "\\n")
+                ) + "\n")
 
     report = {
         "status": "quality_flag_index_for_human_review",
@@ -60,7 +60,7 @@ def inspect(source: Path, index_path: Path, report_path: Path) -> dict:
         ],
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return report
 
 
