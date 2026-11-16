@@ -32,7 +32,7 @@ def audit(path: Path) -> dict[str, int | str]:
         assert process.stdout is not None
         try:
             for raw_line in process.stdout:
-                record = raw_line[:-1] if raw_line.endswith(b"\\n") else raw_line
+                record = raw_line[:-1] if raw_line.endswith(b"\n") else raw_line
                 total += 1
                 if previous is None:
                     previous = record
@@ -86,10 +86,11 @@ def main() -> None:
     report = audit(args.source)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\\n",
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     print(json.dumps(report, ensure_ascii=False))
+
 
 
 if __name__ == "__main__":
