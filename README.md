@@ -254,3 +254,37 @@ Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run w
 
 The workflow deliberately excludes entries marked `hold` (including education text with previously detected personal-data risks, forum posts, and mixed-provenance conversations). All downloaded snapshots remain quarantined: a dataset-card license label is not independent rights verification. Review provenance, underlying rights, privacy, schema, and sample quality before any training use. The Wikipedia candidate is CC BY-SA and the Medium-Life/everyday-dialogue candidates are CC BY; preserve attribution and comply with their license conditions.
 
+## IVA AI Academy: generate teacher candidates
+
+The new `academy.py` utility can request original Russian Q&A pairs from either a
+plain-text GET inference endpoint or an OpenAI-compatible chat-completions POST
+endpoint. The provider is configurable; no provider or API key is hard-coded.
+
+Example for a GET server that accepts a `prompt` query parameter:
+
+```bash
+python academy.py --mode get --endpoint "https://YOUR-SERVER.example/generate" --provider "your-provider" --model "your-model" --count 20
+```
+
+Example for an OpenAI-compatible server:
+
+```bash
+# Set a key only if that provider requires one; never commit it to Git.
+export IVA_TEACHER_API_KEY="your-key"
+python academy.py --mode openai --endpoint "https://YOUR-SERVER.example/v1/chat/completions" --provider "your-provider" --model "your-model" --count 20
+```
+
+The GET mode sends the prompt as a URL query parameter named `prompt` and
+optionally adds `model`. The POST mode sends a standard chat-completions payload.
+The response must contain a JSON array with `question` and `answer` fields.
+
+Output is written to `data/academy/candidates.txt` with a manifest that explicitly
+sets `use: pending_review` and `rights_status: pending_review`. This is deliberate:
+review the generated answers, provider terms, privacy, and provenance before
+manually approving any data for SFT. The script does not train the model and does
+not bypass the existing manifest gate.
+
+A teacher-generated SFT corpus is not a substitute for base pretraining. The
+40M-parameter IVA Nano model still needs a trained base checkpoint before the
+recommended instruction-tuning stage. The current GitHub Actions runners are CPU
+validation environments, not free GPU training hosts.
