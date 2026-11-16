@@ -1,0 +1,39 @@
+name: IVA download candidate dataset snapshot (quarantine)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset_id:
+        description: "Choose one candidate from data/dataset_candidates.json"
+        required: true
+        type: choice
+        options:
+          - imperius_ru_classic
+          - sonexa_small_life_ru_eng
+          - sonexa_medium_life_ru_eng
+          - kukunechka_russian_everyday_dialogues
+          - atbuba_ruwiki
+
+permissions:
+  contents: read
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Hugging Face downloader
+        run: pip install "huggingface_hub>=0.24,<2"
+      - name: Download selected candidate into quarantine
+        run: python download_candidate_snapshot.py --dataset-id "${{ inputs.dataset_id }}"
+      - name: Upload quarantined source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-dataset-${{ inputs.dataset_id }}
+          path: quarantine/huggingface/${{ inputs.dataset_id }}/
+          retention-days: 7
+          if-no-files-found: error
