@@ -36,6 +36,16 @@ class PreflightTests(unittest.TestCase):
         expected = 100*32 + 16*32 + 2*(4*32*32 + 2*2*32*32 + 7*32) + 2*32
         self.assertEqual(count_model_parameters(config), expected)
 
+    def test_unreviewed_training_entry_is_blocked(self):
+        with tempfile.TemporaryDirectory() as temp:
+            manifest = Path(temp) / "manifest.json"
+            manifest.write_text(json.dumps({"datasets": [{
+                "id": "candidate", "use": "training",
+                "rights_status": "dataset_card_claim_unverified",
+            }]}), encoding="utf-8")
+            pending, blockers = inspect_manifest(manifest)
+        self.assertTrue(any("No dataset is explicitly approved" in item for item in blockers))
+
     def test_missing_manifest_blocks_training_readiness(self):
         report = audit(
             "configs/iva_nano_40m.yaml",
