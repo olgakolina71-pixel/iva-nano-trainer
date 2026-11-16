@@ -212,3 +212,18 @@ Checkpoints include model ID, architecture, optimizer state, step count, paramet
 ## Honest project status
 
 The repository now contains the staged model/training/inference pipeline, but **there is still no trained IVA Nano checkpoint**. The previous successful run trained only IVA Micro (173,312 parameters) for 20 CPU steps on lexical examples. It did not pretrain Nano or verify conversational quality. A real Nano model will exist only after a long GPU training run on a rights-reviewed corpus, followed by instruction tuning and evaluation.
+
+
+## Chat quality improvements (2026-11-16)
+
+The generation client now supports nucleus (top-p) sampling, repetition penalty, and
+three-token repetition blocking. The CLI prints only the generated continuation rather
+than echoing the prompt. The chat client preserves the system instruction and newest
+user turn when the context window fills, and uses the same decoding safeguards.
+
+These are inference-quality safeguards, not new learned knowledge. They can reduce
+looping and prompt truncation, but they cannot make an undertrained model fluent.
+The 200-step Micro checkpoint is still only a pipeline diagnostic and must not be
+presented as a capable assistant. The next model-quality milestone requires a much
+larger rights-reviewed Russian text corpus, then a separately reviewed instruction
+conversation set and supervised fine-tuning.
