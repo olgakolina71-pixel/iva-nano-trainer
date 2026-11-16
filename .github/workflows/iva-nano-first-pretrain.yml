@@ -1,0 +1,175 @@
+name: IVA Nano first pretraining run
+
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Optimizer steps for this first run (1–100)"
+        required: true
+        default: "1"
+        type: string
+      checkpoint_run_id:
+        description: "Optional previous IVA Nano training run ID to resume"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: iva-nano-first-pretraining
+  cancel-in-progress: false
+
+jobs:
+  pretrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download screened IVA corpus artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-classic-screened-candidate-pending-review
+          run-id: 43902555939
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: candidate-artifact
+
+      - name: Place corpus in training workspace
+        run: |
+          set -euo pipefail
+          SOURCE="candidate-artifact/cleaned/ru_classic_candidate.txt"
+          test -s "$SOURCE"
+          mkdir -p data/raw/approved
+          cp "$SOURCE" data/raw/approved/ru_classic_candidate.txt
+          ls -lh data/raw/approved/ru_classic_candidate.txt
+
+      - name: Record project approval and source provenance
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = {
+              "schema_version": 1,
+              "generated_by": "IVA Nano first pretraining workflow",
+              "training_enabled": True,
+              "approval_basis": (
+                  "Project owner explicitly accepted the Hugging Face dataset card's "
+                  "CC0-1.0 declaration for Imperius/ru-classic as the basis for use. "
+                  "This records the project decision and is not an independent legal verification."
+              ),
+              "datasets": [{
+                  "id": "ru_classic_cc0",
+                  "path": "data/raw/approved/ru_classic_candidate.txt",
+                  "license": "CC0-1.0 (declared by dataset card)",
+                  "attribution": "Imperius/ru-classic — https://huggingface.co/datasets/Imperius/ru-classic",
+                  "source_url": "https://huggingface.co/datasets/Imperius/ru-classic",
+                  "use": "training",
+                  "rights_status": "reviewed_approved",
+                  "review_status": "project_owner_accepted_dataset_card_cc0_declaration",
+                  "approval_basis": (
+                      "User explicitly directed the project to proceed on the basis "
+                      "of the dataset card's CC0-1.0 declaration."
+                  ),
+                  "privacy_screening": (
+                      "Uses the screened candidate artifact from run 43902555939; "
+                      "contact-like records were quarantined by the screening workflow."
+                  ),
+                  "quality_note": (
+                      "Known replacement characters are preserved rather than guessed; "
+                      "NUL bytes are removed during token-cache preparation."
+                  )
+              }]
+          }
+          Path("data/approved_manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          PY
+
+      - name: Build streaming tokenizer and disk-backed token cache
+        run: |
+          python scripts/prepare_training_cache.py \
+            --text data/raw/approved/ru_classic_candidate.txt \
+            --tokenizer checkpoints/iva_tokenizer.model \
+            --tokens data/cache/iva_tokens.u16 \
+            --vocab-size 24000 \
+            --report reports/token-cache.json
+
+      - name: Enforce minimum token threshold
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("reports/token-cache.json").read_text(encoding="utf-8"))
+          minimum = 100_000_000
+          count = int(report["token_count"])
+          print(f"Token count: {count:,}; required: {minimum:,}")
+          if count < minimum:
+              raise SystemExit("Corpus does not meet the minimum training token threshold.")
+          PY
+
+      - name: Create bounded training configuration
+        env:
+          IVA_STEPS: ${{ inputs.steps }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import yaml
+          steps = int(os.environ["IVA_STEPS"])
+          if not 1 <= steps <= 100:
+              raise SystemExit("steps must be between 1 and 100 for this bounded first run")
+          config = yaml.safe_load(Path("configs/iva_nano_40m.yaml").read_text(encoding="utf-8"))
+          config["training"]["max_steps"] = steps
+          config["training"]["batch_size"] = 1
+          config["training"]["gradient_accumulation_steps"] = 1
+          config["training"]["eval_interval"] = steps + 1
+          config["training"]["save_interval"] = steps + 1
+          Path("/tmp/iva_nano_run.yaml").write_text(
+              yaml.safe_dump(config, allow_unicode=True, sort_keys=False), encoding="utf-8"
+          )
+          print(f"Configured {steps} optimizer step(s), batch size 1.")
+          PY
+
+      - name: Train IVA Nano from scratch or resume
+        run: |
+          if [ -f checkpoints/artifacts/iva_nano_40m_checkpoint.pt ]; then
+            python train.py \
+              --config /tmp/iva_nano_run.yaml \
+              --data-dir data/raw/approved \
+              --manifest data/approved_manifest.json \
+              --out-dir checkpoints \
+              --tokenizer-path checkpoints/iva_tokenizer.model \
+              --token-ids data/cache/iva_tokens.u16 \
+              --resume checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+              --additional-steps
+          else
+            python train.py \
+              --config /tmp/iva_nano_run.yaml \
+              --data-dir data/raw/approved \
+              --manifest data/approved_manifest.json \
+              --out-dir checkpoints \
+              --tokenizer-path checkpoints/iva_tokenizer.model \
+              --token-ids data/cache/iva_tokens.u16
+          fi
+
+      - name: Upload model checkpoint, tokenizer, and metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-first-training-checkpoint
+          path: |
+            checkpoints/
+            reports/
+          retention-days: 30
+          if-no-files-found: warn
