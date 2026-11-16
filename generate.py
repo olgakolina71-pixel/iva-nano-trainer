@@ -92,10 +92,10 @@ def generate(
         generated.append(token_id)
         context = torch.cat([context, next_id.view(1, 1)], dim=1)
         partial = tokenizer.decode(generated)
-        if "\\n### Пользователь:" in partial or "\\n### IVA:" in partial:
+        if "\n### Пользователь:" in partial or "\n### IVA:" in partial:
             break
     result = tokenizer.decode(generated).strip()
-    for marker in ("\\n### Пользователь:", "\\n### IVA:"):
+    for marker in ("\n### Пользователь:", "\n### IVA:"):
         result = result.split(marker, 1)[0].strip()
     return result
 
