@@ -294,3 +294,20 @@ approve data or train the model.
 This teacher-generated dataset is not a substitute for base pretraining. IVA Nano
 still needs a trained base checkpoint before the recommended instruction-tuning
 stage. GitHub Actions runners are CPU validation environments, not free GPU training hosts.
+
+
+## Evaluate IVA answers with independent AI teachers
+
+A separate cloud workflow is available at **Actions → IVA AI Academy (evaluate IVA answers) → Run workflow**. It sends existing IVA answers to the configured teacher providers (Pollinations, Kilo, LLM7, OVHcloud), gathers independent scores and feedback, compares score disagreement, and flags any teacher safety failure. It uploads a JSON evaluation report as a 7-day artifact.
+
+Before running it, add a UTF-8 JSONL file to the repository (default path: `data/academy/iva_answers.jsonl`). Each line must be one JSON object:
+
+```json
+{"id":"sample-001","question":"Почему небо голубое?","iva_answer":"Ответ, который выдал IVA.","reference_answer":"Необязательный проверенный эталонный ответ."}
+```
+
+The `reference_answer` field is optional. Do not use the example text as a real IVA result. The evaluator does not call IVA itself: it only grades answers already present in the JSONL file. At present, IVA Nano has no trained checkpoint, so real Nano answers cannot be collected until a model checkpoint and inference service exist.
+
+Each teacher scores from 1 to 5 and comments on factuality, relevance, clarity, and safety. The report includes the median score, score spread, and a review recommendation. These are triage signals, not truth guarantees: teachers can make mistakes or agree with one another incorrectly. **Nothing is automatically approved for training.** A human must inspect the original answer, teacher feedback, privacy, rights, and any suggested answer before preparing SFT data.
+
+The workflow uses the same optional GitHub Actions secrets as the generation workflow: `KILO_API_KEY`, `LLM7_API_KEY`, and `OVH_AI_ENDPOINTS_ACCESS_TOKEN`. Never put credentials in the JSONL file or commit them to Git.
