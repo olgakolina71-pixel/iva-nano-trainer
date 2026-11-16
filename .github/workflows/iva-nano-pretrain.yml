@@ -1,0 +1,112 @@
+name: IVA Nano reviewed pretraining
+
+on:
+  workflow_dispatch:
+    inputs:
+      data_dir:
+        description: "Directory containing the reviewed training text"
+        required: true
+        default: "data/raw/approved"
+        type: string
+      manifest:
+        description: "Manifest with use=training and rights_status=reviewed_approved"
+        required: true
+        default: "data/approved_manifest.json"
+        type: string
+      steps:
+        description: "Additional optimizer steps for this run (1–50000)"
+        required: true
+        default: "1000"
+        type: string
+      checkpoint_run_id:
+        description: "Optional previous Actions run ID to resume from"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: iva-nano-reviewed-pretraining
+  cancel-in-progress: false
+
+jobs:
+  pretrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install training dependencies
+        run: pip install -r requirements.txt
+      - name: Download previous checkpoint (optional)
+        if: ${{ inputs.checkpoint_run_id != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-nano-training-checkpoint
+          run-id: ${{ inputs.checkpoint_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: checkpoints
+      - name: Validate approved corpus and count tokens
+        run: |
+          python preflight_iva.py \
+            --config configs/iva_nano_40m.yaml \
+            --data-dir "${{ inputs.data_dir }}" \
+            --manifest "${{ inputs.manifest }}" \
+            --tokenizer checkpoints/iva_tokenizer.model \
+            --output reports/iva-nano-preflight.json
+      - name: Create bounded run configuration
+        env:
+          IVA_STEPS: ${{ inputs.steps }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import yaml
+          steps = int(os.environ["IVA_STEPS"])
+          if not 1 <= steps <= 50000:
+              raise SystemExit("steps must be between 1 and 50000")
+          config = yaml.safe_load(Path("configs/iva_nano_40m.yaml").read_text(encoding="utf-8"))
+          config["training"]["max_steps"] = steps
+          Path("/tmp/iva_nano_run.yaml").write_text(
+              yaml.safe_dump(config, allow_unicode=True, sort_keys=False),
+              encoding="utf-8",
+          )
+          print(f"This run will perform {steps} optimizer steps.")
+          PY
+      - name: Train IVA Nano from scratch or resume checkpoint
+        env:
+          IVA_DATA_DIR: "${{ inputs.data_dir }}"
+          IVA_MANIFEST: "${{ inputs.manifest }}"
+        run: |
+          if [ -f checkpoints/artifacts/iva_nano_40m_checkpoint.pt ]; then
+            python train.py \
+              --config /tmp/iva_nano_run.yaml \
+              --data-dir "$IVA_DATA_DIR" \
+              --manifest "$IVA_MANIFEST" \
+              --out-dir checkpoints \
+              --tokenizer-path checkpoints/iva_tokenizer.model \
+              --resume checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+              --additional-steps
+          else
+            python train.py \
+              --config /tmp/iva_nano_run.yaml \
+              --data-dir "$IVA_DATA_DIR" \
+              --manifest "$IVA_MANIFEST" \
+              --out-dir checkpoints
+          fi
+      - name: Upload checkpoint and metrics for resume
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-training-checkpoint
+          path: |
+            checkpoints/
+            reports/iva-nano-preflight.json
+          retention-days: 30
+          if-no-files-found: warn
