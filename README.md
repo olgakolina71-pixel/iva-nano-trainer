@@ -173,6 +173,34 @@ python chat.py --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt --t
 
 The CLI supports multi-turn history, `/reset`, and `/exit`. It is an inference interface, not a substitute for instruction fine-tuning. A base-pretrained model may continue text without reliably following instructions.
 
+### Serve IVA Nano over HTTP
+
+The repository includes an authenticated FastAPI inference service so a web frontend can call the same trained Python model rather than the old Cloudflare Micro demo. It requires a real trained checkpoint and matching tokenizer; it does not create or train either file.
+
+```bash
+pip install -r requirements.txt
+export IVA_CHECKPOINT=checkpoints/artifacts/iva_nano_40m_checkpoint.pt
+export IVA_TOKENIZER=checkpoints/iva_tokenizer.model
+export IVA_API_TOKEN="a-long-random-secret"
+uvicorn serve:app --host 0.0.0.0 --port 8000
+```
+
+- `GET /health` reports whether the checkpoint and tokenizer exist.
+- `POST /v1/chat` accepts multi-turn messages and requires `Authorization: Bearer <IVA_API_TOKEN>`.
+- Keep the inference service private or behind HTTPS and an authenticated gateway. Do not put the token in browser JavaScript or commit it to Git.
+- The current Cloudflare site still runs IVA Micro. It must be explicitly connected to this API before its website chat can run Nano. No Nano endpoint is live yet, and no checkpoint currently exists.
+
+Example request:
+
+```json
+{
+  "messages": [
+    {"role": "user", "content": "Привет, IVA!"}
+  ],
+  "max_new_tokens": 120
+}
+```
+
 ### Resume a pretraining run
 
 ```bash
