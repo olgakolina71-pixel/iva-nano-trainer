@@ -41,11 +41,17 @@ jobs:
             --source quarantine/data/raw/hf/ru_classic_cc0.txt \
             --output cleaned/ru_classic_candidate.txt \
             --report reports/ru_classic_cleaning_report.json
-      - name: Upload screened candidate (not approved for training)
+      - name: Audit exact duplicate records (external sort, bounded RAM)
+        run: |
+          python scripts/audit_exact_duplicates.py \
+            --source cleaned/ru_classic_candidate.txt \
+            --report reports/ru_classic_duplicate_audit.json
+      - name: Upload screened candidate and aggregate reports (not approved for training)
         uses: actions/upload-artifact@v4
         with:
           name: iva-classic-screened-candidate-pending-review
           path: |
             cleaned/ru_classic_candidate.txt
             reports/ru_classic_cleaning_report.json
+            reports/ru_classic_duplicate_audit.json
           retention-days: 30
