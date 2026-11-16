@@ -1,0 +1,55 @@
+name: IVA Wikipedia corpus collection
+
+on:
+  workflow_dispatch:
+    inputs:
+      queries:
+        description: "Темы для поиска, по одной на строку"
+        required: true
+        type: string
+        default: |
+          нейронные сети
+          физика
+          история России
+      page_limit:
+        description: "Статей на одну тему (1–10)"
+        required: true
+        type: number
+        default: 5
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Collect Wikipedia pages
+        env:
+          WIKI_QUERIES: ${{ inputs.queries }}
+          WIKI_PAGE_LIMIT: ${{ inputs.page_limit }}
+        run: |
+          python - <<'PY'
+          import os
+          from collect_wikipedia import collect
+
+          queries = [line.strip() for line in os.environ["WIKI_QUERIES"].splitlines() if line.strip()]
+          if not queries:
+              raise SystemExit("Укажите хотя бы одну тему.")
+          limit = int(os.environ["WIKI_PAGE_LIMIT"])
+          if not 1 <= limit <= 10:
+              raise SystemExit("page_limit должен быть от 1 до 10.")
+          collect(queries, output_dir="data/wikipedia_candidates", limit=limit)
+          PY
+      - name: Upload quarantined Wikipedia corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-wikipedia-candidates
+          path: data/wikipedia_candidates/
+          if-no-files-found: error
+          retention-days: 30
