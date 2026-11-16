@@ -12,7 +12,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-SPACE = re.compile(r"\s+")
+HORIZONTAL_SPACE = re.compile(r"[ \t\f\v]+")
 CYRILLIC = re.compile(r"[А-Яа-яЁё]")
 EMAIL = re.compile(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b")
 PHONE = re.compile(
@@ -55,9 +55,18 @@ def flatten_strings(value):
 
 
 def normalize_text(value):
+    """Normalize text while preserving meaningful line and paragraph boundaries."""
     value = unicodedata.normalize("NFC", html.unescape(value))
-    value = value.replace("\x00", " ")
-    return SPACE.sub(" ", value).strip()
+    value = value.replace("\r\n", "\n").replace("\r", "\n").replace("\x00", " ")
+    lines = [HORIZONTAL_SPACE.sub(" ", line).strip() for line in value.split("\n")]
+    # Keep at most one blank line between paragraphs/turns.
+    normalized = []
+    for line in lines:
+        if line or (normalized and normalized[-1] != ""):
+            normalized.append(line)
+    while normalized and normalized[-1] == "":
+        normalized.pop()
+    return "\n".join(normalized)
 
 
 def source_documents(path, dataset_id):
