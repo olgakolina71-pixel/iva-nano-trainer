@@ -274,8 +274,9 @@ export IVA_TEACHER_API_KEY="your-key"
 python academy.py --mode openai --endpoint "https://YOUR-SERVER.example/v1/chat/completions" --provider "your-provider" --model "your-model" --count 20
 ```
 
-The GET mode sends the prompt as a URL query parameter named `prompt` and
-optionally adds `model`. The POST mode sends a standard chat-completions payload.
+The GET mode sends the prompt as a URL query parameter named `prompt`, or replaces
+`{prompt}` in the endpoint path; it optionally adds `model`. The POST mode sends
+a standard chat-completions payload.
 The response must contain a JSON array with `question` and `answer` fields.
 
 Output is written to `data/academy/candidates.txt` with a manifest that explicitly
