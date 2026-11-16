@@ -8,7 +8,7 @@ import torch
 import yaml
 from torch.utils.data import DataLoader, random_split
 
-from iva_nano.data import TokenBlockDataset, load_approved_texts, train_tokenizer
+from iva_nano.data import TokenBlockDataset, load_approved_texts, train_tokenizer, validate_reviewed_training_manifest
 from iva_nano.model import IVANano
 from iva_nano.storage import LocalArtifactStore
 
@@ -82,6 +82,8 @@ def main():
     if device not in {"cpu", "cuda"}:
         raise ValueError("training.device must be auto, cpu, or cuda")
 
+    if not args.smoke_test:
+        validate_reviewed_training_manifest(args.manifest)
     texts = load_approved_texts(args.data_dir, args.manifest)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
