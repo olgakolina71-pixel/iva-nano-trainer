@@ -26,7 +26,7 @@ class CandidateAuditTests(unittest.TestCase):
             report = audit(manifest, root)
         source = report["sources"][0]
         self.assertEqual(report["status"], "quarantine_only")
-        self.assertEqual(source["exact_duplicates"], 1)
+        self.assertEqual(source["duplicate_records_detected"], 1)
         self.assertGreaterEqual(source["possible_email_records"], 1)
         self.assertTrue(source["review_required"])
         self.assertEqual(source["use"], "pending_rights_review")
