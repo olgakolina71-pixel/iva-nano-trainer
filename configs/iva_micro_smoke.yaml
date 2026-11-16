@@ -19,7 +19,7 @@ training:
   seed: 42
   batch_size: 2
   gradient_accumulation_steps: 2
-  max_steps: 20
+  max_steps: 200
   minimum_training_tokens: 1
   learning_rate: 0.0005
   min_learning_rate: 0.00005
