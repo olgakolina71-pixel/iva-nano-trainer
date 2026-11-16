@@ -328,7 +328,7 @@ There are now two separate modes:
    ```bash
    python chat.py --wiki-search
    ```
-2. **Corpus collection** downloads longer extracts with page/revision provenance so they can be reviewed and later used for training:
+2. **Corpus collection** downloads longer extracts with page/revision provenance so they can be reviewed and later used for training. You can run it in the cloud from **Actions → IVA Wikipedia corpus collection → Run workflow** (enter topics, one per line); the result is uploaded as the `iva-wikipedia-candidates` artifact for 30 days. The command-line equivalent is:
    ```bash
    python collect_wikipedia.py "нейронные сети" "физика" "история России"
    ```
