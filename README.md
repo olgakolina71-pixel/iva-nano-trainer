@@ -311,3 +311,10 @@ The `reference_answer` field is optional. Do not use the example text as a real 
 Each teacher scores from 1 to 5 and comments on factuality, relevance, clarity, and safety. The report includes the median score, score spread, and a review recommendation. These are triage signals, not truth guarantees: teachers can make mistakes or agree with one another incorrectly. **Nothing is automatically approved for training.** A human must inspect the original answer, teacher feedback, privacy, rights, and any suggested answer before preparing SFT data.
 
 The workflow uses the same optional GitHub Actions secrets as the generation workflow: `KILO_API_KEY`, `LLM7_API_KEY`, and `OVH_AI_ENDPOINTS_ACCESS_TOKEN`. Never put credentials in the JSONL file or commit them to Git.
+
+
+## Generate and evaluate real IVA Micro answers
+
+A separate workflow, **Actions → IVA Micro — generate real answers and evaluate**, downloads the existing IVA Micro smoke-test checkpoint, runs the actual model on three fixed questions, saves its generated text to `data/academy/iva_answers.jsonl`, and asks independent AI teachers to review those outputs. The generated answers are genuine model outputs; they are not hand-written substitutes.
+
+**Important:** this checkpoint is the tiny 173k-parameter IVA Micro diagnostic trained for a short CPU smoke test. It is **not IVA Nano 40M**, is not a capable assistant, and may produce incoherent text. The workflow exists to test the generation-to-evaluation pipeline honestly. The source checkpoint artifact is temporary and expires after seven days, so this one-off workflow depends on that artifact remaining available. Nothing is automatically approved for training.
