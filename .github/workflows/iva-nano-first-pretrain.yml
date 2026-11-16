@@ -136,8 +136,8 @@ jobs:
           from pathlib import Path
           import yaml
           steps = int(os.environ["IVA_STEPS"])
-          if not 1 <= steps <= 100:
-              raise SystemExit("steps must be between 1 and 100 for this bounded first run")
+          if not 1 <= steps <= 2250:
+              raise SystemExit("steps must be between 1 and 2250 per batch")
           config = yaml.safe_load(Path("configs/iva_nano_40m.yaml").read_text(encoding="utf-8"))
           config["training"]["max_steps"] = steps
           config["training"]["batch_size"] = 1
