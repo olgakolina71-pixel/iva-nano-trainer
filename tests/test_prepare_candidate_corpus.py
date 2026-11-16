@@ -13,8 +13,8 @@ class CandidateCorpusTests(unittest.TestCase):
             raw = root / "raw"
             raw.mkdir()
             (raw / "education.txt").write_text(
-                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\\n'
-                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\\n',
+                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\n'
+                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\n',
                 encoding="utf-8",
             )
             manifest = root / "input.json"
@@ -42,7 +42,7 @@ class CandidateCorpusTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "dialogue.txt"
             path.write_text(
-                "### Пользователь:\\nПривет\\n### IVA:\\nЗдравствуйте\\n\\n",
+                "### Пользователь:\nПривет\n### IVA:\nЗдравствуйте\n\n",
                 encoding="utf-8",
             )
             docs = list(source_documents(path, "small_life_dialogues_cc0"))
@@ -61,8 +61,8 @@ class CandidateCorpusTests(unittest.TestCase):
             raw = root / "raw"
             raw.mkdir()
             source_text = (
-                "Это достаточно длинный образовательный текст без личных сведений.\\n"
-                "Это достаточно длинный текст, контакт test@example.com для связи с автором.\\n"
+                "Это достаточно длинный образовательный текст без личных сведений.\n"
+                "Это достаточно длинный текст, контакт test@example.com для связи с автором.\n"
             )
             (raw / "education.txt").write_text(source_text, encoding="utf-8")
             manifest = root / "input.json"
