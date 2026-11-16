@@ -9,6 +9,7 @@ import yaml
 from torch.utils.data import DataLoader, random_split
 
 from iva_nano.data import TokenBlockDataset, load_approved_texts, train_tokenizer, validate_reviewed_training_manifest
+from iva_nano.memmap_data import MemmapTokenBlockDataset
 from iva_nano.model import IVANano
 from iva_nano.storage import LocalArtifactStore
 
@@ -62,6 +63,7 @@ def main():
     parser.add_argument("--manifest", default="data/manifest.json")
     parser.add_argument("--out-dir", default="checkpoints")
     parser.add_argument("--tokenizer-path", help="Reuse an existing SentencePiece model.")
+    parser.add_argument("--token-ids", help="Optional uint16 disk-backed token cache created by scripts/prepare_training_cache.py.")
     parser.add_argument("--resume", help="Resume model weights and optimizer from a checkpoint.")
     parser.add_argument("--reset-optimizer", action="store_true", help="Load model weights but start a fresh optimizer (useful for supervised fine-tuning).")
     parser.add_argument("--additional-steps", action="store_true", help="Treat training.max_steps as extra steps after the checkpoint step.")
@@ -84,7 +86,7 @@ def main():
 
     if not args.smoke_test:
         validate_reviewed_training_manifest(args.manifest)
-    texts = load_approved_texts(args.data_dir, args.manifest)
+    texts = [] if args.token_ids else load_approved_texts(args.data_dir, args.manifest)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     import os
@@ -94,21 +96,31 @@ def main():
     tok_cfg = config["tokenizer"]
     tokenizer_path = Path(args.tokenizer_path) if args.tokenizer_path else out_dir / (tok_cfg["model_prefix"] + ".model")
     if not tokenizer_path.exists():
-        if args.tokenizer_path:
+        if args.tokenizer_path or args.token_ids:
             raise FileNotFoundError(f"Requested tokenizer does not exist: {tokenizer_path}")
         train_tokenizer(
             texts, str(out_dir / tok_cfg["model_prefix"]),
             int(tok_cfg["vocab_size"]), tok_cfg.get("model_type", "bpe"),
         )
 
-    dataset = TokenBlockDataset(
-        texts, str(tokenizer_path), int(config["model"]["context_length"]),
-        assistant_only=train_cfg.get("objective", "pretraining") == "assistant_only",
-    )
+    if args.token_ids:
+        if train_cfg.get("objective", "pretraining") == "assistant_only":
+            raise ValueError("Disk-backed token cache currently supports pretraining objective only")
+        token_path = Path(args.token_ids)
+        if not token_path.is_file():
+            raise FileNotFoundError(f"Token cache does not exist: {token_path}")
+        dataset = MemmapTokenBlockDataset(
+            str(token_path), int(config["model"]["context_length"])
+        )
+    else:
+        dataset = TokenBlockDataset(
+            texts, str(tokenizer_path), int(config["model"]["context_length"]),
+            assistant_only=train_cfg.get("objective", "pretraining") == "assistant_only",
+        )
     if len(dataset) < 1:
         raise ValueError("Not enough tokenized text for one context block")
 
-    token_count = int(dataset.tokens.numel())
+    token_count = int(dataset.token_count if args.token_ids else dataset.tokens.numel())
     minimum_tokens = int(train_cfg.get("minimum_training_tokens", 100_000_000))
     print(f"Model ID: {model_id}")
     print(f"Corpus tokens: {token_count:,}")
