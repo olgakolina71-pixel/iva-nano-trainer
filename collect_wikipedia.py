@@ -67,6 +67,11 @@ def collect(queries, output_dir="data/wikipedia_candidates", limit=5):
         encoding="utf-8",
     )
     print(f"Добавлено статей: {len(added)}")
+    if not added:
+        raise RuntimeError(
+            "Wikipedia не вернула ни одной новой статьи. Проверь поисковые темы, "
+            "доступность MediaWiki API и параметры ответа; пустой корпус не считается успехом."
+        )
     print(f"Всего в карантинном корпусе: {len(entries)}")
     print(f"Манифест: {manifest_path}")
     print("Все новые материалы остаются pending_rights_review; обучение ими не запускается.")
