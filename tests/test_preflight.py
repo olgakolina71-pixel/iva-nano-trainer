@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from preflight_iva import audit, count_model_parameters, inspect_manifest
+from iva_nano.data import validate_reviewed_training_manifest
 
 
 class PreflightTests(unittest.TestCase):
@@ -43,8 +44,8 @@ class PreflightTests(unittest.TestCase):
                 "id": "candidate", "use": "training",
                 "rights_status": "dataset_card_claim_unverified",
             }]}), encoding="utf-8")
-            pending, blockers = inspect_manifest(manifest)
-        self.assertTrue(any("No dataset is explicitly approved" in item for item in blockers))
+            with self.assertRaisesRegex(ValueError, "human rights review"):
+                validate_reviewed_training_manifest(manifest)
 
     def test_missing_manifest_blocks_training_readiness(self):
         report = audit(
