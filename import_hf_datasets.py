@@ -9,6 +9,7 @@ a dataset-card license declaration is not independent proof of underlying rights
 import hashlib
 import json
 import re
+import shutil
 from pathlib import Path
 
 from datasets import load_dataset
@@ -22,12 +23,10 @@ SOURCES = [
     {
         "id": "ru_classic_cc0",
         "repo": "Imperius/ru-classic",
-        "kind": "text",
-        "split": "train",
-        "configs": [None],
-        "text_fields": ["text"],
-        "max_records": 100000,
-        "max_chars": 12000,
+        "kind": "file",
+        "filename": "corpus_clean.norm.txt",
+        "max_records": 0,
+        "max_chars": 0,
         "license": "CC0-1.0",
         "attribution": "Imperius/ru-classic; source and license as declared in its Hugging Face dataset card: https://huggingface.co/datasets/Imperius/ru-classic",
         "url": "https://huggingface.co/datasets/Imperius/ru-classic",
@@ -138,17 +137,30 @@ def main():
         partial = target.with_suffix(".txt.part")
         seen, count, chars = set(), 0, 0
         try:
-            with partial.open("w", encoding="utf-8") as handle:
-                for text in extract_rows(source):
-                    digest_key = hashlib.sha256(text.casefold().encode("utf-8")).hexdigest()
-                    if digest_key in seen:
-                        continue
-                    seen.add(digest_key)
-                    handle.write(text + "\n\n")
-                    count += 1
-                    chars += len(text)
-                    if count >= source["max_records"]:
-                        break
+            if source["kind"] == "file":
+                from huggingface_hub import hf_hub_download
+                cached_file = hf_hub_download(
+                    repo_id=source["repo"],
+                    filename=source["filename"],
+                    repo_type="dataset",
+                )
+                shutil.copyfile(cached_file, partial)
+                with partial.open("r", encoding="utf-8", errors="replace") as handle:
+                    for line in handle:
+                        count += 1
+                        chars += len(line)
+            else:
+                with partial.open("w", encoding="utf-8") as handle:
+                    for text in extract_rows(source):
+                        digest_key = hashlib.sha256(text.casefold().encode("utf-8")).hexdigest()
+                        if digest_key in seen:
+                            continue
+                        seen.add(digest_key)
+                        handle.write(text + "\n\n")
+                        count += 1
+                        chars += len(text)
+                        if count >= source["max_records"]:
+                            break
             if count == 0:
                 partial.unlink(missing_ok=True)
                 errors.append({"id": source["id"], "error": "No usable Russian records"})
