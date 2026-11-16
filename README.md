@@ -256,40 +256,40 @@ The workflow deliberately excludes entries marked `hold` (including education te
 
 ## IVA AI Academy: four-provider teacher rotation
 
-The `academy.py` utility can collect Russian Q&A candidates from four OpenAI-compatible
-services in sequence:
+Run the cloud workflow manually from **Actions → IVA AI Academy (four providers) → Run workflow**.
+Choose the requested total number of candidate pairs (4, 8, 12, 20, or 40). The workflow
+runs on a GitHub-hosted CPU runner, contacts providers sequentially, and uploads the
+candidate text and manifest as a 7-day artifact. It does not train IVA Nano.
 
-- Pollinations legacy endpoint: `https://text.pollinations.ai/openai`, model `openai-fast`
-- Kilo Gateway: `https://ai-gateway.kilo.ai/api/v1/chat/completions`, free model
-  `minimax/minimax-m2.1:free` (anonymous access is limited to free models)
-- LLM7: `https://api.llm7.io/v1/chat/completions`, model `default`
+The providers are configured in `academy.py`:
+
+- Pollinations legacy OpenAI-compatible endpoint: `https://text.pollinations.ai/openai`.
+  The requested 15-second cooldown is applied **only after the Pollinations attempt**.
+  This legacy API is deprecated and may reject requests; the other providers are still tried.
+- Kilo AI Gateway: `https://ai-gateway.kilo.ai/api/v1/chat/completions`.
+  The script reads the public model catalog and selects only a model explicitly marked
+  zero-cost. If none is advertised, it skips Kilo rather than risk selecting a paid model.
+- LLM7: `https://api.llm7.io/v1/chat/completions`, model alias `default`.
 - OVHcloud AI Endpoints: `https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions`,
-  model `Meta-Llama-3_3-70B-Instruct`
+  model `gpt-oss-20b`.
 
-Run the four-provider rotation locally:
-
-```bash
-python academy.py --count 20 --delay-seconds 15
-```
-
-The 20-pair target is split across the four providers (five requested from each).
-The script contacts them one at a time and waits 15 seconds between provider attempts.
-If one provider fails, the remaining providers are still tried. If a provider returns
-fewer valid pairs than requested, the final dataset may contain fewer than 20.
-
-No API key is hard-coded. Optional keys are read from environment variables:
+The workflow reads optional credentials from GitHub Actions secrets:
 `KILO_API_KEY`, `LLM7_API_KEY`, and `OVH_AI_ENDPOINTS_ACCESS_TOKEN`.
-Pollinations legacy and anonymous free-tier calls are attempted without a key.
-Kilo anonymous access is only for free models. OVHcloud documents an anonymous
-limit of 2 requests/minute per IP and per model, while its standard setup also
-documents account/key requirements; a no-key request may therefore be rejected
-depending on the available anonymous route. LLM7's free quotas and model availability
-can change. A 15-second pause is conservative pacing, not a guarantee of unlimited use.
+To add one, open the repository's **Settings → Secrets and variables → Actions**.
+Never put API keys in source files, workflow inputs, or logs. LLM7 may require a free
+token depending on its current access policy. OVHcloud documents an anonymous limit
+of 2 requests per minute per IP and model; its authenticated quota is different.
+Provider availability and free quotas can change, so none of these services should be
+described as unlimited.
 
-The script writes `data/academy/candidates.txt` and a manifest with
-`use: pending_review` and `rights_status: pending_review`. It does not approve
-or train on generated text. Review answer quality, privacy, provider terms, and
-dataset rights before manually approving any examples for SFT.
+The total requested pair count is divided across the selected providers. Failed
+providers are recorded in the manifest while the remaining providers are still tried.
+If every provider fails, the workflow fails without creating a dataset artifact.
+
+The output manifest always uses `use: pending_review` and
+`rights_status: pending_review`. Review generated answers, provider terms, privacy,
+and provenance before manually approving any examples for SFT. The script does not
+approve data or train the model.
 
 This teacher-generated dataset is not a substitute for base pretraining. IVA Nano
 still needs a trained base checkpoint before the recommended instruction-tuning
