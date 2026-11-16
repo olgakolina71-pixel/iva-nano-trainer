@@ -32,12 +32,13 @@
         "checked_at": "2026-11-17",
         "declared_license": "CC0-1.0",
         "evidence_url": "https://huggingface.co/datasets/Imperius/ru-classic",
-        "assessment": "Dataset card declares the compilation CC0 and says underlying classical works are public domain. This is a source claim, not independent verification of every text, edition, translation, annotation, or editorial contribution.",
-        "decision": "pending_rights_review",
+        "assessment": "Current dataset card declares CC0-1.0 for the compilation, describes 866 MB from lib.ru and 61 authors, and lists Leo Tolstoy among the included authors (38 MB). This supports Tolstoy material being present, but the card does not list individual titles, so it does not prove that War and Peace specifically is in the snapshot. Underlying text rights and edition-level provenance still need validation.",
+        "decision": "candidate_pending_item_level_provenance",
         "required_checks": [
-          "Verify author death dates and public-domain status for every included work in relevant jurisdictions.",
-          "Identify editions, translations, introductions, annotations, and editorial additions with separate rights.",
-          "Review source provenance and a representative sample."
+          "Inspect corpus records or source manifest to confirm exact titles, including War and Peace.",
+          "Verify each included work's author and public-domain status; check edition, translation, annotations, and editorial additions.",
+          "Review OCR, replacement characters, long records, duplicate patterns, and samples from beginning, middle, and end.",
+          "Keep all sources out of training until source-level rights, privacy, and quality review is complete."
         ]
       }
     },
