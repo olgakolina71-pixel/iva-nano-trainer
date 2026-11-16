@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 
 
 SFT_TURN = re.compile(
-    r"### Пользователь:\s*\n(.*?)\n### IVA:\s*\n(.*?)(?=\n### Пользователь:\s*\n|\\Z)",
+    r"### Пользователь:\s*\n(.*?)\n### IVA:\s*\n(.*?)(?=\n### Пользователь:\s*\n|$)",
     re.DOTALL,
 )
 
