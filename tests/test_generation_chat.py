@@ -14,6 +14,9 @@ class FakeTokenizer:
     def bos_id(self):
         return 1
 
+    def eos_id(self):
+        return 3
+
 
 class GenerationTests(unittest.TestCase):
     def test_top_k_one_selects_highest_logit(self):
@@ -30,7 +33,9 @@ class GenerationTests(unittest.TestCase):
             logits, [1, 2, 3, 1, 2], temperature=1.0, top_k=1,
             top_p=1.0, repetition_penalty=1.0, no_repeat_ngram_size=3,
         )
-        self.assertEqual(int(token.item()), 4)
+        # The existing suffix is [1, 2], so token 3 would repeat [1, 2, 3].
+        self.assertNotEqual(int(token.item()), 3)
+        self.assertEqual(int(token.item()), 2)
 
     def test_invalid_top_p_is_rejected(self):
         with self.assertRaises(ValueError):
