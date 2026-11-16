@@ -3,7 +3,7 @@
   "generated_by": "IVA Nano maintainer review",
   "reviewed_at": "2026-11-17",
   "training_enabled": false,
-  "policy": "All entries remain quarantined. Do not change use to training or rights_status to reviewed_approved until provenance, upstream rights, privacy, and sample quality have been reviewed by a human maintainer.",
+  "policy": "No source is approved for training yet. This review confirms that War and Peace text is present in the classic candidate, but the complete source file contains edition-level editorial material and still needs rights, privacy, and quality review.",
   "datasets": [
     {
       "id": "ru_classic_cc0",
@@ -14,8 +14,22 @@
       "use": "pending_rights_review",
       "rights_status": "dataset_card_claim_unverified",
       "license_review": "Dataset card declares CC0 for the compilation and public-domain status for original works. Verify each included work and any modern edition, translation, annotation, or editorial contribution.",
-      "review_status": "candidate_pending_rights_review",
-      "notes": "Primary Russian literary pretraining candidate. Preserve long records for priority review; do not remove them merely due to length."
+      "review_status": "pending_edition_level_rights_and_quality_review",
+      "notes": "War and Peace is confirmed in the screened candidate. Preserve long records; do not approve the whole source until modern editorial additions and exact source provenance are cleared.",
+      "corpus_inspection": {
+        "checked_at": "2026-11-17",
+        "artifact": "iva-classic-screened-candidate-pending-review",
+        "workflow_run": "43902555939",
+        "artifact_id": 14241728059,
+        "local_snapshot_sha256": "not_recorded_in_artifact_manifest",
+        "finding_war_and_peace": "confirmed_in_candidate_text",
+        "evidence": [
+          "The screened candidate contains a section headed 'Война и мир. Первый вариант романа' at line 3075971.",
+          "Lines 3075979-3075994 describe the edition's editorial preparation, source materials, and publication history.",
+          "The main novel text appears in the same candidate, with its ending immediately before the next titled record at line 3437321."
+        ],
+        "caveat": "The presence of Tolstoy's public-domain original does not clear the whole file: the first-variant edition includes modern editorial framing and references to later editorial publications. Separate those materials or verify their rights before approving the full source."
+      }
     },
     {
       "id": "ru_edutexts_cc0",
