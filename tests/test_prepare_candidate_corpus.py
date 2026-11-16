@@ -13,8 +13,8 @@ class CandidateCorpusTests(unittest.TestCase):
             raw = root / "raw"
             raw.mkdir()
             (raw / "education.txt").write_text(
-                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\n'
-                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\n',
+                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\\n'
+                '["Заголовок", "Это достаточно длинный русский текст для проверки нормализации."]\\n',
                 encoding="utf-8",
             )
             manifest = root / "input.json"
@@ -42,7 +42,7 @@ class CandidateCorpusTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "dialogue.txt"
             path.write_text(
-                "### Пользователь:\nПривет\n### IVA:\nЗдравствуйте\n\n",
+                "### Пользователь:\\nПривет\\n### IVA:\\nЗдравствуйте\\n\\n",
                 encoding="utf-8",
             )
             docs = list(source_documents(path, "small_life_dialogues_cc0"))
@@ -54,6 +54,34 @@ class CandidateCorpusTests(unittest.TestCase):
         self.assertTrue(has_personal_markers("Презентацию подготовила Строковой Натальи 10 «Б»."))
         self.assertTrue(has_personal_markers("Контакт: test@example.com"))
         self.assertFalse(has_personal_markers("Объяснение принципа работы нейронной сети."))
+
+    def test_personal_markers_are_rejected_and_not_copied_to_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            raw = root / "raw"
+            raw.mkdir()
+            source_text = (
+                "Это достаточно длинный образовательный текст без личных сведений.\\n"
+                "Это достаточно длинный текст, контакт test@example.com для связи с автором.\\n"
+            )
+            (raw / "education.txt").write_text(source_text, encoding="utf-8")
+            manifest = root / "input.json"
+            manifest.write_text(json.dumps({"datasets": [{
+                "id": "ru_edutexts_cc0",
+                "path": "education.txt",
+                "license": "CC0-1.0",
+                "attribution": "source attribution",
+                "use": "pending_rights_review",
+                "rights_status": "dataset_card_claim_unverified",
+            }]}), encoding="utf-8")
+            out = root / "normalized"
+            out_manifest = out / "manifest.json"
+            prepare(raw, manifest, out, out_manifest)
+            result = json.loads(out_manifest.read_text(encoding="utf-8"))["datasets"][0]
+            self.assertEqual(result["records"], 1)
+            self.assertEqual(result["preparation"]["records_rejected_personal_markers"], 1)
+            output_text = (out / "ru_edutexts_cc0.txt").read_text(encoding="utf-8")
+            self.assertNotIn("test@example.com", output_text)
 
 
 if __name__ == "__main__":
