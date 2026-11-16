@@ -132,7 +132,7 @@ def main():
                 results = search_wikipedia(user_text)
                 search_context = format_search_context(results)
                 if search_context:
-                    prompt_text += "\\n\\n" + search_context
+                    prompt_text += "\n\n" + search_context
                     print("Найдены источники: " + ", ".join(item["title"] for item in results))
                 else:
                     print("Поиск: подходящих кратких фрагментов не найдено.")
