@@ -27,6 +27,15 @@ class PreflightTests(unittest.TestCase):
         self.assertEqual(pending[0]["id"], "candidate")
         self.assertTrue(any("No dataset is explicitly approved" in item for item in blockers))
 
+    def test_parameter_count_respects_mlp_ratio(self):
+        config = {
+            "vocab_size": 100, "context_length": 16, "d_model": 32,
+            "n_layers": 2, "n_heads": 4, "mlp_ratio": 2,
+            "tie_embeddings": True,
+        }
+        expected = 100*32 + 16*32 + 2*(4*32*32 + 2*2*32*32 + 7*32) + 2*32
+        self.assertEqual(count_model_parameters(config), expected)
+
     def test_missing_manifest_blocks_training_readiness(self):
         report = audit(
             "configs/iva_nano_40m.yaml",
