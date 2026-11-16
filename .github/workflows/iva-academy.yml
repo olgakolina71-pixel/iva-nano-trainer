@@ -1,0 +1,51 @@
+name: IVA AI Academy (four providers)
+
+on:
+  workflow_dispatch:
+    inputs:
+      count:
+        description: "Total candidate dialogue pairs to request"
+        required: true
+        default: "20"
+        type: choice
+        options:
+          - "4"
+          - "8"
+          - "12"
+          - "20"
+          - "40"
+
+permissions:
+  contents: read
+
+jobs:
+  generate-candidates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate quarantined candidates
+        env:
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          LLM7_API_KEY: ${{ secrets.LLM7_API_KEY }}
+          OVH_AI_ENDPOINTS_ACCESS_TOKEN: ${{ secrets.OVH_AI_ENDPOINTS_ACCESS_TOKEN }}
+        run: |
+          python academy.py --count "${{ inputs.count }}" --pollinations-delay-seconds 15
+
+      - name: Upload candidate dataset
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-academy-candidates-${{ github.run_number }}
+          path: |
+            data/academy/candidates.txt
+            data/academy/manifest.json
+          if-no-files-found: warn
+          retention-days: 7
