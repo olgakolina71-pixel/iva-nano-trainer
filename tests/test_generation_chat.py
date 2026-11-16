@@ -1,9 +1,11 @@
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 
 import torch
 
 from generate import sample_next_token
-from chat import build_chat_prompt
+from chat import build_chat_prompt, print_iva_answer
 from iva_nano.data import encode_training_texts
 
 
@@ -19,6 +21,14 @@ class FakeTokenizer:
 
 
 class GenerationTests(unittest.TestCase):
+    def test_iva_answer_is_printed_as_a_standalone_final_block(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            print_iva_answer("Это ответ самой IVA.")
+        rendered = output.getvalue()
+        self.assertIn("Ответ IVA (сгенерировано самой моделью):", rendered)
+        self.assertTrue(rendered.rstrip().endswith("Это ответ самой IVA."))
+
     def test_top_k_one_selects_highest_logit(self):
         logits = torch.tensor([0.0, 1.0, 3.0, 2.0])
         token = sample_next_token(
