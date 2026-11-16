@@ -4,6 +4,7 @@ import torch
 
 from generate import sample_next_token
 from chat import build_chat_prompt
+from iva_nano.data import encode_training_texts
 
 
 class FakeTokenizer:
@@ -34,6 +35,17 @@ class GenerationTests(unittest.TestCase):
     def test_invalid_top_p_is_rejected(self):
         with self.assertRaises(ValueError):
             sample_next_token(torch.ones(4), [], top_p=0.0)
+
+    def test_sft_masks_user_prompt_and_trains_answer_only(self):
+        tokenizer = FakeTokenizer()
+        text = "### Пользователь:\nПривет\n### IVA:\nЗдравствуйте"
+        token_ids, labels = encode_training_texts([text], tokenizer, assistant_only=True)
+        prompt_length = len(tokenizer.encode(
+            "### Пользователь:\nПривет\n### IVA:\n", out_type=int
+        ))
+        self.assertEqual(labels[:prompt_length], [-100] * prompt_length)
+        self.assertEqual(labels[prompt_length:-1], token_ids[prompt_length:-1])
+        self.assertEqual(labels[-1], tokenizer.eos_id())
 
     def test_chat_prompt_keeps_system_and_latest_user_turn(self):
         tokenizer = FakeTokenizer()
