@@ -211,7 +211,7 @@ Checkpoints include model ID, architecture, optimizer state, step count, paramet
 
 ## Honest project status
 
-The repository now contains the staged model/training/inference pipeline, but **there is still no trained IVA Nano checkpoint**. The previous successful run trained only IVA Micro (173,312 parameters) for 20 CPU steps on lexical examples. It did not pretrain Nano or verify conversational quality. A real Nano model will exist only after a long GPU training run on a rights-reviewed corpus, followed by instruction tuning and evaluation.
+The repository now contains the staged model/training/inference pipeline, but **there is still no trained IVA Nano checkpoint**. The latest successful diagnostic run trained only IVA Micro (173,312 parameters) for 200 CPU steps on lexical examples. It did not pretrain Nano or verify conversational quality. A real Nano model will exist only after a long GPU training run on a rights-reviewed corpus, followed by instruction tuning and evaluation.
 
 
 ## Chat quality improvements (2026-11-16)
