@@ -155,7 +155,7 @@ def prepare(input_dir, input_manifest, output_dir, output_manifest):
             "records": records,
             "characters": characters,
             "preparation": {
-                "method": "json-aware-normalization-exact-dedup-and-obvious-pii-rejection-v2",
+                "method": "json-aware-normalization-preserve-lines-exact-dedup-and-obvious-pii-rejection-v3",
                 "duplicates_removed": duplicates,
                 "records_rejected": rejected,
                 "records_rejected_personal_markers": personal_rejected,
