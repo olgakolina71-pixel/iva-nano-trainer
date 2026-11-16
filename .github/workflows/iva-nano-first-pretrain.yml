@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       steps:
-        description: "Optimizer steps for this first run (1–100)"
+        description: "Additional optimizer steps for this training batch (1–2250)"
         required: true
         default: "1"
         type: string
@@ -142,12 +142,12 @@ jobs:
           config["training"]["max_steps"] = steps
           config["training"]["batch_size"] = 1
           config["training"]["gradient_accumulation_steps"] = 1
-          config["training"]["eval_interval"] = steps + 1
-          config["training"]["save_interval"] = steps + 1
+          config["training"]["eval_interval"] = 250
+          config["training"]["save_interval"] = 250
           Path("/tmp/iva_nano_run.yaml").write_text(
               yaml.safe_dump(config, allow_unicode=True, sort_keys=False), encoding="utf-8"
           )
-          print(f"Configured {steps} optimizer step(s), batch size 1.")
+          print(f"Configured {steps} additional optimizer step(s), batch size 1, checkpoint/evaluation interval 250.")
           PY
 
       - name: Train IVA Nano from scratch or resume
