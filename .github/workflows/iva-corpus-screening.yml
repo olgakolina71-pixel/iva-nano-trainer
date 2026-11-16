@@ -59,4 +59,5 @@ jobs:
             cleaned/ru_classic_candidate.txt
             reports/ru_classic_cleaning_report.json
             reports/ru_classic_duplicate_audit.json
+            reports/ru_classic_quality_audit.json
           retention-days: 30
