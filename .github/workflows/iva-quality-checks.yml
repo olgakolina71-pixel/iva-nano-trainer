@@ -1,0 +1,27 @@
+name: IVA generation and chat quality checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - name: Install runtime test dependencies
+        run: pip install torch sentencepiece pyyaml
+      - name: Compile Python modules
+        run: python -m compileall -q .
+      - name: Run generation and chat tests
+        run: python -m unittest discover -s tests -v
