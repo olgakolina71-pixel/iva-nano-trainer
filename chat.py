@@ -62,6 +62,12 @@ def answer(model, tokenizer, messages, system_prompt, device, max_new_tokens,
     return result
 
 
+def print_iva_answer(response):
+    """Print the model-generated answer as the final output for this turn."""
+    print("\\nОтвет IVA (сгенерировано самой моделью):")
+    print(response or "[модель не сгенерировала ответ]")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Chat with a trained IVA model.")
     parser.add_argument("--checkpoint", default="checkpoints/artifacts/iva_nano_40m_checkpoint.pt")
@@ -145,8 +151,10 @@ def main():
             args.max_new_tokens, args.temperature, args.top_k,
             args.top_p, args.repetition_penalty,
         )
-        print(f"IVA: {response or '[модель не сгенерировала ответ]'}")
         history.append(("assistant", response))
+        # Keep this as the final console output for the turn: search diagnostics,
+        # source titles and generation work have already completed above.
+        print_iva_answer(response)
 
 
 if __name__ == "__main__":
