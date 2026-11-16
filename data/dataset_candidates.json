@@ -8,7 +8,9 @@
       "hold",
       "excluded"
     ],
-    "training_enabled": false
+    "training_enabled": false,
+    "last_license_review": "2026-11-17",
+    "note": "No source in this registry is approved for training by this license-card review. CC0 labels are declarations to verify, not independent proof of upstream rights."
   },
   "datasets": [
     {
@@ -25,7 +27,19 @@
         "Strongest current candidate for Russian prose pretraining.",
         "Old literary language; not a modern dialogue or factual-QA dataset.",
         "Run OCR, duplication, and sample-quality checks before approval."
-      ]
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "declared_license": "CC0-1.0",
+        "evidence_url": "https://huggingface.co/datasets/Imperius/ru-classic",
+        "assessment": "Dataset card declares the compilation CC0 and says underlying classical works are public domain. This is a source claim, not independent verification of every text, edition, translation, annotation, or editorial contribution.",
+        "decision": "pending_rights_review",
+        "required_checks": [
+          "Verify author death dates and public-domain status for every included work in relevant jurisdictions.",
+          "Identify editions, translations, introductions, annotations, and editorial additions with separate rights.",
+          "Review source provenance and a representative sample."
+        ]
+      }
     },
     {
       "id": "sonexa_small_life_ru_eng",
@@ -39,11 +53,18 @@
       "declared_license": "CC0-1.0",
       "reported_size": "50,000 dialogues; about 15 MB",
       "provenance_claim": "Dataset card describes generated bilingual general-chat and coding dialogues.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Potential instruction/dialogue examples.",
         "Inspect for repetitive templates, fabricated facts, and actual Russian share before use."
-      ]
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "declared_license": "CC0-1.0",
+        "evidence_url": "https://huggingface.co/datasets/SonexaAI/Small-Life-Dataset-ru-eng",
+        "assessment": "Dataset card and repository metadata declare CC0. The README contains placeholder creator metadata (Your Name), and the dataset viewer reports a missing-file/configuration error; repository file listing shows train.jsonl. These inconsistencies make provenance and contents insufficiently verified.",
+        "decision": "hold_pending_creator_provenance_and_sample_review"
+      }
     },
     {
       "id": "sonexa_medium_life_ru_eng",
@@ -111,7 +132,14 @@
       "reasons": [
         "Previously inspected candidate contained personal names, school/class identifiers, and possible contact details.",
         "Do not train until a full privacy review, redaction, and provenance review are complete."
-      ]
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "declared_license": "CC0-1.0",
+        "evidence_url": "https://huggingface.co/datasets/nyuuzyou/edutexts",
+        "assessment": "Dataset card declares CC0 for educational presentations and documents. The content may contain third-party material and identifying school/class/student information; the license declaration does not resolve those issues.",
+        "decision": "hold_pending_privacy_and_provenance_review"
+      }
     },
     {
       "id": "nyuuzyou_ruforum",
