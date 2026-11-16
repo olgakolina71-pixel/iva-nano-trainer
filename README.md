@@ -318,3 +318,23 @@ The workflow uses the same optional GitHub Actions secrets as the generation wor
 A separate workflow, **Actions → IVA Micro — generate real answers and evaluate**, downloads the existing IVA Micro smoke-test checkpoint, runs the actual model on three fixed questions, saves its generated text to `data/academy/iva_answers.jsonl`, and asks independent AI teachers to review those outputs. The generated answers are genuine model outputs; they are not hand-written substitutes.
 
 **Important:** this checkpoint is the tiny 173k-parameter IVA Micro diagnostic trained for a short CPU smoke test. It is **not IVA Nano 40M**, is not a capable assistant, and may produce incoherent text. The workflow exists to test the generation-to-evaluation pipeline honestly. The source checkpoint artifact is temporary and expires after seven days, so this one-off workflow depends on that artifact remaining available. Nothing is automatically approved for training.
+
+
+## Optional short-answer search (Russian Wikipedia)
+
+The CLI can optionally retrieve up to three short Russian Wikipedia extracts for
+each user question and place them in the model prompt. This is retrieval context,
+not training: it does not update the checkpoint, and an undertrained model may
+still fail to summarize the snippets coherently.
+
+Enable it with:
+
+```bash
+python chat.py --wiki-search
+```
+
+The search uses the public MediaWiki API without an API key, limits result count
+and excerpt size, and continues without search if the service is unavailable.
+Retrieved page URLs are included as source references. Search snippets are
+untrusted data, not instructions. The query is sent to Wikipedia; do not include
+private or sensitive information in search questions.
