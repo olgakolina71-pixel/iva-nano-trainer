@@ -9,12 +9,12 @@ from pathlib import Path
 PROVIDERS = {
     "pollinations": {
         "url": "https://text.pollinations.ai/openai",
-        "model": "openai-fast",
+        "model": "openai",
         "key_env": "",
     },
     "kilo": {
         "url": "https://ai-gateway.kilo.ai/api/v1/chat/completions",
-        "model": "minimax/minimax-m2.1:free",
+        "model": "minimax/minimax-m2.7:free",
         "key_env": "KILO_API_KEY",
     },
     "llm7": {
@@ -24,7 +24,7 @@ PROVIDERS = {
     },
     "ovh": {
         "url": "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions",
-        "model": "Meta-Llama-3_3-70B-Instruct",
+        "model": "gpt-oss-20b",
         "key_env": "OVH_AI_ENDPOINTS_ACCESS_TOKEN",
     },
 }
@@ -38,7 +38,10 @@ def extract_pairs(raw, count):
         result = decoded
 
     if isinstance(result, dict) and "choices" in result:
-        result = result["choices"][0]["message"]["content"]
+        choices = result.get("choices") or []
+        if not choices:
+            raise ValueError("Provider returned no choices")
+        result = choices[0].get("message", {}).get("content", "")
     elif isinstance(result, dict):
         result = result.get("text", result.get("response", result.get("content", result)))
     if not isinstance(result, str):
@@ -81,10 +84,9 @@ def ask_provider(name, count, timeout):
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "IVA-AI-Academy/0.2",
+        "User-Agent": "IVA-AI-Academy/0.3",
     }
-    key_env = cfg["key_env"]
-    api_key = os.environ.get(key_env, "") if key_env else ""
+    api_key = os.environ.get(cfg["key_env"], "") if cfg["key_env"] else ""
     if api_key:
         headers["Authorization"] = "Bearer " + api_key
 
@@ -120,8 +122,12 @@ def main():
         help="Comma-separated provider names: pollinations,kilo,llm7,ovh",
     )
     parser.add_argument("--count", type=int, default=20, help="Total target number of pairs")
-    parser.add_argument("--delay-seconds", type=float, default=15.0,
-                        help="Wait after each provider response (default: 15)")
+    parser.add_argument(
+        "--pollinations-delay-seconds",
+        type=float,
+        default=15.0,
+        help="Wait only after the Pollinations request (default: 15 seconds)",
+    )
     parser.add_argument("--timeout", type=int, default=90)
     parser.add_argument("--output", default="data/academy/candidates.txt")
     args = parser.parse_args()
@@ -133,14 +139,14 @@ def main():
         parser.error("Provider names must not repeat")
     if not 1 <= args.count <= 100:
         parser.error("--count must be between 1 and 100")
-    if not 0 <= args.delay_seconds <= 3600:
-        parser.error("--delay-seconds must be between 0 and 3600")
+    if not 0 <= args.pollinations_delay_seconds <= 3600:
+        parser.error("--pollinations-delay-seconds must be between 0 and 3600")
 
     base, remainder = divmod(args.count, len(names))
     allocations = [base + (1 if i < remainder else 0) for i in range(len(names))]
     collected, successes, errors = [], [], []
 
-    for index, (name, allocation) in enumerate(zip(names, allocations)):
+    for name, allocation in zip(names, allocations):
         if allocation == 0:
             continue
         try:
@@ -153,9 +159,11 @@ def main():
         except Exception as exc:
             errors.append({"provider": name, "error": str(exc)})
             print(f"[WARN] {name} failed: {exc}")
-        if index < len(names) - 1 and args.delay_seconds:
-            print(f"Waiting {args.delay_seconds:g} seconds before the next provider...")
-            time.sleep(args.delay_seconds)
+
+        # The requested cooldown applies only to Pollinations, not to the other services.
+        if name == "pollinations" and args.pollinations_delay_seconds:
+            print(f"Pollinations cooldown: {args.pollinations_delay_seconds:g} seconds")
+            time.sleep(args.pollinations_delay_seconds)
 
     if not collected:
         raise RuntimeError("All providers failed; no candidate data was written.")
