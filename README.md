@@ -254,39 +254,43 @@ Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run w
 
 The workflow deliberately excludes entries marked `hold` (including education text with previously detected personal-data risks, forum posts, and mixed-provenance conversations). All downloaded snapshots remain quarantined: a dataset-card license label is not independent rights verification. Review provenance, underlying rights, privacy, schema, and sample quality before any training use. The Wikipedia candidate is CC BY-SA and the Medium-Life/everyday-dialogue candidates are CC BY; preserve attribution and comply with their license conditions.
 
-## IVA AI Academy: generate teacher candidates
+## IVA AI Academy: four-provider teacher rotation
 
-The new `academy.py` utility can request original Russian Q&A pairs from either a
-plain-text GET inference endpoint or an OpenAI-compatible chat-completions POST
-endpoint. The provider is configurable; no provider or API key is hard-coded.
+The `academy.py` utility can collect Russian Q&A candidates from four OpenAI-compatible
+services in sequence:
 
-Example for a GET server that accepts a `prompt` query parameter:
+- Pollinations legacy endpoint: `https://text.pollinations.ai/openai`, model `openai-fast`
+- Kilo Gateway: `https://ai-gateway.kilo.ai/api/v1/chat/completions`, free model
+  `minimax/minimax-m2.1:free` (anonymous access is limited to free models)
+- LLM7: `https://api.llm7.io/v1/chat/completions`, model `default`
+- OVHcloud AI Endpoints: `https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/chat/completions`,
+  model `Meta-Llama-3_3-70B-Instruct`
+
+Run the four-provider rotation locally:
 
 ```bash
-python academy.py --mode get --endpoint "https://YOUR-SERVER.example/generate" --provider "your-provider" --model "your-model" --count 20
+python academy.py --count 20 --delay-seconds 15
 ```
 
-Example for an OpenAI-compatible server:
+The 20-pair target is split across the four providers (five requested from each).
+The script contacts them one at a time and waits 15 seconds between provider attempts.
+If one provider fails, the remaining providers are still tried. If a provider returns
+fewer valid pairs than requested, the final dataset may contain fewer than 20.
 
-```bash
-# Set a key only if that provider requires one; never commit it to Git.
-export IVA_TEACHER_API_KEY="your-key"
-python academy.py --mode openai --endpoint "https://YOUR-SERVER.example/v1/chat/completions" --provider "your-provider" --model "your-model" --count 20
-```
+No API key is hard-coded. Optional keys are read from environment variables:
+`KILO_API_KEY`, `LLM7_API_KEY`, and `OVH_AI_ENDPOINTS_ACCESS_TOKEN`.
+Pollinations legacy and anonymous free-tier calls are attempted without a key.
+Kilo anonymous access is only for free models. OVHcloud documents an anonymous
+limit of 2 requests/minute per IP and per model, while its standard setup also
+documents account/key requirements; a no-key request may therefore be rejected
+depending on the available anonymous route. LLM7's free quotas and model availability
+can change. A 15-second pause is conservative pacing, not a guarantee of unlimited use.
 
-The GET mode sends the prompt as a URL query parameter named `prompt`, or replaces
-`{prompt}` in the endpoint path; it optionally adds `model`. The POST mode sends
-a standard chat-completions payload. Repeat `--endpoint` to configure fallback
-servers; IVA Academy tries them in order until one returns valid pairs.
-The response must contain a JSON array with `question` and `answer` fields.
+The script writes `data/academy/candidates.txt` and a manifest with
+`use: pending_review` and `rights_status: pending_review`. It does not approve
+or train on generated text. Review answer quality, privacy, provider terms, and
+dataset rights before manually approving any examples for SFT.
 
-Output is written to `data/academy/candidates.txt` with a manifest that explicitly
-sets `use: pending_review` and `rights_status: pending_review`. This is deliberate:
-review the generated answers, provider terms, privacy, and provenance before
-manually approving any data for SFT. The script does not train the model and does
-not bypass the existing manifest gate.
-
-A teacher-generated SFT corpus is not a substitute for base pretraining. The
-40M-parameter IVA Nano model still needs a trained base checkpoint before the
-recommended instruction-tuning stage. The current GitHub Actions runners are CPU
-validation environments, not free GPU training hosts.
+This teacher-generated dataset is not a substitute for base pretraining. IVA Nano
+still needs a trained base checkpoint before the recommended instruction-tuning
+stage. GitHub Actions runners are CPU validation environments, not free GPU training hosts.
