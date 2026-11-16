@@ -1,0 +1,58 @@
+name: IVA candidate token preflight (no training)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "GitHub Actions run containing the screened candidate artifact"
+        required: true
+        default: "43902555939"
+        type: string
+      artifact_name:
+        description: "Name of the screened candidate artifact"
+        required: true
+        default: "iva-classic-screened-candidate-pending-review"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  token-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install tokenizer dependency
+        run: pip install "sentencepiece>=0.2.0"
+      - name: Download screened candidate artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: candidate-artifact
+      - name: Locate candidate text
+        id: candidate
+        run: |
+          candidate="$(find candidate-artifact -type f -name 'ru_classic_candidate.txt' -print -quit)"
+          test -n "$candidate" || { echo "Candidate text not found in artifact"; exit 1; }
+          echo "path=$candidate" >> "$GITHUB_OUTPUT"
+      - name: Estimate token count (does not approve or train)
+        run: |
+          python scripts/candidate_token_preflight.py \
+            --input "${{ steps.candidate.outputs.path }}" \
+            --output reports/candidate-token-preflight.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-candidate-token-preflight
+          path: reports/candidate-token-preflight.json
+          retention-days: 30
+          if-no-files-found: warn
