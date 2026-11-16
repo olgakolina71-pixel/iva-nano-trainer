@@ -6,12 +6,12 @@ on:
       steps:
         description: "Additional optimizer steps for this training batch (1–2250)"
         required: true
-        default: "1"
+        default: "2250"
         type: string
       checkpoint_run_id:
-        description: "Optional previous IVA Nano training run ID to resume"
+        description: "Previous IVA Nano training run ID to resume"
         required: false
-        default: ""
+        default: "43925516694"
         type: string
 
 permissions:
