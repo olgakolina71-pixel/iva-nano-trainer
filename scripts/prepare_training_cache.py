@@ -54,9 +54,9 @@ def main():
             with source.open("r", encoding="utf-8", errors="replace") as handle:
                 for line in handle:
                     lines_seen += 1
-                    nul_chars_removed += line.count("\\x00")
-                    replacement_chars_seen += line.count("\\ufffd")
-                    line = line.replace("\\x00", "").strip()
+                    nul_chars_removed += line.count(chr(0))
+                    replacement_chars_seen += line.count(chr(0xfffd))
+                    line = line.replace(chr(0), "").strip()
                     if not line:
                         empty_lines += 1
                         continue
