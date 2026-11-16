@@ -55,3 +55,18 @@ permissions, or approve the corpus. The screened candidate contains Tolstoy's
 same record's editorial introduction describes modern editorial sources. This
 confirms presence, not clearance of the complete edition or corpus. No IVA Nano
 training checkpoint is created by these workflows.
+
+## Token-volume preflight (candidate only)
+
+A manual GitHub Actions workflow, **IVA candidate token preflight (no training)**,
+can estimate token volume for the screened artifact without changing its review
+status:
+
+- Workflow: `.github/workflows/iva-candidate-token-preflight.yml`
+- Script: `scripts/candidate_token_preflight.py`
+- Default source run: `43902555939`
+- Default artifact: `iva-classic-screened-candidate-pending-review`
+
+The report is explicitly an estimate using a sampled 24k SentencePiece tokenizer.
+It is not the final approved-corpus preflight and does not authorize training.
+The workflow does not create model weights or alter any manifest.
