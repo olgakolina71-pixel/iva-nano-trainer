@@ -227,3 +227,12 @@ The 200-step Micro checkpoint is still only a pipeline diagnostic and must not b
 presented as a capable assistant. The next model-quality milestone requires a much
 larger rights-reviewed Russian text corpus, then a separately reviewed instruction
 conversation set and supervised fine-tuning.
+
+
+### Assistant-only supervised fine-tuning
+
+The SFT config uses `objective: assistant_only`. During SFT, user messages remain
+in the context but their target labels are masked with `-100`; cross-entropy is
+therefore applied to IVA answer tokens and end-of-turn markers only. This prevents
+the fine-tuning stage from spending its loss budget on imitating user prompts.
+The source still must be explicitly rights-reviewed and approved in its manifest.
