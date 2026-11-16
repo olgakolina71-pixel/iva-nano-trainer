@@ -32,7 +32,7 @@ class WikipediaCorpusCollectionTests(unittest.TestCase):
             self.assertEqual(entry["rights_status"], "pending_human_review")
             self.assertEqual(entry["license"], "CC BY-SA 4.0")
             self.assertIn("revision 456", entry["attribution"])
-            self.assertIn("Нейронные", (Path(tmp) / Path(entry["path"]).name).read_text(encoding="utf-8"))
+            self.assertIn("Описание", (Path(tmp) / Path(entry["path"]).name).read_text(encoding="utf-8"))
 
     @patch("collect_wikipedia.collect_wikipedia_pages")
     def test_repeat_collection_does_not_duplicate_same_revision(self, mocked_fetch):
