@@ -8,7 +8,7 @@ from chat import build_chat_prompt
 
 class FakeTokenizer:
     def encode(self, text, out_type=int):
-        return [ord(char) % 251 for char in text]
+        return [ord(char) for char in text]
 
     def bos_id(self):
         return 1
@@ -29,7 +29,7 @@ class GenerationTests(unittest.TestCase):
             logits, [1, 2, 3, 1, 2], temperature=1.0, top_k=1,
             top_p=1.0, repetition_penalty=1.0, no_repeat_ngram_size=3,
         )
-        self.assertEqual(int(token.item()), 3)
+        self.assertEqual(int(token.item()), 4)
 
     def test_invalid_top_p_is_rejected(self):
         with self.assertRaises(ValueError):
@@ -46,7 +46,7 @@ class GenerationTests(unittest.TestCase):
             tokenizer, messages, "Системная инструкция", context_length=120,
             reserve_tokens=20,
         )
-        decoded = "".join(chr(token % 251) for token in ids)
+        decoded = "".join(chr(token) for token in ids)
         self.assertIn("Системная инструкция", decoded)
         self.assertIn("последний вопрос", decoded)
         self.assertLessEqual(len(ids), 100)
