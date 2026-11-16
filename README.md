@@ -364,3 +364,19 @@ The `IVA dataset acquisition and quarantine audit` workflow downloads bounded Ru
 Every candidate remains `use: pending_rights_review` and `rights_status: dataset_card_claim_unverified`. The quality audit is heuristic and cannot establish copyright clearance or guarantee removal of personal data. A reviewer must inspect source provenance, actual samples, privacy signals, and license obligations before changing a manifest entry.
 
 Full training is guarded by `validate_reviewed_training_manifest`: each source used for a non-smoke training run must explicitly have `use: training` and `rights_status: reviewed_approved`. The `IVA Nano reviewed pretraining` workflow also checks the configured minimum of 100 million tokens, runs bounded chunks (default 1,000 optimizer steps), and uploads a resumable checkpoint artifact. It does not start automatically after candidate acquisition.
+
+
+## Latest corpus screening milestone
+
+The manual **IVA corpus privacy screening** workflow now also generates a streaming
+quality report and an exact duplicate report for the screened classic-literature
+candidate. These are aggregate diagnostics only; they do not approve the source.
+Use [the human corpus review checklist](data/IVA_CORPUS_REVIEW_CHECKLIST.md)
+before changing any manifest entry to `use: training` /
+`rights_status: reviewed_approved`.
+
+To run the screening workflow, open **Actions → IVA corpus privacy screening →
+Run workflow** and enter acquisition run ID `43893010799`. The latest completed
+screening artifact from run `43897243942` predates the new quality/duplicate
+reports; run the updated workflow to produce the expanded artifact. Training
+remains blocked until rights and quality review are completed.
