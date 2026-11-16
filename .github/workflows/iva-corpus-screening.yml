@@ -46,6 +46,11 @@ jobs:
           python scripts/audit_exact_duplicates.py \
             --source cleaned/ru_classic_candidate.txt \
             --report reports/ru_classic_duplicate_audit.json
+      - name: Audit screened candidate quality (streaming aggregate)
+        run: |
+          python scripts/audit_screened_candidate.py \
+            --source cleaned/ru_classic_candidate.txt \
+            --report reports/ru_classic_quality_audit.json
       - name: Upload screened candidate and aggregate reports (not approved for training)
         uses: actions/upload-artifact@v4
         with:
