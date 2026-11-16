@@ -1,6 +1,7 @@
 import json
 import unittest
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 from iva_nano.search import format_search_context, search_wikipedia
 
@@ -25,7 +26,7 @@ class WikipediaSearchTests(unittest.TestCase):
         mocked_urlopen.return_value = _FakeResponse({
             "query": {"pages": [
                 {"index": 1, "title": "Нейронная сеть",
-                 "extract": " " .join(["Описание"] * 90),
+                 "extract": " ".join(["Описание"] * 90),
                  "fullurl": "https://ru.wikipedia.org/wiki/Нейронная_сеть"},
                 {"index": 2, "title": "Обучение",
                  "extract": "Короткая справка.",
@@ -37,7 +38,8 @@ class WikipediaSearchTests(unittest.TestCase):
         self.assertLessEqual(sum(len(x["extract"]) for x in results), 1200)
         self.assertTrue(all(x["url"].startswith("https://ru.wikipedia.org/") for x in results))
         request = mocked_urlopen.call_args.args[0]
-        self.assertIn("нейронная+сеть", request.full_url)
+        query = parse_qs(urlsplit(request.full_url).query)
+        self.assertEqual(query["gsrsearch"], ["нейронная сеть"])
 
     @patch("iva_nano.search.urlopen")
     def test_search_caps_result_count_at_three(self, mocked_urlopen):
