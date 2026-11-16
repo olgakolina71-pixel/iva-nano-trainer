@@ -21,7 +21,6 @@
         "artifact": "iva-classic-screened-candidate-pending-review",
         "workflow_run": "43902555939",
         "artifact_id": 14241728059,
-        "local_snapshot_sha256": "not_recorded_in_artifact_manifest",
         "finding_war_and_peace": "confirmed_in_candidate_text",
         "evidence": [
           "The screened candidate contains a section headed 'Война и мир. Первый вариант романа' at line 3075971.",
