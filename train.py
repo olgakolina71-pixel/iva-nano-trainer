@@ -99,7 +99,7 @@ def main():
             int(tok_cfg["vocab_size"]), tok_cfg.get("model_type", "bpe"),
         )
 
-    dataset = TokenBlockDataset(texts, str(tokenizer_path), int(config["model"]["context_length"]))
+    dataset = TokenBlockDataset(\n        texts, str(tokenizer_path), int(config["model"]["context_length"]),\n        assistant_only=train_cfg.get("objective", "pretraining") == "assistant_only",\n    )
     if len(dataset) < 1:
         raise ValueError("Not enough tokenized text for one context block")
 
