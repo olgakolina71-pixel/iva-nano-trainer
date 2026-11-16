@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from prepare_candidate_corpus import has_personal_markers, prepare, source_documents
+from prepare_candidate_corpus import has_personal_markers, normalize_text, prepare, source_documents
 
 
 class CandidateCorpusTests(unittest.TestCase):
@@ -37,6 +37,11 @@ class CandidateCorpusTests(unittest.TestCase):
             text = (out / "ru_edutexts_cc0.txt").read_text(encoding="utf-8")
             self.assertIn("Это достаточно длинный русский текст", text)
             self.assertNotIn("[", text)
+
+    def test_normalization_preserves_dialogue_and_paragraph_breaks(self):
+        source = "  ### Пользователь:  \\r\\nПривет\\r\\n\\r\\n  ### IVA:\\t\\nЗдравствуйте  "
+        normalized = normalize_text(source)
+        self.assertEqual(normalized, "### Пользователь:\\nПривет\\n\\n### IVA:\\nЗдравствуйте")
 
     def test_dialogue_turns_stay_together(self):
         with tempfile.TemporaryDirectory() as tmp:
