@@ -36,8 +36,15 @@ PROVIDERS = {
 
 
 def read_answers(path):
+    source = Path(path)
+    if not source.is_file():
+        raise FileNotFoundError(
+            f"IVA answers file not found: {source}. "
+            "Add a UTF-8 JSONL file containing real IVA outputs, one JSON object per line "
+            "with id, question and iva_answer. The evaluator does not generate IVA answers."
+        )
     rows = []
-    for line_no, line in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
+    for line_no, line in enumerate(source.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
         try:
@@ -104,6 +111,18 @@ def response_text(raw):
     return data if isinstance(data, str) else json.dumps(data, ensure_ascii=False)
 
 
+def parse_safety_flag(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "yes", "1"}:
+            return True
+        if normalized in {"false", "no", "0"}:
+            return False
+    return False
+
+
 def parse_evaluations(raw, known_ids):
     text = response_text(raw) if isinstance(raw, bytes) else raw
     if not isinstance(text, str):
@@ -130,7 +149,7 @@ def parse_evaluations(raw, known_ids):
             "factuality": str(item.get("factuality", ""))[:1200],
             "relevance": str(item.get("relevance", ""))[:1200],
             "clarity": str(item.get("clarity", ""))[:1200],
-            "safety_ok": bool(item.get("safety_ok", False)),
+            "safety_ok": parse_safety_flag(item.get("safety_ok", False)),
             "issues": str(item.get("issues", ""))[:1600],
             "feedback": str(item.get("feedback", ""))[:2000],
             "suggested_answer": str(item.get("suggested_answer", ""))[:6000],
