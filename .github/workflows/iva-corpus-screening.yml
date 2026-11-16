@@ -1,0 +1,51 @@
+name: IVA corpus privacy screening
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Successful dataset-acquisition workflow run ID"
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: iva-corpus-screening
+  cancel-in-progress: true
+
+jobs:
+  screen-classic-corpus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download quarantined source artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          gh run download "$SOURCE_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name iva-russian-corpus-quarantine \
+            --dir quarantine
+      - name: Verify source file
+        run: |
+          test -s quarantine/data/raw/hf/ru_classic_cc0.txt
+          sha256sum quarantine/data/raw/hf/ru_classic_cc0.txt
+      - name: Screen classic corpus
+        run: |
+          python scripts/screen_candidate_corpus.py \
+            --source quarantine/data/raw/hf/ru_classic_cc0.txt \
+            --output cleaned/ru_classic_candidate.txt \
+            --report reports/ru_classic_cleaning_report.json
+      - name: Upload screened candidate (not approved for training)
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-classic-screened-candidate-pending-review
+          path: |
+            cleaned/ru_classic_candidate.txt
+            reports/ru_classic_cleaning_report.json
+          retention-days: 30
