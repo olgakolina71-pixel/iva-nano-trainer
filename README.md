@@ -344,3 +344,14 @@ python train.py --config configs/iva_nano_40m.yaml --data-dir data/wikipedia_can
 **Important:** a few search results are nowhere near enough to train IVA Nano. The full-training gate still requires at least 100 million tokenized tokens (the initial research target is 800 million). Keep collecting a large, diverse, reviewed corpus; do not bypass the gate with `--smoke-test` and call that real training. When a real compatible checkpoint exists, use `--resume` to continue training from it. GitHub Actions CPU checks are not a free GPU training service.
 
 The collector and chat search use the public MediaWiki API without an API key and continue gracefully when search is unavailable. Search queries are sent to Wikipedia; do not include private or sensitive information.
+
+
+## IVA Nano corpus preflight (no training)
+
+Before a long pretraining run, audit the exact approved corpus and its token count:
+
+```bash
+python preflight_iva.py --config configs/iva_nano_40m.yaml --data-dir data/raw/hf --manifest data/hf_manifest.json
+```
+
+The report is saved to `reports/iva-nano-preflight.json`. It counts tokens with the matching tokenizer (or a temporary tokenizer trained only from explicitly approved sources), checks usable context blocks, and reports pending sources separately. It never changes rights-review status and never starts training. A blocked report is expected until the manifest contains reviewed, approved sources and enough text.
