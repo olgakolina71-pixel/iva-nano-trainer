@@ -1,0 +1,96 @@
+name: IVA Nano — ask a question
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Вопрос для IVA"
+        required: true
+        default: "Привет! Как тебя зовут, кто тебя создал и для чего ты существуешь?"
+        type: string
+      checkpoint_run_id:
+        description: "GitHub Actions run ID, где сохранён checkpoint IVA Nano"
+        required: true
+        default: "43920245617"
+        type: string
+      max_new_tokens:
+        description: "Максимальная длина ответа (1–160)"
+        required: true
+        default: "100"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  ask-iva:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install inference dependencies
+        run: python -m pip install --upgrade pip && python -m pip install torch sentencepiece
+
+      - name: Download IVA Nano checkpoint and tokenizer
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-nano-first-training-checkpoint
+          run-id: ${{ inputs.checkpoint_run_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: .
+
+      - name: Verify model files
+        run: |
+          set -euo pipefail
+          test -s checkpoints/artifacts/iva_nano_40m_checkpoint.pt
+          test -s checkpoints/iva_tokenizer.model
+          ls -lh checkpoints/artifacts/iva_nano_40m_checkpoint.pt checkpoints/iva_tokenizer.model
+
+      - name: Ask IVA
+        env:
+          IVA_PROMPT: ${{ inputs.prompt }}
+          IVA_MAX_NEW_TOKENS: ${{ inputs.max_new_tokens }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          value = int(os.environ["IVA_MAX_NEW_TOKENS"])
+          if not 1 <= value <= 160:
+              raise SystemExit("max_new_tokens must be between 1 and 160")
+          PY
+          python generate.py \
+            --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+            --tokenizer checkpoints/iva_tokenizer.model \
+            --prompt "$IVA_PROMPT" \
+            --max-new-tokens "$IVA_MAX_NEW_TOKENS" \
+            --device cpu | tee iva-answer.txt
+
+      - name: Publish answer in the run summary
+        if: always()
+        run: |
+          {
+            echo "## Ответ IVA Nano"
+            echo
+            if [ -s iva-answer.txt ]; then
+              cat iva-answer.txt
+            else
+              echo "Генерация не завершилась. Проверьте журнал предыдущего шага."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Save answer as an artifact
+        if: always() && hashFiles('iva-answer.txt') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-answer-${{ github.run_number }}
+          path: iva-answer.txt
+          retention-days: 7
