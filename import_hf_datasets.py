@@ -132,16 +132,15 @@ def extract_rows(source):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    entries = []
+    entries, errors = [], []
     for source in SOURCES:
         target = OUT / f"{source['id']}.txt"
-        seen = set()
-        count = 0
-        chars = 0
+        partial = target.with_suffix(".txt.part")
+        seen, count, chars = set(), 0, 0
         try:
-            with target.open("w", encoding="utf-8") as handle:
+            with partial.open("w", encoding="utf-8") as handle:
                 for text in extract_rows(source):
-                    digest_key = hashlib.sha256(text.encode("utf-8")).hexdigest()
+                    digest_key = hashlib.sha256(text.casefold().encode("utf-8")).hexdigest()
                     if digest_key in seen:
                         continue
                     seen.add(digest_key)
@@ -150,28 +149,32 @@ def main():
                     chars += len(text)
                     if count >= source["max_records"]:
                         break
-        except Exception:
-            target.unlink(missing_ok=True)
-            raise
-        if count == 0:
-            target.unlink(missing_ok=True)
-            raise RuntimeError(f"{source['id']}: no usable Russian records; no manifest written")
-        entries.append({
-            "id": source["id"],
-            "path": target.as_posix(),
-            "license": source["license"],
-            "attribution": source["attribution"],
-            "source_url": source["url"],
-            "use": "pending_rights_review",
-            "rights_status": "dataset_card_claim_unverified",
-            "records": count,
-            "characters": chars,
-            "notes": source["notes"],
-        })
-        print(f"{source['id']}: {count:,} records, {chars:,} characters")
+            if count == 0:
+                partial.unlink(missing_ok=True)
+                errors.append({"id": source["id"], "error": "No usable Russian records"})
+                continue
+            partial.replace(target)
+            entries.append({
+                "id": source["id"], "path": target.as_posix(),
+                "license": source["license"], "attribution": source["attribution"],
+                "source_url": source["url"], "use": "pending_rights_review",
+                "rights_status": "dataset_card_claim_unverified",
+                "records": count, "characters": chars, "notes": source["notes"],
+            })
+            print(f"{source['id']}: {count:,} records, {chars:,} characters; PENDING REVIEW")
+        except Exception as exc:
+            partial.unlink(missing_ok=True)
+            errors.append({"id": source["id"], "error": f"{type(exc).__name__}: {exc}"})
+            print(f"{source['id']}: IMPORT FAILED: {type(exc).__name__}: {exc}")
+
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps({"datasets": entries}, ensure_ascii=False, indent=2), encoding="utf-8")
+    ERRORS = Path("data/hf_import_errors.json")
+    ERRORS.write_text(json.dumps({"errors": errors}, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"Imported sources: {len(entries)} / {len(SOURCES)}")
     print(f"Manifest: {MANIFEST}")
+    if not entries:
+        raise SystemExit("No dataset candidate could be acquired; see data/hf_import_errors.json")
 
 
 if __name__ == "__main__":
