@@ -8,8 +8,8 @@ import json
 import re
 from pathlib import Path
 
-EMAIL = re.compile(r"(?i)\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b")
-PHONE = re.compile(r"(?<!\\w)(?:\\+?\\d[\\d ()-]{8,}\\d)(?!\\w)")
+EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
+PHONE = re.compile(r"(?<!\w)(?:\+?\d[\d ()-]{8,}\d)(?!\w)")
 
 
 def screen(source: Path, output: Path) -> dict:
@@ -21,7 +21,7 @@ def screen(source: Path, output: Path) -> dict:
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     with source.open("r", encoding="utf-8", errors="replace") as src, output.open(
-        "w", encoding="utf-8", newline="\\n"
+        "w", encoding="utf-8", newline="\n"
     ) as dst:
         for line in src:
             record = line.strip()
@@ -34,7 +34,7 @@ def screen(source: Path, output: Path) -> dict:
             if PHONE.search(record):
                 counts["possible_phone_records_quarantined"] += 1
                 continue
-            dst.write(record + "\\n")
+            dst.write(record + "\n")
             counts["kept_records"] += 1
 
     return {
