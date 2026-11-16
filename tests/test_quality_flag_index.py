@@ -34,5 +34,5 @@ class QualityFlagIndexTests(unittest.TestCase):
         self.assertNotIn("Б" * 10, index.read_text(encoding="utf-8"))
 
 
-if __ALL__ == "__main__":
+if __name__ == "__main__":
     unittest.main()
