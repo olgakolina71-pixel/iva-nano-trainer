@@ -11,7 +11,7 @@ from pathlib import Path
 import sentencepiece as spm
 import yaml
 
-from iva_nano.data import load_approved_texts, train_tokenizer
+from iva_nano.data import load_approved_texts, train_tokenizer, validate_reviewed_training_manifest
 
 
 def count_model_parameters(model_cfg):
@@ -52,6 +52,7 @@ def audit(config_path, data_dir, manifest_path, tokenizer_path=None):
     pending, blockers = inspect_manifest(manifest_path)
 
     try:
+        validate_reviewed_training_manifest(str(manifest_path))
         texts = load_approved_texts(str(data_dir), str(manifest_path))
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         texts = []
