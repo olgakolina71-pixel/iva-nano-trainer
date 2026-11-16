@@ -236,3 +236,14 @@ in the context but their target labels are masked with `-100`; cross-entropy is
 therefore applied to IVA answer tokens and end-of-turn markers only. This prevents
 the fine-tuning stage from spending its loss budget on imitating user prompts.
 The source still must be explicitly rights-reviewed and approved in its manifest.
+
+
+## Dataset candidate registry
+
+See [`data/dataset_candidates.json`](data/dataset_candidates.json) for the reviewed
+Russian-language source shortlist, declared licenses, intended roles, and explicit
+hold reasons. **Candidate does not mean approved for training.** CC0/public-domain
+claims are checked against the dataset card, but underlying rights and sample
+contents still require review. Sources with unresolved privacy or upstream-rights
+issues remain on hold and are never auto-imported. No dataset in this registry is
+silently enabled for training.
