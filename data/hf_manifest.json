@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "generated_by": "IVA Nano maintainer review",
+  "reviewed_at": "2026-11-17",
+  "training_enabled": false,
+  "policy": "All entries remain quarantined. Do not change use to training or rights_status to reviewed_approved until provenance, upstream rights, privacy, and sample quality have been reviewed by a human maintainer.",
+  "datasets": [
+    {
+      "id": "ru_classic_cc0",
+      "path": "data/raw/hf/ru_classic_cc0.txt",
+      "license": "CC0-1.0 (declared; unverified)",
+      "attribution": "Imperius/ru-classic — https://huggingface.co/datasets/Imperius/ru-classic",
+      "source_url": "https://huggingface.co/datasets/Imperius/ru-classic",
+      "use": "pending_rights_review",
+      "rights_status": "dataset_card_claim_unverified",
+      "license_review": "Dataset card declares CC0 for the compilation and public-domain status for original works. Verify each included work and any modern edition, translation, annotation, or editorial contribution.",
+      "review_status": "candidate_pending_rights_review",
+      "notes": "Primary Russian literary pretraining candidate. Preserve long records for priority review; do not remove them merely due to length."
+    },
+    {
+      "id": "ru_edutexts_cc0",
+      "path": "data/raw/hf/ru_edutexts_cc0.txt",
+      "license": "CC0-1.0 (declared; unverified)",
+      "attribution": "nyuuzyou/edutexts — https://huggingface.co/datasets/nyuuzyou/edutexts",
+      "source_url": "https://huggingface.co/datasets/nyuuzyou/edutexts",
+      "use": "pending_rights_review",
+      "rights_status": "dataset_card_claim_unverified",
+      "license_review": "Dataset card declares CC0. Underlying presentation/document content and upstream materials are not independently cleared.",
+      "review_status": "hold_pending_privacy_and_provenance_review",
+      "notes": "Do not train until school/class/student identifiers, personal data, contact details, and upstream source rights have been reviewed."
+    },
+    {
+      "id": "small_life_dialogues_cc0",
+      "path": "data/raw/hf/small_life_dialogues_cc0.txt",
+      "license": "CC0-1.0 (declared; unverified)",
+      "attribution": "SonexaAI, Small-Life-Dataset-ru-eng — https://huggingface.co/datasets/SonexaAI/Small-Life-Dataset-ru-eng",
+      "source_url": "https://huggingface.co/datasets/SonexaAI/Small-Life-Dataset-ru-eng",
+      "use": "pending_rights_review",
+      "rights_status": "dataset_card_claim_unverified",
+      "license_review": "Dataset card declares CC0, but README contains placeholder creator metadata and the viewer currently reports a file/configuration error. Confirm creator identity/authority, repository history, actual file contents, and any upstream sources.",
+      "review_status": "hold_pending_creator_provenance_and_sample_review",
+      "notes": "Potential later SFT source only; do not use for base pretraining or instruction tuning until reviewed."
+    }
+  ]
+}
