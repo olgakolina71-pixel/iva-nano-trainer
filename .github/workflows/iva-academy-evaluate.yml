@@ -25,7 +25,31 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Check for real IVA answers
+        id: input-check
+        env:
+          INPUT_PATH: ${{ inputs.input_path }}
+        run: |
+          if [ -f "$INPUT_PATH" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "Found IVA answer dataset: $INPUT_PATH"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            mkdir -p data/academy
+            {
+              echo "IVA evaluation was skipped because the input file was not found: $INPUT_PATH"
+              echo
+              echo "Add a UTF-8 JSONL file with one real IVA response per line."
+              echo 'Required fields: id, question, iva_answer. Optional: reference_answer.'
+              echo
+              echo 'Example format only (replace with a genuine IVA output):'
+              echo '{"id":"sample-001","question":"Why is the sky blue?","iva_answer":"PASTE A REAL IVA RESPONSE HERE"}'
+            } > data/academy/INPUT_REQUIRED.txt
+            echo "::warning::No IVA answer file found. Evaluation is skipped; no model answers will be fabricated."
+          fi
+
       - name: Evaluate existing IVA answers with independent teachers
+        if: steps.input-check.outputs.available == 'true'
         env:
           KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
           LLM7_API_KEY: ${{ secrets.LLM7_API_KEY }}
@@ -33,11 +57,13 @@ jobs:
         run: |
           python evaluate_iva_answers.py --input "${{ inputs.input_path }}" --output data/academy/evaluation_report.json
 
-      - name: Upload evaluation report
+      - name: Upload evaluation result or setup instructions
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: iva-answer-evaluation-${{ github.run_number }}
-          path: data/academy/evaluation_report.json
+          path: |
+            data/academy/evaluation_report.json
+            data/academy/INPUT_REQUIRED.txt
           if-no-files-found: warn
           retention-days: 7
