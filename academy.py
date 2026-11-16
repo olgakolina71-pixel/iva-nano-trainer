@@ -114,13 +114,13 @@ def main():
         raise RuntimeError("All AI endpoints failed: " + " | ".join(errors))
 
     blocks = [
-        "### Пользователь:\\n" + pair["question"] +
-        "\\n### IVA:\\n" + pair["answer"]
+        "### Пользователь:\n" + pair["question"] +
+        "\n### IVA:\n" + pair["answer"]
         for pair in pairs
     ]
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text("\\n\\n".join(blocks) + "\\n", encoding="utf-8")
+    output.write_text("\n\n".join(blocks) + "\n", encoding="utf-8")
     manifest = {
         "datasets": [{
             "id": "iva_ai_academy_candidates",
@@ -135,7 +135,7 @@ def main():
         }]
     }
     (output.parent / "manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     print("Created", len(blocks), "candidate pairs:", output)
     print("Quarantined: review content quality and provider terms before training.")
