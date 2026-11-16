@@ -51,6 +51,12 @@ jobs:
           python scripts/audit_screened_candidate.py \
             --source cleaned/ru_classic_candidate.txt \
             --report reports/ru_classic_quality_audit.json
+      - name: Index quality flags without copying source text
+        run: |
+          python scripts/index_quality_flags.py \
+            --source cleaned/ru_classic_candidate.txt \
+            --index reports/ru_classic_quality_flag_lines.jsonl \
+            --report reports/ru_classic_quality_flag_index.json
       - name: Upload screened candidate and aggregate reports (not approved for training)
         uses: actions/upload-artifact@v4
         with:
@@ -60,4 +66,6 @@ jobs:
             reports/ru_classic_cleaning_report.json
             reports/ru_classic_duplicate_audit.json
             reports/ru_classic_quality_audit.json
+            reports/ru_classic_quality_flag_lines.jsonl
+            reports/ru_classic_quality_flag_index.json
           retention-days: 30
