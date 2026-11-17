@@ -10,7 +10,7 @@
     ],
     "training_enabled": false,
     "last_license_review": "2026-11-17",
-    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language candidate entries were added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru, Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). Dataset Viewer previews were rate-limited; none is approved for training."
+    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language candidate entries were added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru, Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). Dataset Viewer previews were rate-limited; none is approved for training. Three additional programming-related sources are recorded as hold: ru-dataset/ru-dataset-small (reasoning-format review), attn-signs/russian-code (license metadata absent), and sup2ch/ru-en-code-curriculum (non-standard license terms)."
   },
   "datasets": [
     {
@@ -565,6 +565,76 @@
         "evidence_url": "https://huggingface.co/datasets/t-tech/T-math",
         "assessment": "Hub metadata declares Apache-2.0 and reports 325 rows with question, verifiable_answer, full_answer, year, grade, complexity, olympiad, and solutions fields. Card reports human verification. Viewer preview was rate-limited.",
         "decision": "candidate_quarantine_only_evaluation_not_training_pending_rights_and_sample_review"
+      }
+    },
+    {
+      "id": "ru_dataset_small_hold",
+      "hf_id": "ru-dataset/ru-dataset-small",
+      "url": "https://huggingface.co/datasets/ru-dataset/ru-dataset-small",
+      "language": "ru",
+      "role": "programming_math_instruction_sft",
+      "declared_license": "Apache-2.0",
+      "reported_size": "2.7K train rows; ~70.8 MB parquet",
+      "provenance_claim": "Dataset card describes Russian programming, algorithms, software architecture, mathematics, and instruction-following tasks; answers contain explicit reasoning-tag blocks.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful Russian SFT material, but inspect the explicit reasoning traces and decide whether this output format is appropriate.",
+        "Dataset Viewer preview was rate-limited; sample quality and source provenance remain unverified.",
+        "Do not expose hidden reasoning traces as a target format without a deliberate policy decision."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/ru-dataset/ru-dataset-small",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 2.7K rows. Card describes explicit reasoning-tag blocks; viewer preview returned HTTP 429.",
+        "decision": "hold_pending_reasoning_format_and_sample_review"
+      }
+    },
+    {
+      "id": "attn_signs_russian_code_hold",
+      "hf_id": "attn-signs/russian-code",
+      "url": "https://huggingface.co/datasets/attn-signs/russian-code",
+      "language": "ru",
+      "role": "python_instruction_sft",
+      "declared_license": "not_declared_in_hub_metadata",
+      "reported_size": "26.3K train rows; ~50.2 MB parquet",
+      "provenance_claim": "Dataset card describes Russian-language Python code examples, algorithms, functions, classes, and explanations.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful Russian programming material.",
+        "Hub metadata did not expose a machine-readable license tag; do not assume the data is freely reusable.",
+        "Inspect samples, provenance, code correctness, and unsafe or non-runnable examples."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/attn-signs/russian-code",
+        "assessment": "Hub structure reports 26.3K rows, but no license metadata was exposed. Viewer preview returned HTTP 429.",
+        "decision": "hold_pending_license_provenance_and_sample_review"
+      }
+    },
+    {
+      "id": "sup2ch_ru_en_code_curriculum_hold",
+      "hf_id": "sup2ch/ru-en-code-curriculum",
+      "url": "https://huggingface.co/datasets/sup2ch/ru-en-code-curriculum",
+      "language": [
+        "ru",
+        "en",
+        "code"
+      ],
+      "role": "code_cpt_and_sft",
+      "declared_license": "other",
+      "reported_size": "129.7K records; 38.6M tokenizer tokens across CPT and SFT splits",
+      "provenance_claim": "Dataset card says the public release includes only records classified as redistributable and excludes local-training-only sources.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful bilingual coding curriculum with train, reserve, and validation splits.",
+        "Hub license is marked other; obtain and review the exact terms before acquisition or training.",
+        "Do not combine reserve or validation splits with training; inspect source provenance and code quality."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/sup2ch/ru-en-code-curriculum",
+        "assessment": "Hub metadata reports license other and 129.7K rows across CPT/SFT splits. Card claims redistributable-only records, but exact license terms need verification.",
+        "decision": "hold_pending_exact_license_and_provenance_review"
       }
     }
   ]
