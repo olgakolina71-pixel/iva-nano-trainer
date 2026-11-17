@@ -82,3 +82,23 @@ Every source must pass all of the following independently:
 
 Until then, every source remains quarantined and `training_enabled` remains
 `false`.
+
+
+## Follow-up implementation review — 2026-11-17
+
+A second pass against current Hub metadata confirmed several useful schema details:
+
+- `Imperius/ru-classic`: `default/train`, about 6.9M rows, one `text` field; still needs OCR/fragment and item-level rights checks.
+- `zjkarina/matreshka`: 6.7K train and 1.7K validation rows, with `role`, `dialog`, `persona`, and `summary`; the validation split must remain held out.
+- `DatasetsEval/RusLang-Edu-100`: exactly 100 rows and a rich 25-column schema including `instruction`, `output`, `answer_short`, `source`, and `license`; inspect all rows and verify the claimed expert review rather than trusting the card.
+- `openai/gsm8k`: the `main` and `socratic` configs each expose train and test splits. The audit default remains `main/train`; both test splits are evaluation-only.
+- `TIGER-Lab/MathInstruct`: 262K rows with `source`, `output`, and `instruction`. Its upstream-source/license filter is still mandatory.
+- `microsoft/orca-math-word-problems-200k`: 200K rows with `question` and `answer`; generated solutions require independent arithmetic validation.
+- `convaiinnovations/physics-reasoning-dataset`: 10K rows and a four-column schema; the Dataset Viewer preview currently fails, so a streamed sample is still required.
+- `d0rj/mathematics_dataset`: the Russian split is 12.7M rows under config `default`; use split `ru`, not `train`. Evaluation categories must not enter training.
+- `Fmluder/Tiny-Russian-Dialogs`: 125K rows with columns `q` and `a`. The audit script now recognizes the short `a` answer field.
+- `t-tech/T-math`: current Hub structure lists 325 rows in `default/train` (the card describes 331 tasks). It remains evaluation-only and must not be added to training.
+
+The manual workflow now lists all 29 registry IDs, not just the original 16. Its free-text config/split inputs are passed through environment variables rather than interpolated into shell source. The audit script recognizes common answer aliases (including `a`, `verifiable_answer`, and `full_answer`) and assistant turns in common message/dialog schemas. These changes improve audit coverage; they do not constitute a dataset approval.
+
+Dataset Viewer errors remain for some sources (including Medium-Life, ru_wiki, and physics-reasoning). A failed viewer preview is not evidence that the source is clean or empty; use a successful bounded stream or keep the source on hold.
