@@ -21,7 +21,6 @@ on:
           - microsoft_orca_math_200k
           - convai_physics_reasoning
           - d0rj_math_dataset_ru
-          - s85io_math_logic_ru
           - fmluder_tiny_russian_dialogs
           - ttech_tmath_ru_eval
 
