@@ -10,7 +10,7 @@
     ],
     "training_enabled": false,
     "last_license_review": "2026-11-17",
-    "note": "No source in this registry is approved for training by this license-card review. CC0 labels are declarations to verify, not independent proof of upstream rights."
+    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights."
   },
   "datasets": [
     {
@@ -171,6 +171,145 @@
       "reasons": [
         "Mixed upstream literary/forum sources require source-by-source rights review.",
         "Do not treat the repository-level CC-BY label as proof that every underlying text is reusable."
+      ]
+    },
+    {
+      "id": "ilyagusev_ru_turbo_alpaca",
+      "hf_id": "IlyaGusev/ru_turbo_alpaca",
+      "url": "https://huggingface.co/datasets/IlyaGusev/ru_turbo_alpaca",
+      "language": "ru",
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "29,822 instruction examples",
+      "provenance_claim": "Dataset card describes Russian instructions generated with ChatGPT using a self-instruct/Alpaca-style pipeline.",
+      "status": "candidate",
+      "reasons": [
+        "Potential Russian instruction-tuning source; not a base-pretraining corpus.",
+        "Published sample assessments report that only a portion of instruction/output pairs are fully correct; run factuality and quality filtering.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/IlyaGusev/ru_turbo_alpaca",
+        "assessment": "Hugging Face metadata declares CC BY 4.0 and the dataset card reports 29,822 generated Russian instruction examples. The card's own quality figures indicate imperfect outputs.",
+        "decision": "candidate_pending_sample_quality_and_attribution_review"
+      }
+    },
+    {
+      "id": "zjkarina_matreshka",
+      "hf_id": "zjkarina/matreshka",
+      "url": "https://huggingface.co/datasets/zjkarina/matreshka",
+      "language": "ru",
+      "role": "sft_and_summarization",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "8,319 rows (6.66K train; 1.7K validation)",
+      "provenance_claim": "Dataset card describes Russian dialogues, speaker persona, and generated dialogue summaries.",
+      "status": "candidate",
+      "reasons": [
+        "Useful as a small dialogue and summarization candidate, not for large-scale pretraining.",
+        "Inspect dialogue quality, factual claims, duplicated templates, and any personal information.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/zjkarina/matreshka",
+        "assessment": "Hugging Face metadata declares CC BY 4.0. Dataset structure exposes role, dialog, persona, and summary fields with train and validation splits.",
+        "decision": "candidate_pending_sample_quality_privacy_and_attribution_review"
+      }
+    },
+    {
+      "id": "sonexa_ru_eng_prompt_response",
+      "hf_id": "SonexaAI/ru_eng-dataset",
+      "url": "https://huggingface.co/datasets/SonexaAI/ru_eng-dataset",
+      "language": [
+        "ru",
+        "en"
+      ],
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "60,000 synthetic prompt-response rows (59,000 train; 1,000 validation, as stated by card)",
+      "provenance_claim": "Dataset card describes synthetic bilingual English/Russian prompt-response examples.",
+      "status": "candidate",
+      "reasons": [
+        "Potential short-form instruction and conversation supplement.",
+        "Dataset Viewer currently fails to expose row/schema details; inspect downloaded JSONL and verify actual row counts and Russian share.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/SonexaAI/ru_eng-dataset",
+        "assessment": "Hugging Face metadata declares CC BY 4.0 and the card describes 60,000 synthetic bilingual rows. Dataset Viewer/parquet conversion did not provide usable row previews during review.",
+        "decision": "candidate_pending_raw_file_schema_and_sample_review"
+      }
+    },
+    {
+      "id": "datasets_eval_ruslang_edu_100",
+      "hf_id": "DatasetsEval/RusLang-Edu-100",
+      "url": "https://huggingface.co/datasets/DatasetsEval/RusLang-Edu-100",
+      "language": "ru",
+      "role": "evaluation_and_sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "100 expert-curated instruction cards",
+      "provenance_claim": "Dataset card describes Russian grammar, orthography, punctuation, morphology, syntax, and stylistics tasks.",
+      "status": "candidate",
+      "reasons": [
+        "Useful narrow evaluation set and possible small SFT supplement; far too small for pretraining.",
+        "Verify expert-review claims, answer correctness, and train/evaluation separation.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/DatasetsEval/RusLang-Edu-100",
+        "assessment": "Hugging Face metadata declares CC BY 4.0; structure reports 100 rows and fields for instruction, input, output, short answer, explanation, and review metadata.",
+        "decision": "candidate_pending_independent_answer_and_provenance_review"
+      }
+    },
+    {
+      "id": "lksy_ru_instruct_gpt4",
+      "hf_id": "lksy/ru_instruct_gpt4",
+      "url": "https://huggingface.co/datasets/lksy/ru_instruct_gpt4",
+      "language": "ru",
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "About 23.3 MB; row count not verified",
+      "provenance_claim": "Dataset card describes GPT-4-generated Russian instructions.",
+      "status": "hold",
+      "reasons": [
+        "Dataset Viewer is disabled because the repository requires arbitrary Python code execution.",
+        "Inspect repository files, schema, source provenance, and examples before making it downloadable through the candidate workflow.",
+        "CC BY 4.0 metadata is a publisher declaration, not independent rights verification."
+      ]
+    },
+    {
+      "id": "samurainisa_russian_pd",
+      "hf_id": "samurainisa/Russian-PD",
+      "url": "https://huggingface.co/datasets/samurainisa/Russian-PD",
+      "language": "ru",
+      "role": "pretraining",
+      "declared_license": "not_declared_in_hub_metadata",
+      "reported_size": "8.6 GB parquet; card claims 8,525 titles and about 995 million words",
+      "provenance_claim": "Dataset card says the collection contains public-domain Russian monographs and periodicals recovered from Internet Archive, with a pre-1884 cutoff described as a curation criterion.",
+      "status": "hold",
+      "reasons": [
+        "No machine-readable license was exposed in the inspected Hub metadata; do not infer a license from the public-domain description.",
+        "Very large snapshot and item-level edition/provenance checks are required.",
+        "Dataset Viewer schema preview failed due a parquet scan-size limit."
+      ]
+    },
+    {
+      "id": "markpromaster_russian_classical_literature",
+      "hf_id": "MarkProMaster229/Russian_classical_literature",
+      "url": "https://huggingface.co/datasets/MarkProMaster229/Russian_classical_literature",
+      "language": "ru",
+      "role": "pretraining_candidate",
+      "declared_license": "CC0-1.0",
+      "reported_size": "11,960 rows; about 6.72 MB",
+      "provenance_claim": "Dataset card describes public-domain Russian classics in input/target format.",
+      "status": "hold",
+      "reasons": [
+        "Likely substantial overlap with the existing Imperius/ru-classic corpus and other public-domain literature sources.",
+        "Check exact work/edition provenance and deduplication before acquisition.",
+        "CC0 metadata is a publisher declaration, not independent verification of every underlying edition."
       ]
     }
   ]
