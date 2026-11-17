@@ -89,6 +89,14 @@ def main():
         help="Search the public web and read up to two result pages.",
     )
     parser.add_argument(
+        "--subconscious", action="store_true",
+        help="Enable bounded session reflection and opt-in long-term memory.",
+    )
+    parser.add_argument(
+        "--memory-file", default="iva_memory.json",
+        help="Path for notes explicitly saved with /remember.",
+    )
+    parser.add_argument(
         "--system-prompt",
         default="Ты IVA — Интеллектуальный Вычислительный Ассистент. Отвечай по-русски, "
                 "ясно и по существу. Выполняй просьбу пользователя. Не выдумывай факты: "
@@ -125,6 +133,10 @@ def main():
     print("Поиск по интернету: " + ("включён" if args.web_search else "выключен"))
     if args.web_search:
         print("Отдельная страница: /open https://example.com")
+    mind = Subconscious(args.memory_file) if args.subconscious else None
+    print("IVA MIND: " + ("включён" if mind else "выключен"))
+    if mind:
+        print("Команды: /remember текст, /memories, /forget-memory, /mind-status")
     print("Введите /reset для очистки истории, /exit для выхода.")
     history = []
     while True:
@@ -140,6 +152,34 @@ def main():
         if user_text.lower() == "/reset":
             history.clear()
             print("История очищена.")
+            continue
+        if user_text.startswith("/remember "):
+            if not mind:
+                print("Включи IVA MIND: python chat.py --subconscious")
+            else:
+                try:
+                    print("Сохранено: " + mind.remember(user_text[len("/remember "):]))
+                except (OSError, ValueError) as exc:
+                    print(f"Не удалось сохранить заметку: {exc}")
+            continue
+        if user_text.lower() == "/memories":
+            if not mind:
+                print("IVA MIND выключен.")
+            else:
+                for index, note in enumerate(mind.memory_list(), 1):
+                    print(f"{index}. {note}")
+                if not mind.memory_list():
+                    print("Сохранённых заметок пока нет.")
+            continue
+        if user_text.lower() == "/forget-memory":
+            if mind:
+                mind.forget_all()
+                print("Сохранённые заметки удалены.")
+            else:
+                print("IVA MIND выключен.")
+            continue
+        if user_text.lower() == "/mind-status":
+            print(mind.status() if mind else "IVA MIND выключен.")
             continue
         if user_text.startswith("/open "):
             if not args.web_search:
@@ -178,6 +218,12 @@ def main():
             except Exception as exc:
                 print(f"Поиск временно недоступен ({type(exc).__name__}); продолжаю без него.")
 
+        if mind:
+            mind_context = mind.context_for(user_text)
+            if mind_context:
+                prompt_text += "
+
+" + mind_context
         history.append(("user", prompt_text))
         response = answer(
             model, tokenizer, history, args.system_prompt, device,
@@ -185,6 +231,8 @@ def main():
             args.top_p, args.repetition_penalty,
         )
         history.append(("assistant", response))
+        if mind:
+            mind.reflect(user_text, response)
         # Keep this as the final console output for the turn: search diagnostics,
         # source titles and generation work have already completed above.
         print_iva_answer(response)
