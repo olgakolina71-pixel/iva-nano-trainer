@@ -10,7 +10,7 @@
     ],
     "training_enabled": false,
     "last_license_review": "2026-11-17",
-    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training."
+    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language candidate entries were added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru, Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). Dataset Viewer previews were rate-limited; none is approved for training."
   },
   "datasets": [
     {
@@ -471,6 +471,100 @@
         "evidence_url": "https://huggingface.co/datasets/flytech/python-codes-25k",
         "assessment": "Card says MIT and 24,813 entries, while Dataset Viewer structure reports 49.6K rows. Preview returned HTTP 429; discrepancy and license need resolution.",
         "decision": "hold_pending_license_rowcount_and_sample_review"
+      }
+    },
+    {
+      "id": "d0rj_math_dataset_ru",
+      "hf_id": "d0rj/mathematics_dataset",
+      "url": "https://huggingface.co/datasets/d0rj/mathematics_dataset",
+      "language": [
+        "ru",
+        "en"
+      ],
+      "role": "math_reasoning_pretraining_and_evaluation",
+      "declared_license": "Apache-2.0",
+      "reported_size": "125.4M total rows; Russian split 12.7M rows (~510.6 MB), English split 112.7M rows",
+      "provenance_claim": "Dataset card says English rows come from the original DeepMind mathematics_dataset release; Russian questions were independently generated from rewritten Russian templates, not machine-translated row-by-row.",
+      "status": "candidate",
+      "reasons": [
+        "Large Russian-language synthetic mathematics corpus with topic and difficulty metadata.",
+        "Use only the Russian split for Russian training; do not mix the English split without an explicit multilingual plan.",
+        "Keep evaluation categories/splits out of training and inspect answer correctness, formatting, and duplicates.",
+        "Dataset Viewer preview returned HTTP 429 during review; sample-level verification remains pending."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/d0rj/mathematics_dataset",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 12.7M Russian rows plus 112.7M English rows. The card describes synthetic Russian generation based on a translated fork of the DeepMind generator. Viewer preview was rate-limited; upstream repository and sample quality still need human review.",
+        "decision": "candidate_quarantine_only_pending_sample_generator_and_split_review"
+      }
+    },
+    {
+      "id": "s85io_math_logic_ru",
+      "hf_id": "s85io/math-logic-ru",
+      "url": "https://huggingface.co/datasets/s85io/math-logic-ru",
+      "language": "ru",
+      "role": "math_logic_instruction_sft_and_eval",
+      "declared_license": "MIT",
+      "reported_size": "3.96K train rows and 441 validation rows",
+      "provenance_claim": "Dataset card describes a synthetic Russian dataset for formalizing natural-language statements into mathematical logic and constructing deduction chains.",
+      "status": "candidate",
+      "reasons": [
+        "Adds Russian-language formal logic and proof-structure tasks not covered by arithmetic-only datasets.",
+        "Keep validation split separate from training.",
+        "Review formula correctness, notation consistency, and generated proof validity before approval.",
+        "Dataset Viewer preview returned HTTP 429 during review."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/s85io/math-logic-ru",
+        "assessment": "Hub metadata declares MIT and reports 3,961 train rows plus 441 validation rows. Dataset card describes synthetic Russian logic formalization. Sample preview was rate-limited; answer-level correctness remains unverified.",
+        "decision": "candidate_quarantine_only_pending_formula_and_sample_review"
+      }
+    },
+    {
+      "id": "fmluder_tiny_russian_dialogs",
+      "hf_id": "Fmluder/Tiny-Russian-Dialogs",
+      "url": "https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs",
+      "language": "ru",
+      "role": "short_dialogue_sft",
+      "declared_license": "CC0-1.0",
+      "reported_size": "125K question-answer rows; one train split",
+      "provenance_claim": "Dataset card describes a synthetic Russian-language short-dialogue corpus in question-answer format.",
+      "status": "candidate",
+      "reasons": [
+        "Adds a sizeable Russian dialogue source with a simple question-answer schema.",
+        "Treat as supplementary SFT data, not a substitute for broad Russian pretraining.",
+        "Check repetition, generic-answer frequency, conversational naturalness, and safety before approval.",
+        "Dataset Viewer preview returned HTTP 429 during review."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs",
+        "assessment": "Hub metadata declares CC0-1.0 and reports 125K rows with q/a fields. Dataset card describes synthetic dialogue generation. Sample preview was rate-limited; quality and duplicate checks remain pending.",
+        "decision": "candidate_quarantine_only_pending_sample_quality_and_deduplication"
+      }
+    },
+    {
+      "id": "ttech_tmath_ru_eval",
+      "hf_id": "t-tech/T-math",
+      "url": "https://huggingface.co/datasets/t-tech/T-math",
+      "language": "ru",
+      "role": "math_reasoning_evaluation_only",
+      "declared_license": "Apache-2.0",
+      "reported_size": "325 train rows (331 tasks described on the card)",
+      "provenance_claim": "Dataset card describes Russian olympiad mathematics tasks from All-Russian School Olympiad and Moscow Olympiad, 1998-2025; answers reportedly checked by human assessors.",
+      "status": "candidate",
+      "reasons": [
+        "Useful as a small Russian mathematics evaluation set; not large enough to serve as a training corpus.",
+        "Do not put its evaluation examples into training; keep the full set held out for evaluation.",
+        "Review source-text rights and manually spot-check solutions before using benchmark scores."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/t-tech/T-math",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 325 rows with question, verifiable_answer, full_answer, year, grade, complexity, olympiad, and solutions fields. Card reports human verification. Viewer preview was rate-limited.",
+        "decision": "candidate_quarantine_only_evaluation_not_training_pending_rights_and_sample_review"
       }
     }
   ]
