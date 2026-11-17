@@ -15,6 +15,7 @@ from iva_nano.search import format_search_context, search_wikipedia
 from iva_nano.web import format_web_context, read_web_page, search_and_read
 from iva_nano.subconscious import Subconscious
 from iva_nano.emotion import EmotionEngine
+from iva_nano.emotion import EmotionEngine
 
 
 def build_chat_prompt(tokenizer, messages, system_prompt, context_length, reserve_tokens):
@@ -94,6 +95,10 @@ def main():
         help="Enable bounded session reflection and opt-in long-term memory.",
     )
     parser.add_argument(
+        "--no-emotion", action="store_true",
+        help="Disable IVA EMOTION mood simulation and respectful-boundary logic.",
+    )
+    parser.add_argument(
         "--memory-file", default="iva_memory.json",
         help="Path for notes explicitly saved with /remember.",
     )
@@ -135,6 +140,8 @@ def main():
     if args.web_search:
         print("Отдельная страница: /open https://example.com")
     mind = Subconscious(args.memory_file) if args.subconscious else None
+    emotion = None if args.no_emotion else EmotionEngine()
+    print("IVA EMOTION: " + ("выключен" if emotion is None else "включён"))
     print("IVA MIND: " + ("включён" if mind else "выключен"))
     if mind:
         print("Команды: /remember текст, /memories, /forget-memory, /mind-status")
@@ -152,7 +159,19 @@ def main():
             break
         if user_text.lower() == "/reset":
             history.clear()
-            print("История очищена.")
+            if emotion:
+                emotion.reset()
+            print("История очищена; эмоциональное состояние сброшено.")
+            continue
+        if user_text.lower() == "/emotion":
+            print(emotion.status() if emotion else "IVA EMOTION выключен.")
+            continue
+        if user_text.lower() == "/resume":
+            if emotion:
+                emotion.resume()
+                print("IVA снова готов продолжить разговор.")
+            else:
+                print("IVA EMOTION выключен.")
             continue
         if user_text.startswith("/remember "):
             if not mind:
@@ -182,6 +201,11 @@ def main():
         if user_text.lower() == "/mind-status":
             print(mind.status() if mind else "IVA MIND выключен.")
             continue
+        if emotion:
+            emotion.observe(user_text)
+            if emotion.paused:
+                print_iva_answer("Мне неприятен такой тон, поэтому я беру паузу. Когда будешь готов продолжить уважительно, напиши /resume.")
+                continue
         if user_text.startswith("/open "):
             if not args.web_search:
                 print("Включи интернет-поиск: python chat.py --web-search")
@@ -221,6 +245,8 @@ def main():
 
         if mind:
             mind_context = mind.context_for(user_text)
+            if emotion:
+                prompt_text += "\n\n" + emotion.context_for()
             if mind_context:
                 prompt_text += "\n\n" + mind_context
         history.append(("user", prompt_text))
