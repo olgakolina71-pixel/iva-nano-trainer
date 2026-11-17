@@ -22,7 +22,7 @@
       "declared_license": "CC0-1.0",
       "reported_size": "866 MB; 6.9M rows",
       "provenance_claim": "Russian classical literature from lib.ru; card states original works are public domain and compilation is CC0.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Strongest current candidate for Russian prose pretraining.",
         "Old literary language; not a modern dialogue or factual-QA dataset.",
@@ -32,8 +32,8 @@
         "checked_at": "2026-11-17",
         "declared_license": "CC0-1.0",
         "evidence_url": "https://huggingface.co/datasets/Imperius/ru-classic",
-        "assessment": "Current dataset card declares CC0-1.0 for the compilation, describes 866 MB from lib.ru and 61 authors, and lists Leo Tolstoy among the included authors (38 MB). This supports Tolstoy material being present, but the card does not list individual titles, so it does not prove that War and Peace specifically is in the snapshot. Underlying text rights and edition-level provenance still need validation.",
-        "decision": "candidate_pending_item_level_provenance",
+        "assessment": "Current dataset card declares CC0-1.0 for the compilation, describes 866 MB from lib.ru and 61 authors, and lists Leo Tolstoy among the included authors (38 MB). This supports Tolstoy material being present, but the card does not list individual titles, so it does not prove that War and Peace specifically is in the snapshot. Underlying text rights and edition-level provenance still need validation. The uploader claims CC0, but the corpus is collected from lib.ru and includes authors/editions requiring item-level rights verification.",
+        "decision": "hold_pending_item_level_public_domain_and_edition_rights_review",
         "required_checks": [
           "Inspect corpus records or source manifest to confirm exact titles, including War and Peace.",
           "Verify each included work's author and public-domain status; check edition, translation, annotations, and editorial additions.",
@@ -93,7 +93,7 @@
       "declared_license": "CC-BY-4.0",
       "reported_size": "150,000 dialogues; 140,000 train and 10,000 test",
       "provenance_claim": "Dataset card describes programmatically generated bilingual coding and general-chat dialogues.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Potential supervised instruction data; preserve attribution and license notice.",
         "Filter Russian examples and inspect quality before approval."
@@ -113,7 +113,9 @@
             "Score topic relevance and remove generic/repeated assistant completions; deduplicate near-identical dialogue templates.",
             "Keep the declared test split completely out of training; preserve CC BY 4.0 attribution."
           ]
-        }
+        },
+        "decision": "hold_due_repetitive_template_answers_in_direct_sample",
+        "assessment": "A direct sample of 16 rows showed repetitive generic assistant templates across unrelated topics; retain out of training until filtered and re-audited."
       }
     },
     {
@@ -247,7 +249,7 @@
       "declared_license": "CC-BY-4.0",
       "reported_size": "29,822 instruction examples",
       "provenance_claim": "Dataset card describes Russian instructions generated with ChatGPT using a self-instruct/Alpaca-style pipeline.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Potential Russian instruction-tuning source; not a base-pretraining corpus.",
         "Published sample assessments report that only a portion of instruction/output pairs are fully correct; run factuality and quality filtering.",
@@ -256,8 +258,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/IlyaGusev/ru_turbo_alpaca",
-        "assessment": "Hugging Face metadata declares CC BY 4.0 and the dataset card reports 29,822 generated Russian instruction examples. The card's own quality figures indicate imperfect outputs.",
-        "decision": "candidate_pending_sample_quality_and_attribution_review",
+        "assessment": "Hugging Face metadata declares CC BY 4.0 and the dataset card reports 29,822 generated Russian instruction examples. The card's own quality figures indicate imperfect outputs. The dataset card itself contains a legal disclaimer stating that its source terms prohibit developing competing models; do not use for IVA pending independent legal review.",
+        "decision": "hold_due_upstream_competition_restriction_in_dataset_card",
         "sample_audit": {
           "method": "metadata_and_file_inspection",
           "sample_records": 0,
@@ -321,7 +323,7 @@
       "declared_license": "CC-BY-4.0",
       "reported_size": "60,000 synthetic prompt-response rows (59,000 train; 1,000 validation, as stated by card)",
       "provenance_claim": "Dataset card describes synthetic bilingual English/Russian prompt-response examples.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Potential short-form instruction and conversation supplement.",
         "Dataset Viewer currently fails to expose row/schema details; inspect downloaded JSONL and verify actual row counts and Russian share.",
@@ -330,8 +332,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/SonexaAI/ru_eng-dataset",
-        "assessment": "Hugging Face metadata declares CC BY 4.0 and the card describes 60,000 synthetic bilingual rows. Dataset Viewer/parquet conversion did not provide usable row previews during review.",
-        "decision": "candidate_pending_raw_file_schema_and_sample_review",
+        "assessment": "Hugging Face metadata declares CC BY 4.0 and the card describes 60,000 synthetic bilingual rows. Dataset Viewer/parquet conversion did not provide usable row previews during review. A direct 150-row sample was mixed Russian/English (84 ru, 66 en), with repeated prompts/answers and weak prompt-response relevance already observed.",
+        "decision": "hold_due_mixed_language_duplicates_and_weak_response_relevance",
         "sample_audit": {
           "method": "direct_jsonl_sample",
           "sample_records": 30,
@@ -441,7 +443,7 @@
       "declared_license": "MIT",
       "reported_size": "8,500 original math word problems; main train 7.5K and test 1.3K; socratic config also available",
       "provenance_claim": "OpenAI dataset card describes original grade-school multi-step arithmetic word problems.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Useful for arithmetic word-problem reasoning and multi-step solutions.",
         "English-only; translate only through a separately checked process, not by silently relabeling it Russian.",
@@ -451,8 +453,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/openai/gsm8k",
-        "assessment": "Hub metadata declares MIT and exposes main/socratic train and test splits with question and answer fields. Preview request returned HTTP 429; sample-level verification remains pending.",
-        "decision": "candidate_quarantine_only_pending_sample_and_answer_checks",
+        "assessment": "Hub metadata declares MIT and exposes main/socratic train and test splits with question and answer fields. Preview request returned HTTP 429; sample-level verification remains pending. The source is English-only; only a separately translated and human-verified derivative could be considered for Russian training. Test split must remain evaluation-only.",
+        "decision": "hold_english_only_until_reviewed_russian_derivative_exists",
         "sample_audit": {
           "method": "metadata_and_file_inspection",
           "sample_records": 0,
@@ -478,7 +480,7 @@
       "declared_license": "MIT",
       "reported_size": "262,000 rows; 99.1 MB parquet",
       "provenance_claim": "Dataset card says compiled from 13 math rationale datasets, including six newly curated sources.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Broad mathematics instruction and reasoning coverage.",
         "Compiled from multiple upstream datasets; verify each upstream license and source before training.",
@@ -488,8 +490,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/TIGER-Lab/MathInstruct",
-        "assessment": "Hub metadata declares MIT, 262K train rows, fields source/output/instruction. Its multi-source composition requires upstream rights review; preview returned HTTP 429.",
-        "decision": "candidate_quarantine_only_pending_upstream_rights_and_quality_review",
+        "assessment": "Hub metadata declares MIT, 262K train rows, fields source/output/instruction. Its multi-source composition requires upstream rights review; preview returned HTTP 429. The card lists non-listed and CC BY-NC upstream subsets alongside MIT subsets; row-level provenance/license filtering is mandatory, and the dataset is English.",
+        "decision": "hold_until_row_level_upstream_license_filter_and_language_scope_review",
         "sample_audit": {
           "method": "dataset_card_and_schema_inspection",
           "sample_records": 0,
@@ -515,7 +517,7 @@
       "declared_license": "MIT",
       "reported_size": "About 200,000 rows; 84.2 MB parquet",
       "provenance_claim": "Microsoft dataset card says grade-school math word problems with answers generated using Azure GPT-4 Turbo.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Potential extra arithmetic and word-problem practice.",
         "Generated answers need correctness checks; inspect samples and remove duplicates.",
@@ -525,8 +527,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/microsoft/orca-math-word-problems-200k",
-        "assessment": "Hub metadata declares MIT and reports 200K train rows; dataset card describes GPT-4-Turbo-generated answers. Preview returned HTTP 429.",
-        "decision": "candidate_quarantine_only_pending_sample_and_answer_checks",
+        "assessment": "Hub metadata declares MIT and reports 200K train rows; dataset card describes GPT-4-Turbo-generated answers. Preview returned HTTP 429. The source is English-only and answers are generated by Azure GPT-4 Turbo; any Russian derivative requires translation review and independent arithmetic verification.",
+        "decision": "hold_english_only_until_russian_derivative_and_answer_validation",
         "sample_audit": {
           "method": "dataset_card_and_schema_inspection",
           "sample_records": 0,
@@ -552,7 +554,7 @@
       "declared_license": "MIT",
       "reported_size": "10,000 rows; 3.5 MB parquet",
       "provenance_claim": "Dataset card describes physics reasoning scenarios with prompt, answer, and concept fields.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Direct physics reasoning coverage with concept labels.",
         "English-only; not a Russian physics corpus.",
@@ -562,8 +564,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/convaiinnovations/physics-reasoning-dataset",
-        "assessment": "Hub metadata declares MIT and reports 10K train rows with prompt/answer/concept-style fields. Preview returned HTTP 429; item-level quality and provenance remain unverified.",
-        "decision": "candidate_quarantine_only_pending_sample_and_physics_validation",
+        "assessment": "Hub metadata declares MIT and reports 10K train rows with prompt/answer/concept-style fields. Preview returned HTTP 429; item-level quality and provenance remain unverified. A direct 24-row sample was English-only; near-paraphrase and counterfactual variants create split-leakage risk, and calculations require independent physics checks.",
+        "decision": "hold_english_only_until_russian_derivative_and_physics_validation",
         "sample_audit": {
           "method": "direct_jsonl_sample",
           "sample_records": 4,
@@ -738,7 +740,7 @@
       "declared_license": "CC0-1.0",
       "reported_size": "125K question-answer rows; one train split",
       "provenance_claim": "Dataset card describes a synthetic Russian-language short-dialogue corpus in question-answer format.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Adds a sizeable Russian dialogue source with a simple question-answer schema.",
         "Treat as supplementary SFT data, not a substitute for broad Russian pretraining.",
@@ -749,8 +751,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs",
-        "assessment": "Hub metadata declares CC0-1.0 and reports 125K rows with q/a fields. Dataset card describes synthetic dialogue generation. Sample preview was rate-limited; quality and duplicate checks remain pending.",
-        "decision": "candidate_quarantine_only_pending_sample_quality_and_deduplication",
+        "assessment": "Hub metadata declares CC0-1.0 and reports 125K rows with q/a fields. Dataset card describes synthetic dialogue generation. Sample preview was rate-limited; quality and duplicate checks remain pending. The direct CSV sample shows generic boilerplate and repeated dialogue patterns; a full deduplication and answer-quality pass is required.",
+        "decision": "hold_due_repeated_generic_answers_and_malformed_samples",
         "sample_audit": {
           "method": "direct_csv_sample",
           "sample_records": 50,
