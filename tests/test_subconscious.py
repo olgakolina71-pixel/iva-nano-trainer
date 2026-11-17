@@ -12,7 +12,7 @@ class SubconsciousTests(unittest.TestCase):
             memory_path = Path(tmp) / "memory.json"
             mind = Subconscious(memory_path)
             mind.reflect("Давай обсудим проект", "Хорошо")
-            notes = mind.reflect("Вернёмся к проекту?", "Давай")
+            notes = mind.reflect("Проект снова?", "Давай")
             self.assertTrue(any("проект" in note for note in notes))
             self.assertFalse(memory_path.exists())
 
