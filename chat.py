@@ -14,6 +14,7 @@ from generate import sample_next_token
 from iva_nano.search import format_search_context, search_wikipedia
 from iva_nano.web import format_web_context, read_web_page, search_and_read
 from iva_nano.subconscious import Subconscious
+from iva_nano.emotion import EmotionEngine
 
 
 def build_chat_prompt(tokenizer, messages, system_prompt, context_length, reserve_tokens):
