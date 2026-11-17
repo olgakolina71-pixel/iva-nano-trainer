@@ -145,7 +145,7 @@ def main():
     print("IVA MIND: " + ("включён" if mind else "выключен"))
     if mind:
         print("Команды: /remember текст, /memories, /forget-memory, /mind-status")
-    print("Введите /reset для очистки истории, /exit для выхода.")
+    print("Команды: /emotion, /resume, /reset, /exit" + ("; /remember, /memories, /forget-memory, /mind-status" if mind else ""))
     history = []
     while True:
         try:
