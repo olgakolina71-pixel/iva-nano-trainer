@@ -173,3 +173,15 @@ An attempt was made to dispatch the bounded GitHub Actions sample audit for the 
 - `kukunechka/russian-everyday-dialogues` contains 20 short examples across shops, transport and cafés under CC BY 4.0. Keep it only as a low-weight style supplement; the direct sample includes context-specific price/location claims that must not be treated as current factual knowledge.
 
 Registry count after this pass: 5 candidates and 24 holds. Still no training-approved source.
+
+## Acquisition follow-up — 2026-11-17
+
+This follow-up used Hugging Face repository metadata, file listings and bounded Dataset Viewer previews. It did not download or approve any full corpus.
+
+- **DatasetsEval/RusLang-Edu-100:** inspected the complete 100-row preview in two bounded requests (rows 0–79 and 80–99). The row-level `split` field marks 90 rows as `train` and 10 as `validation`, even though all 100 are physically stored in the Hub's `train` split. The ten validation rows must be extracted to evaluation only and must never enter training. All visible records carry `expert_curated`, `cc-by-4.0`, `gold_unique=true`, and `review_status=verified`; these are publisher-provided fields, not independent verification of expertise or correctness. Keep as candidate pending human answer/explanation review and correct split extraction.
+- **d0rj/mathematics_dataset:** a bounded preview of the first 12 rows in `default/ru` returned only `extrapolate` category examples. This confirms that a naive first-N sample is biased and cannot be used to estimate category proportions or training readiness. Use explicit category filtering and sample each of `train-easy`, `train-medium`, `train-hard`, `interpolate`, and `extrapolate` separately. The latter two remain evaluation-only. The preview's very large algebraic expressions also require robust parsing and independent answer verification.
+- **t-tech/T-math:** the current Hub preview confirms `default/train` contains 325 rows, not the 331 claimed in the dataset card. A 10-row bounded sample contains Russian olympiad questions with answer and solution fields. Keep strictly evaluation-only; check extraction/answer accuracy before relying on benchmark scores.
+- **atBuba/ruwiki-dataset:** file listing confirms `ruwiki_full.txt` is 8,425,293,658 bytes, alongside `train.bin` and `val.bin`. The README's smaller 4.34 GB text figure does not match the current file byte size (decimal vs binary units alone does not explain the difference). Do not bulk-download yet; inspect file encoding, compression, dump date, provenance and licensing obligations using bounded streaming first.
+- **kukunechka/russian-everyday-dialogues:** current Dataset Viewer conversion fails (generation error), although the earlier direct 20-record JSONL sample remains available as evidence. This access failure is not a content-quality finding.
+
+The registry remains **5 candidates / 24 holds / 0 approved**, with `training_enabled=false`. No raw corpus was added to the training directory, no model training was started, and no dataset was approved.
