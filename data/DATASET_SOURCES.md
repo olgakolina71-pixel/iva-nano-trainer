@@ -26,3 +26,48 @@ The script is not run automatically. Review the generated sample text, counts, d
 ## Rights and quality
 
 Dataset-card license metadata is a claim by the publisher, not an independent legal audit. Keep each source's license and attribution in the manifest. Do not merge the KartaSlov CC BY-NC-SA data into the CC0-only run. Do not ingest the forum corpus or any source whose rights/provenance are unclear. A corpus can be technically downloadable and still be unsuitable for model training.
+
+
+## Additional dialogue and instruction candidates (quarantine only)
+
+| Dataset | Declared license | Planned role | Status / caveat |
+|---|---|---|---|
+| [IlyaGusev/ru_turbo_alpaca](https://huggingface.co/datasets/IlyaGusev/ru_turbo_alpaca) | CC BY 4.0 | Russian instruction SFT | Candidate only; card reports imperfect instruction/output quality, so filter carefully. |
+| [zjkarina/matreshka](https://huggingface.co/datasets/zjkarina/matreshka) | CC BY 4.0 | Dialogue and summarization SFT | Candidate only; 8.3K rows, inspect samples and privacy signals. |
+| [SonexaAI/ru_eng-dataset](https://huggingface.co/datasets/SonexaAI/ru_eng-dataset) | CC BY 4.0 | Short bilingual prompt-response SFT | Candidate only; Dataset Viewer did not expose rows during review; inspect raw JSONL. |
+| [DatasetsEval/RusLang-Edu-100](https://huggingface.co/datasets/DatasetsEval/RusLang-Edu-100) | CC BY 4.0 | Russian grammar evaluation / small SFT supplement | Candidate only; 100 rows, not a pretraining corpus. |
+| [lksy/ru_instruct_gpt4](https://huggingface.co/datasets/lksy/ru_instruct_gpt4) | CC BY 4.0 | Russian instruction SFT | Hold; viewer disabled for custom code, inspect files and provenance first. |
+| [samurainisa/Russian-PD](https://huggingface.co/datasets/samurainisa/Russian-PD) | Not declared in Hub metadata | Russian prose pretraining | Hold; 8.6 GB and item-level rights/schema review needed. |
+| [MarkProMaster229/Russian_classical_literature](https://huggingface.co/datasets/MarkProMaster229/Russian_classical_literature) | CC0 1.0 (declared) | Classical literature | Hold; likely duplicates existing classics, verify editions and deduplicate. |
+
+Candidate means eligible for a quarantined snapshot download only. It does not authorize training. Hold sources are blocked by the download workflow.
+
+
+## Mathematics, physics, and programming candidates (quarantine only)
+
+| Dataset | Declared license | Language | Planned role | Review status |
+|---|---|---|---|---|
+| [openai/gsm8k](https://huggingface.co/datasets/openai/gsm8k) | MIT | English | Multi-step arithmetic word problems | Candidate; preview rate-limited, inspect examples and keep test split out of training. |
+| [TIGER-Lab/MathInstruct](https://huggingface.co/datasets/TIGER-Lab/MathInstruct) | MIT | English | Broad math instruction and reasoning | Candidate; 13 upstream datasets require rights review. |
+| [microsoft/orca-math-word-problems-200k](https://huggingface.co/datasets/microsoft/orca-math-word-problems-200k) | MIT | English | Grade-school math word problems | Candidate; generated answers require correctness checks. |
+| [convaiinnovations/physics-reasoning-dataset](https://huggingface.co/datasets/convaiinnovations/physics-reasoning-dataset) | MIT | English | Physics reasoning | Candidate; inspect numerical correctness, units, provenance and examples. |
+| [allenai/sciq](https://huggingface.co/datasets/allenai/sciq) | CC BY-NC 3.0 | English | Science QA / evaluation | Hold; non-commercial license and mixed science topics. |
+| [maximus-21/PhysicsQA](https://huggingface.co/datasets/maximus-21/PhysicsQA) | Apache-2.0 (declared) | English | Physics evaluation | Hold; underlying questions reportedly sourced from online resources. |
+| [flytech/python-codes-25k](https://huggingface.co/datasets/flytech/python-codes-25k) | MIT (card claim; Hub tag absent) | English | Python instruction | Hold; license and inconsistent row counts require verification. |
+
+All four new candidate entries are eligible only for quarantined download. None is approved for training. These sources are English-language; do not silently count them as Russian training examples. Keep evaluation splits separate to avoid test leakage.
+
+
+## Additional Russian mathematics, logic, and dialogue candidates (quarantine only)
+
+| Dataset | Declared license | Language | Planned role | Review status |
+|---|---|---|---|---|
+| [d0rj/mathematics_dataset](https://huggingface.co/datasets/d0rj/mathematics_dataset) | Apache-2.0 | Russian + English | Synthetic math reasoning; use the Russian split for Russian training | Candidate; Russian split reports 12.7M rows. Viewer preview was rate-limited; inspect generator provenance, answers, categories, and duplicates. |
+| [s85io/math-logic-ru](https://huggingface.co/datasets/s85io/math-logic-ru) | MIT | Russian | Formal logic and deduction SFT | Candidate; 3.96K train + 441 validation rows. Keep validation separate and verify formulas/proofs. |
+| [Fmluder/Tiny-Russian-Dialogs](https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs) | CC0-1.0 | Russian | Short dialogue SFT | Candidate; 125K synthetic q/a rows. Check naturalness, repetitions, and answer quality. |
+| [t-tech/T-math](https://huggingface.co/datasets/t-tech/T-math) | Apache-2.0 | Russian | Mathematics evaluation only | Candidate for quarantined acquisition; 325 rows. Keep all examples out of training and review source-text rights. |
+| [ru-dataset/ru-dataset-small](https://huggingface.co/datasets/ru-dataset/ru-dataset-small) | Apache-2.0 | Russian | Programming/math SFT | Hold; small corpus contains explicit reasoning-tag blocks; inspect content and decide whether to exclude such traces. |
+| [attn-signs/russian-code](https://huggingface.co/datasets/attn-signs/russian-code) | Not declared in Hub metadata | Russian | Python instruction SFT | Hold; 26.3K rows but no machine-readable license tag was exposed. |
+| [sup2ch/ru-en-code-curriculum](https://huggingface.co/datasets/sup2ch/ru-en-code-curriculum) | Other / non-standard | Russian + English + code | Code CPT/SFT | Hold; card describes redistributable-only records, but exact license terms must be reviewed before acquisition or training. |
+
+Dataset Viewer previews for the four new candidates were rate-limited during review. All four remain quarantine-only; none is approved for training. Hold entries are not offered by the download workflow.

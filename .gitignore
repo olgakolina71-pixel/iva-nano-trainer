@@ -13,3 +13,7 @@ runs/
 *.model
 *.vocab
 .env
+
+# Local, user-approved IVA MIND notes (never commit personal memory)
+iva_memory.json
+iva_memory.json.tmp

@@ -1,0 +1,95 @@
+name: IVA dataset candidate sample audit (quarantine only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset_id:
+        description: "Dataset registry entry to inspect (candidate or hold)"
+        required: true
+        type: choice
+        options:
+          - imperius_ru_classic
+          - sonexa_small_life_ru_eng
+          - sonexa_medium_life_ru_eng
+          - kukunechka_russian_everyday_dialogues
+          - atbuba_ruwiki
+          - nyuuzyou_edutexts
+          - nyuuzyou_ruforum
+          - inkoziev_conversations
+          - ilyagusev_ru_turbo_alpaca
+          - zjkarina_matreshka
+          - sonexa_ru_eng_prompt_response
+          - datasets_eval_ruslang_edu_100
+          - lksy_ru_instruct_gpt4
+          - samurainisa_russian_pd
+          - markpromaster_russian_classical_literature
+          - openai_gsm8k_math
+          - tigerlab_mathinstruct
+          - microsoft_orca_math_200k
+          - convai_physics_reasoning
+          - allenai_sciq
+          - maximus_physicsqa
+          - flytech_python_codes_25k
+          - d0rj_math_dataset_ru
+          - s85io_math_logic_ru
+          - fmluder_tiny_russian_dialogs
+          - ttech_tmath_ru_eval
+          - ru_dataset_small_hold
+          - attn_signs_russian_code_hold
+          - sup2ch_ru_en_code_curriculum_hold
+      config:
+        description: "Optional Hugging Face config (blank uses the known default)"
+        required: false
+        type: string
+      split:
+        description: "Split to sample (defaults to train, or a source-specific split)"
+        required: false
+        type: string
+      max_rows:
+        description: "Maximum streamed rows; hard-capped at 500"
+        required: true
+        type: choice
+        options: ["100", "250", "500"]
+        default: "250"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iva-dataset-sample-audit
+  cancel-in-progress: false
+
+jobs:
+  sample-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate all dataset normalization rules
+        run: python scripts/validate_dataset_rules.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install bounded audit dependency
+        run: pip install "datasets>=3.0,<5.0"
+      - name: Stream and audit a bounded sample
+        env:
+          DATASET_ID: ${{ inputs.dataset_id }}
+          DATASET_CONFIG: ${{ inputs.config }}
+          DATASET_SPLIT: ${{ inputs.split }}
+          MAX_ROWS: ${{ inputs.max_rows }}
+        run: |
+          python scripts/audit_hf_dataset_candidate.py \
+            --dataset-id "$DATASET_ID" \
+            --config "$DATASET_CONFIG" \
+            --split "$DATASET_SPLIT" \
+            --max-rows "$MAX_ROWS"
+      - name: Upload aggregate audit report (no raw samples)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-dataset-sample-audit-${{ inputs.dataset_id }}
+          path: reports/dataset-candidate-audit.json
+          retention-days: 14
+          if-no-files-found: warn

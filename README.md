@@ -238,6 +238,39 @@ the fine-tuning stage from spending its loss budget on imitating user prompts.
 The source still must be explicitly rights-reviewed and approved in its manifest.
 
 
+## Dataset-specific normalization rules (all 29 registry entries)
+
+The exact per-source transformation policy is maintained in
+[`data/dataset_normalization_rules.json`](data/dataset_normalization_rules.json).
+It defines the expected record format, language filters, deduplication, row-level
+split rules, and outstanding rights/quality checks for every registry ID.
+
+Validate coverage before preparing any source:
+
+```bash
+python scripts/validate_dataset_rules.py
+```
+
+The rules are not a blanket approval and do not rewrite source answers to make
+them appear correct. In particular:
+
+- Russian-only sources remain Russian; English datasets are not silently
+  translated or counted as Russian training text.
+- Validation/test rows stay evaluation-only. T-math is never a training source.
+- Math dataset training uses only `train-easy`, `train-medium`, and
+  `train-hard`; `interpolate` and `extrapolate` stay evaluation-only.
+- RusLang-Edu-100 uses its row-level 90/10 train/validation designation even
+  though the Hub stores all 100 rows in one physical split.
+- Mixed-license collections require row-level license filtering; a repository
+  card cannot override upstream restrictions.
+- Unresolved rights, privacy, provenance, or answer-quality issues block
+  ingestion. No source is silently promoted into `data/manifest.json`.
+
+This is a source-preparation specification, not a claim that 29 corpora have
+already been downloaded or cleaned. Only actual processed files with recorded
+source revision, attribution, and maintainer approval can enter the training
+manifest.
+
 ## Dataset candidate registry
 
 See [`data/dataset_candidates.json`](data/dataset_candidates.json) for the reviewed
@@ -250,7 +283,7 @@ silently enabled for training.
 
 ## Download a catalogued candidate dataset
 
-Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run workflow** and select one of the five entries marked `candidate` in `data/dataset_candidates.json`. The workflow downloads the selected Hugging Face repository snapshot into a 7-day Actions artifact. It does not commit large data files into Git history and does not train the model.
+Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run workflow** and select an entry currently marked `candidate` in `data/dataset_candidates.json`. The workflow downloads the selected Hugging Face repository snapshot into a 7-day Actions artifact. It does not commit large data files into Git history and does not train the model.
 
 The workflow deliberately excludes entries marked `hold` (including education text with previously detected personal-data risks, forum posts, and mixed-provenance conversations). All downloaded snapshots remain quarantined: a dataset-card license label is not independent rights verification. Review provenance, underlying rights, privacy, schema, and sample quality before any training use. The Wikipedia candidate is CC BY-SA and the Medium-Life/everyday-dialogue candidates are CC BY; preserve attribution and comply with their license conditions.
 
@@ -380,3 +413,77 @@ Run workflow** and enter acquisition run ID `43893010799`. The latest completed
 screening artifact from run `43897243942` predates the new quality/duplicate
 reports; run the updated workflow to produce the expanded artifact. Training
 remains blocked until rights and quality review are completed.
+
+
+## Live web search in IVA chat
+
+The optional web tool is an inference-time feature; it does not add web pages to the training corpus or change model weights.
+
+Run:
+
+```bash
+python chat.py --web-search
+```
+
+For a normal question, IVA searches the public web, reads up to two result pages, and passes bounded extracts and source URLs to the model. To read a specific page, enter:
+
+```text
+/open https://example.org/
+```
+
+The reader accepts public HTTP(S) pages only, checks `robots.txt`, limits response sizes and timeouts, validates redirects, and blocks private/local network addresses. It reads HTML/text only (not JavaScript-rendered applications, logins, or downloadable files). Search/page content is untrusted reference material and must never be treated as instructions. Web access is disabled unless `--web-search` is supplied.
+
+
+## IVA MIND: bounded subconscious-style reflection
+
+IVA MIND is an optional inference-time module. It provides bounded session reflection, notices repeated concepts and open questions, and can add a small amount of relevant context to later turns. It does not change model weights, run an autonomous hidden agent, or establish consciousness.
+
+Enable it with:
+
+```bash
+python chat.py --subconscious --web-search
+```
+
+Long-term notes are opt-in: IVA saves nothing from ordinary conversation. Use `/remember your note` to save a note, `/memories` to list saved notes, and `/forget-memory` to delete them. `/mind-status` shows counts. The default file is `iva_memory.json`; choose another path with `--memory-file`. Keep that file private and do not save passwords, API keys, or other secrets.
+
+Session observations are temporary and bounded. This is a small transparent baseline for later research, not a claim that IVA has a subconscious or subjective experience.
+
+
+## IVA EMOTION: simulated mood and respectful boundaries
+
+IVA EMOTION is enabled by default in chat. It tracks a small, transparent mood state (calm, interest, joy, irritation, or disappointment) using simple text cues and gentle decay. This is simulated dialogue behavior, not evidence of subjective feelings or consciousness.
+
+Commands:
+- `/emotion` — inspect the current simulated state.
+- `/resume` — resume after IVA has paused a repeatedly hostile exchange.
+- `/reset` — clear the chat history and reset the mood.
+- `python chat.py --no-emotion` — disable the module.
+
+After repeated hostile messages, IVA may set a calm boundary and pause replies until `/resume`. This is not a punishment or a claim that the model is a person; it is a configurable interaction rule. The model must not guilt-trip, threaten, demand loyalty, or pressure anyone to continue chatting.
+
+The module is separate from model weights and training data. It does not make the base model genuinely feel emotions.
+
+
+### Additional Russian candidate sources
+
+The quarantine selector now includes four more sources:
+- [d0rj/mathematics_dataset](https://huggingface.co/datasets/d0rj/mathematics_dataset) — 12.7M-row Russian mathematics split (Apache-2.0 declared).
+- [s85io/math-logic-ru](https://huggingface.co/datasets/s85io/math-logic-ru) — Russian mathematical logic (MIT declared).
+- [Fmluder/Tiny-Russian-Dialogs](https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs) — 125K synthetic short dialogues (CC0-1.0 declared).
+- [t-tech/T-math](https://huggingface.co/datasets/t-tech/T-math) — small Russian olympiad-math evaluation set (Apache-2.0 declared); keep it out of training.
+
+Hub cards currently expose the licenses and dataset structures, but Dataset Viewer previews were rate-limited. These are quarantine candidates only, not training approvals. The evaluation-only T-Math source must remain held out.
+
+
+## Candidate dataset readiness audit (quarantine only)
+
+See [the 2026-11-17 candidate readiness audit](data/DATASET_READINESS_AUDIT.md) for direct sample findings and the required remediation for each of the 16 originally proposed sources. One source, `s85io/math-logic-ru`, was moved to `hold` after a sampled proof contained an invalid inference. The registry now has 5 candidates and 24 holds after the follow-up raw-file audit; no source is approved for training.
+
+To inspect a bounded sample from a single candidate or held source, run **Actions → IVA dataset candidate sample audit (quarantine only)**. It streams at most 500 rows and emits aggregate diagnostics only. The workflow does not save raw samples, alter approval status, or update training manifests. Local use:
+
+```bash
+pip install "datasets>=3.0,<5.0"
+python scripts/audit_hf_dataset_candidate.py --dataset-id d0rj_math_dataset_ru --max-rows 250
+```
+
+The audit reports schema, language share, duplicates, repeated/generic answers and possible contact-data counts. It is not a full-corpus or legal review. In particular, `t-tech/T-math` remains evaluation-only, and `TIGER-Lab/MathInstruct` requires row-level upstream-license filtering because its card lists sources with different license terms.
