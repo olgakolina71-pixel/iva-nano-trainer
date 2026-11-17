@@ -16,6 +16,7 @@ ALLOWED_DESTINATIONS = {
     "blocked_pending_provenance", "blocked_pending_license",
     "blocked_pending_row_license", "blocked_pending_schema_review",
     "blocked_pending_proof_validation", "blocked_noncommercial",
+    "excluded_pending_legal_review",
     "math_train_and_eval", "evaluation_only",
 }
 
