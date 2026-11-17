@@ -14,6 +14,49 @@ from iva_nano.model import IVANano
 from iva_nano.storage import LocalArtifactStore
 
 
+def resolve_device(requested: str) -> torch.device:
+    """Resolve cpu/cuda/tpu, including registered PrivateUse1 TPU backends."""
+    if requested == "auto":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        try:
+            backend_name = torch._C._get_privateuse1_backend_name()
+        except (AttributeError, RuntimeError):
+            backend_name = ""
+        if backend_name == "tpu":
+            return torch.device("tpu")
+        return torch.device("cpu")
+
+    if requested == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA was requested but is not available")
+    if requested == "tpu":
+        try:
+            backend_name = torch._C._get_privateuse1_backend_name()
+        except (AttributeError, RuntimeError):
+            backend_name = ""
+        if backend_name != "tpu":
+            raise RuntimeError(
+                "TPU was requested, but no 'tpu' PrivateUse1 backend is registered. "
+                "Install and initialize the TPU runtime before starting training."
+            )
+    if requested not in {"cpu", "cuda", "tpu"}:
+        raise ValueError("training.device must be auto, cpu, cuda, or tpu")
+    return torch.device(requested)
+
+
+def _to_cpu(value):
+    """Copy tensors in nested checkpoint structures to CPU for portable saves."""
+    if isinstance(value, torch.Tensor):
+        return value.detach().cpu()
+    if isinstance(value, dict):
+        return {key: _to_cpu(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_to_cpu(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_to_cpu(item) for item in value)
+    return value
+
+
 def learning_rate_at_step(step, cfg):
     """Linear warmup followed by cosine decay."""
     base = float(cfg["learning_rate"])
@@ -44,9 +87,10 @@ def evaluate(model, loader, device, max_batches=100):
 
 
 def save_checkpoint(store, name, model, optimizer, config, step, tokenizer_path):
+    # Keep checkpoints portable: custom TPU device tensors are serialized on CPU.
     return store.save_checkpoint(name, {
-        "model": model.state_dict(),
-        "optimizer": optimizer.state_dict(),
+        "model": _to_cpu(model.state_dict()),
+        "optimizer": _to_cpu(optimizer.state_dict()),
         "model_config": config["model"],
         "training_config": config["training"],
         "model_id": config.get("model_id", "iva-nano"),
@@ -67,6 +111,7 @@ def main():
     parser.add_argument("--resume", help="Resume model weights and optimizer from a checkpoint.")
     parser.add_argument("--reset-optimizer", action="store_true", help="Load model weights but start a fresh optimizer (useful for supervised fine-tuning).")
     parser.add_argument("--additional-steps", action="store_true", help="Treat training.max_steps as extra steps after the checkpoint step.")
+    parser.add_argument("--device", choices=("auto", "cpu", "cuda", "tpu"), help="Override training.device from the config.")
     parser.add_argument("--smoke-test", action="store_true")
     args = parser.parse_args()
 
@@ -77,12 +122,8 @@ def main():
     random.seed(seed)
     torch.manual_seed(seed)
 
-    device_name = train_cfg.get("device", "auto")
-    device = ("cuda" if torch.cuda.is_available() else "cpu") if device_name == "auto" else device_name
-    if device == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("CUDA was requested but is not available")
-    if device not in {"cpu", "cuda"}:
-        raise ValueError("training.device must be auto, cpu, or cuda")
+    device_name = args.device or train_cfg.get("device", "auto")
+    device = resolve_device(device_name)
 
     if not args.smoke_test:
         validate_reviewed_training_manifest(args.manifest)
@@ -142,6 +183,7 @@ def main():
         eval_loader = DataLoader(
             eval_set,
             batch_size=1 if args.smoke_test else int(train_cfg["batch_size"]),
+            num_workers=0 if device.type == "tpu" else int(train_cfg.get("num_workers", 0)),
         )
     else:
         train_set = dataset
@@ -150,7 +192,7 @@ def main():
     batch_size = 1 if args.smoke_test else int(train_cfg["batch_size"])
     loader = DataLoader(
         train_set, batch_size=batch_size, shuffle=True,
-        num_workers=int(train_cfg.get("num_workers", 0)),
+        num_workers=0 if device.type == "tpu" else int(train_cfg.get("num_workers", 0)),
     )
     if len(loader) == 0:
         raise ValueError("Training dataloader is empty")
@@ -165,7 +207,8 @@ def main():
         resume_path = Path(args.resume)
         if not resume_path.exists():
             raise FileNotFoundError(f"Resume checkpoint not found: {resume_path}")
-        saved = torch.load(resume_path, map_location=device, weights_only=False)
+        # Load checkpoint tensors on CPU; load_state_dict transfers model/optimizer state.
+        saved = torch.load(resume_path, map_location="cpu", weights_only=False)
         if saved.get("model_config") != config["model"]:
             raise ValueError("Checkpoint model architecture does not match the selected config")
         model.load_state_dict(saved["model"])
@@ -202,7 +245,7 @@ def main():
     metrics = {
         "model_id": model_id,
         "parameter_count": model.parameter_count(),
-        "device": device,
+        "device": str(device),
         "start_step": start_step,
         "target_steps": total_steps,
         "corpus_tokens": token_count,
