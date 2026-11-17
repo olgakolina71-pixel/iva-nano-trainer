@@ -444,7 +444,7 @@ Hub cards currently expose the licenses and dataset structures, but Dataset View
 
 ## Candidate dataset readiness audit (quarantine only)
 
-See [the 2026-11-17 candidate readiness audit](data/DATASET_READINESS_AUDIT.md) for direct sample findings and the required remediation for each of the 16 originally proposed sources. One source, `s85io/math-logic-ru`, was moved to `hold` after a sampled proof contained an invalid inference. The registry now has 6 candidates and 23 holds after the follow-up raw-file audit; no source is approved for training.
+See [the 2026-11-17 candidate readiness audit](data/DATASET_READINESS_AUDIT.md) for direct sample findings and the required remediation for each of the 16 originally proposed sources. One source, `s85io/math-logic-ru`, was moved to `hold` after a sampled proof contained an invalid inference. The registry now has 5 candidates and 24 holds after the follow-up raw-file audit; no source is approved for training.
 
 To inspect a bounded sample from a single candidate or held source, run **Actions → IVA dataset candidate sample audit (quarantine only)**. It streams at most 500 rows and emits aggregate diagnostics only. The workflow does not save raw samples, alter approval status, or update training manifests. Local use:
 
