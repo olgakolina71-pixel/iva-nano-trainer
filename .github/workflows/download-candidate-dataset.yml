@@ -13,6 +13,10 @@ on:
           - sonexa_medium_life_ru_eng
           - kukunechka_russian_everyday_dialogues
           - atbuba_ruwiki
+          - ilyagusev_ru_turbo_alpaca
+          - zjkarina_matreshka
+          - sonexa_ru_eng_prompt_response
+          - datasets_eval_ruslang_edu_100
 
 permissions:
   contents: read
