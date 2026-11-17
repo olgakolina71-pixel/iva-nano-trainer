@@ -157,3 +157,8 @@ The registry now contains 6 candidates and 23 holds. Candidate means "eligible f
 - t-tech/T-math — 331 tasks per card (Hub Parquet currently lists 325); Russian olympiad benchmark with model-assisted extraction and human review claims. Candidate for evaluation only; never add its rows to training.
 
 No one of these six is approved yet. The four Parquet-backed candidates (matreshka, RusLang-Edu-100, d0rj and T-Math) still need a successful bounded raw sample and content-level review.
+
+
+### Execution limitation — 2026-11-17
+
+An attempt was made to dispatch the bounded GitHub Actions sample audit for the Russian mathematics source (500 rows). GitHub required an authenticated session and showed the sign-in page, so the workflow was not dispatched. No audit run or training run was started by that attempt. The existing workflow can be launched from the repository's Actions page by an authenticated maintainer. Until those per-source streaming reports are collected, this report is a comprehensive metadata/file-layout pass plus bounded raw-file samples where directly accessible, not a full-corpus certification.
