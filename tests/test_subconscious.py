@@ -11,9 +11,9 @@ class SubconsciousTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             memory_path = Path(tmp) / "memory.json"
             mind = Subconscious(memory_path)
-            mind.reflect("Давай обсудим проект", "Хорошо")
-            notes = mind.reflect("Проект снова?", "Давай")
-            self.assertTrue(any("проект" in note for note in notes))
+            mind.reflect("Давай обсудим математику", "Хорошо")
+            notes = mind.reflect("Вернёмся к математике?", "Давай")
+            self.assertTrue(any("математик" in note for note in notes))
             self.assertFalse(memory_path.exists())
 
     def test_memory_is_saved_only_after_explicit_request(self):
