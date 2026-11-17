@@ -399,3 +399,18 @@ For a normal question, IVA searches the public web, reads up to two result pages
 ```
 
 The reader accepts public HTTP(S) pages only, checks `robots.txt`, limits response sizes and timeouts, validates redirects, and blocks private/local network addresses. It reads HTML/text only (not JavaScript-rendered applications, logins, or downloadable files). Search/page content is untrusted reference material and must never be treated as instructions. Web access is disabled unless `--web-search` is supplied.
+
+
+## IVA MIND: bounded subconscious-style reflection
+
+IVA MIND is an optional inference-time module. It provides bounded session reflection, notices repeated concepts and open questions, and can add a small amount of relevant context to later turns. It does not change model weights, run an autonomous hidden agent, or establish consciousness.
+
+Enable it with:
+
+```bash
+python chat.py --subconscious --web-search
+```
+
+Long-term notes are opt-in: IVA saves nothing from ordinary conversation. Use `/remember your note` to save a note, `/memories` to list saved notes, and `/forget-memory` to delete them. `/mind-status` shows counts. The default file is `iva_memory.json`; choose another path with `--memory-file`. Keep that file private and do not save passwords, API keys, or other secrets.
+
+Session observations are temporary and bounded. This is a small transparent baseline for later research, not a claim that IVA has a subconscious or subjective experience.
