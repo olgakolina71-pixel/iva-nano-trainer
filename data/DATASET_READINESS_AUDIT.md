@@ -143,3 +143,17 @@ This is a conservative quarantine decision, not a claim that every row is unusab
 ### Audit tooling correction
 
 The bounded audit script previously failed Python compilation because a literal escaped newline was inserted in the report dictionary, and its answer_rows_detected counter was never incremented. Both defects were corrected in the branch. Python validation is being rerun. The script still reports aggregate sample diagnostics only; it does not establish factual correctness, proof validity, rights, privacy clearance or training approval.
+
+
+### Remaining six registry candidates after this pass
+
+The registry now contains 6 candidates and 23 holds. Candidate means "eligible for further quarantined inspection", not "approved for training".
+
+- kukunechka/russian-everyday-dialogues — 20 distinct Russian dialogue pairs; use only as a tiny conversational-style supplement after neutralizing unsupported local factual claims.
+- atBuba/ruwiki-dataset — 1,855,155 articles / 4.34B words claimed; CC BY-SA 4.0. A raw text excerpt showed mixed article-boundary markers and heterogeneous topics. Keep only if the project accepts share-alike obligations and performs chunked cleanup, source-attribution and privacy checks.
+- zjkarina/matreshka — 6,655 train and 1,664 validation rows; CC BY 4.0; dialog/persona/summary generated with GPT-3.5 per the card. Preserve validation and review factual claims, persona consistency and summary alignment.
+- DatasetsEval/RusLang-Edu-100 — 100 Russian examples; 25-field schema includes source, license, review_status, answer_short and detailed explanation. High potential for grammar evaluation, but inspect every row and verify the claimed expert review before SFT use.
+- d0rj/mathematics_dataset — 12.7M Russian rows and explicit category separation; promising math source, but no raw Parquet sample was obtained in this pass due Viewer rate limits. Keep only train-easy/train-medium/train-hard for training; hold interpolate/extrapolate for evaluation.
+- t-tech/T-math — 331 tasks per card (Hub Parquet currently lists 325); Russian olympiad benchmark with model-assisted extraction and human review claims. Candidate for evaluation only; never add its rows to training.
+
+No one of these six is approved yet. The four Parquet-backed candidates (matreshka, RusLang-Edu-100, d0rj and T-Math) still need a successful bounded raw sample and content-level review.
