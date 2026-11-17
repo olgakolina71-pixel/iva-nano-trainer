@@ -21,6 +21,13 @@ class EmotionEngineTests(unittest.TestCase):
     def test_context_is_clear_that_emotions_are_simulated(self):
         self.assertIn("НЕ НАСТОЯЩИЕ ПЕРЕЖИВАНИЯ", EmotionEngine().context_for())
 
+    def test_mood_automatically_changes_response_style_hint(self):
+        engine = EmotionEngine()
+        engine.observe("Спасибо, получилось круто!")
+        context = engine.context_for()
+        self.assertIn("чуть теплее и энергичнее", context)
+        self.assertIn("не вставляй его название в каждый ответ", context)
+
     def test_reset_returns_to_neutral(self):
         engine = EmotionEngine()
         engine.observe("Спасибо!")
