@@ -12,7 +12,7 @@ import re
 
 _POSITIVE = re.compile(
     r"\b(спасибо|класс|круто|здорово|отлично|молодец|рад|супер|"
-    r"интересно|получилось|удачно|nice|great|thanks|awesome)\b", re.I
+    r"получилось|удачно|nice|great|thanks|awesome)\b", re.I
 )
 _NEGATIVE = re.compile(
     r"\b(дурак|тупой|идиот|дебил|заткнись|ненавижу|бесполезный|"
