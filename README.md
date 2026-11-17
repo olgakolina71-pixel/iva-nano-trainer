@@ -238,6 +238,39 @@ the fine-tuning stage from spending its loss budget on imitating user prompts.
 The source still must be explicitly rights-reviewed and approved in its manifest.
 
 
+## Dataset-specific normalization rules (all 29 registry entries)
+
+The exact per-source transformation policy is maintained in
+[`data/dataset_normalization_rules.json`](data/dataset_normalization_rules.json).
+It defines the expected record format, language filters, deduplication, row-level
+split rules, and outstanding rights/quality checks for every registry ID.
+
+Validate coverage before preparing any source:
+
+```bash
+python scripts/validate_dataset_rules.py
+```
+
+The rules are not a blanket approval and do not rewrite source answers to make
+them appear correct. In particular:
+
+- Russian-only sources remain Russian; English datasets are not silently
+  translated or counted as Russian training text.
+- Validation/test rows stay evaluation-only. T-math is never a training source.
+- Math dataset training uses only `train-easy`, `train-medium`, and
+  `train-hard`; `interpolate` and `extrapolate` stay evaluation-only.
+- RusLang-Edu-100 uses its row-level 90/10 train/validation designation even
+  though the Hub stores all 100 rows in one physical split.
+- Mixed-license collections require row-level license filtering; a repository
+  card cannot override upstream restrictions.
+- Unresolved rights, privacy, provenance, or answer-quality issues block
+  ingestion. No source is silently promoted into `data/manifest.json`.
+
+This is a source-preparation specification, not a claim that 29 corpora have
+already been downloaded or cleaned. Only actual processed files with recorded
+source revision, attribution, and maintainer approval can enter the training
+manifest.
+
 ## Dataset candidate registry
 
 See [`data/dataset_candidates.json`](data/dataset_candidates.json) for the reviewed
