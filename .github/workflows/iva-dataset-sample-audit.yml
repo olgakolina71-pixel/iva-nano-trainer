@@ -59,12 +59,17 @@ jobs:
       - name: Install bounded audit dependency
         run: pip install "datasets>=3.0,<5.0"
       - name: Stream and audit a bounded sample
+        env:
+          DATASET_ID: ${{ inputs.dataset_id }}
+          DATASET_CONFIG: ${{ inputs.config }}
+          DATASET_SPLIT: ${{ inputs.split }}
+          MAX_ROWS: ${{ inputs.max_rows }}
         run: |
           python scripts/audit_hf_dataset_candidate.py \
-            --dataset-id "${{ inputs.dataset_id }}" \
-            --config "${{ inputs.config }}" \
-            --split "${{ inputs.split }}" \
-            --max-rows "${{ inputs.max_rows }}"
+            --dataset-id "$DATASET_ID" \
+            --config "$DATASET_CONFIG" \
+            --split "$DATASET_SPLIT" \
+            --max-rows "$MAX_ROWS"
       - name: Upload aggregate audit report (no raw samples)
         if: always()
         uses: actions/upload-artifact@v4
