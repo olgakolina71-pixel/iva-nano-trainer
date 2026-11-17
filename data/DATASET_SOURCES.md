@@ -41,3 +41,18 @@ Dataset-card license metadata is a claim by the publisher, not an independent le
 | [MarkProMaster229/Russian_classical_literature](https://huggingface.co/datasets/MarkProMaster229/Russian_classical_literature) | CC0 1.0 (declared) | Classical literature | Hold; likely duplicates existing classics, verify editions and deduplicate. |
 
 Candidate means eligible for a quarantined snapshot download only. It does not authorize training. Hold sources are blocked by the download workflow.
+
+
+## Mathematics, physics, and programming candidates (quarantine only)
+
+| Dataset | Declared license | Language | Planned role | Review status |
+|---|---|---|---|---|
+| [openai/gsm8k](https://huggingface.co/datasets/openai/gsm8k) | MIT | English | Multi-step arithmetic word problems | Candidate; preview rate-limited, inspect examples and keep test split out of training. |
+| [TIGER-Lab/MathInstruct](https://huggingface.co/datasets/TIGER-Lab/MathInstruct) | MIT | English | Broad math instruction and reasoning | Candidate; 13 upstream datasets require rights review. |
+| [microsoft/orca-math-word-problems-200k](https://huggingface.co/datasets/microsoft/orca-math-word-problems-200k) | MIT | English | Grade-school math word problems | Candidate; generated answers require correctness checks. |
+| [convaiinnovations/physics-reasoning-dataset](https://huggingface.co/datasets/convaiinnovations/physics-reasoning-dataset) | MIT | English | Physics reasoning | Candidate; inspect numerical correctness, units, provenance and examples. |
+| [allenai/sciq](https://huggingface.co/datasets/allenai/sciq) | CC BY-NC 3.0 | English | Science QA / evaluation | Hold; non-commercial license and mixed science topics. |
+| [maximus-21/PhysicsQA](https://huggingface.co/datasets/maximus-21/PhysicsQA) | Apache-2.0 (declared) | English | Physics evaluation | Hold; underlying questions reportedly sourced from online resources. |
+| [flytech/python-codes-25k](https://huggingface.co/datasets/flytech/python-codes-25k) | MIT (card claim; Hub tag absent) | English | Python instruction | Hold; license and inconsistent row counts require verification. |
+
+All four new candidate entries are eligible only for quarantined download. None is approved for training. These sources are English-language; do not silently count them as Russian training examples. Keep evaluation splits separate to avoid test leakage.
