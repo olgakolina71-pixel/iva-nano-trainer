@@ -250,7 +250,7 @@ silently enabled for training.
 
 ## Download a catalogued candidate dataset
 
-Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run workflow** and select one of the sixteen entries marked `candidate` in `data/dataset_candidates.json`. The workflow downloads the selected Hugging Face repository snapshot into a 7-day Actions artifact. It does not commit large data files into Git history and does not train the model.
+Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run workflow** and select an entry currently marked `candidate` in `data/dataset_candidates.json`. The workflow downloads the selected Hugging Face repository snapshot into a 7-day Actions artifact. It does not commit large data files into Git history and does not train the model.
 
 The workflow deliberately excludes entries marked `hold` (including education text with previously detected personal-data risks, forum posts, and mixed-provenance conversations). All downloaded snapshots remain quarantined: a dataset-card license label is not independent rights verification. Review provenance, underlying rights, privacy, schema, and sample quality before any training use. The Wikipedia candidate is CC BY-SA and the Medium-Life/everyday-dialogue candidates are CC BY; preserve attribution and comply with their license conditions.
 
@@ -440,3 +440,17 @@ The quarantine selector now includes four more sources:
 - [t-tech/T-math](https://huggingface.co/datasets/t-tech/T-math) — small Russian olympiad-math evaluation set (Apache-2.0 declared); keep it out of training.
 
 Hub cards currently expose the licenses and dataset structures, but Dataset Viewer previews were rate-limited. These are quarantine candidates only, not training approvals. The evaluation-only T-Math source must remain held out.
+
+
+## Candidate dataset readiness audit (quarantine only)
+
+See [the 2026-11-17 candidate readiness audit](data/DATASET_READINESS_AUDIT.md) for direct sample findings and the required remediation for each of the 16 originally proposed sources. One source, `s85io/math-logic-ru`, was moved to `hold` after a sampled proof contained an invalid inference. The registry now has 15 candidates and 14 holds; no source is approved for training.
+
+To inspect a bounded sample from a single candidate or held source, run **Actions → IVA dataset candidate sample audit (quarantine only)**. It streams at most 500 rows and emits aggregate diagnostics only. The workflow does not save raw samples, alter approval status, or update training manifests. Local use:
+
+```bash
+pip install "datasets>=3.0,<5.0"
+python scripts/audit_hf_dataset_candidate.py --dataset-id d0rj_math_dataset_ru --max-rows 250
+```
+
+The audit reports schema, language share, duplicates, repeated/generic answers and possible contact-data counts. It is not a full-corpus or legal review. In particular, `t-tech/T-math` remains evaluation-only, and `TIGER-Lab/MathInstruct` requires row-level upstream-license filtering because its card lists sources with different license terms.
