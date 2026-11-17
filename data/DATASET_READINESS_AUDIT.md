@@ -185,3 +185,38 @@ This follow-up used Hugging Face repository metadata, file listings and bounded 
 - **kukunechka/russian-everyday-dialogues:** current Dataset Viewer conversion fails (generation error), although the earlier direct 20-record JSONL sample remains available as evidence. This access failure is not a content-quality finding.
 
 The registry remains **5 candidates / 24 holds / 0 approved**, with `training_enabled=false`. No raw corpus was added to the training directory, no model training was started, and no dataset was approved.
+
+
+## Source-specific normalization policy — 2026-11-17
+
+A complete normalization policy has now been added for all 29 registry IDs in
+`data/dataset_normalization_rules.json`. Each entry has a destination class,
+expected source format, concrete transformation list, required checks, and a
+reason explaining its current limitations. The policy is machine-checked by
+`scripts/validate_dataset_rules.py`.
+
+Key source-specific rules:
+
+- RusLang-Edu-100: honor row-level train/validation values (90/10); never train
+  on the ten validation rows; verify answers and explanations before SFT.
+- d0rj mathematics: keep only the Russian split; train only on
+  `train-easy`, `train-medium`, and `train-hard`; reserve
+  `interpolate` and `extrapolate` for evaluation; verify mathematical answers.
+- T-math: evaluation-only, never training.
+- MathInstruct and ru-en-code-curriculum: apply row-level upstream license and
+  source filters; no collection-wide license assumption.
+- Matreshka: reject misaligned role/dialog arrays and empty turns; check
+  persona/dialog/summary alignment and factual claims.
+- Dialogue sources: normalize into explicit user/IVA turns, filter language,
+  remove exact/near duplicates and boilerplate, and screen personal data.
+- English math/physics/code sources: do not silently translate them or count
+  them as Russian training material.
+- Forum, school-document, and custom-loader sources: remain blocked until
+  privacy, provenance, and safe parsing checks are complete.
+
+The policy file covers all 29 current registry IDs exactly once. This is a
+reproducible preparation specification; it does **not** mean all 29 source
+corpora have been downloaded, corrected, or approved. No source was promoted
+to `use: training`, and `training_enabled` remains false. The training
+manifest still requires an explicit maintainer rights/quality decision.
+
