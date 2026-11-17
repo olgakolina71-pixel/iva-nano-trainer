@@ -26,3 +26,18 @@ The script is not run automatically. Review the generated sample text, counts, d
 ## Rights and quality
 
 Dataset-card license metadata is a claim by the publisher, not an independent legal audit. Keep each source's license and attribution in the manifest. Do not merge the KartaSlov CC BY-NC-SA data into the CC0-only run. Do not ingest the forum corpus or any source whose rights/provenance are unclear. A corpus can be technically downloadable and still be unsuitable for model training.
+
+
+## Additional dialogue and instruction candidates (quarantine only)
+
+| Dataset | Declared license | Planned role | Status / caveat |
+|---|---|---|---|
+| [IlyaGusev/ru_turbo_alpaca](https://huggingface.co/datasets/IlyaGusev/ru_turbo_alpaca) | CC BY 4.0 | Russian instruction SFT | Candidate only; card reports imperfect instruction/output quality, so filter carefully. |
+| [zjkarina/matreshka](https://huggingface.co/datasets/zjkarina/matreshka) | CC BY 4.0 | Dialogue and summarization SFT | Candidate only; 8.3K rows, inspect samples and privacy signals. |
+| [SonexaAI/ru_eng-dataset](https://huggingface.co/datasets/SonexaAI/ru_eng-dataset) | CC BY 4.0 | Short bilingual prompt-response SFT | Candidate only; Dataset Viewer did not expose rows during review; inspect raw JSONL. |
+| [DatasetsEval/RusLang-Edu-100](https://huggingface.co/datasets/DatasetsEval/RusLang-Edu-100) | CC BY 4.0 | Russian grammar evaluation / small SFT supplement | Candidate only; 100 rows, not a pretraining corpus. |
+| [lksy/ru_instruct_gpt4](https://huggingface.co/datasets/lksy/ru_instruct_gpt4) | CC BY 4.0 | Russian instruction SFT | Hold; viewer disabled for custom code, inspect files and provenance first. |
+| [samurainisa/Russian-PD](https://huggingface.co/datasets/samurainisa/Russian-PD) | Not declared in Hub metadata | Russian prose pretraining | Hold; 8.6 GB and item-level rights/schema review needed. |
+| [MarkProMaster229/Russian_classical_literature](https://huggingface.co/datasets/MarkProMaster229/Russian_classical_literature) | CC0 1.0 (declared) | Classical literature | Hold; likely duplicates existing classics, verify editions and deduplicate. |
+
+Candidate means eligible for a quarantined snapshot download only. It does not authorize training. Hold sources are blocked by the download workflow.
