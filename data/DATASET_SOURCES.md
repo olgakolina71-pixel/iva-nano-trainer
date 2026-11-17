@@ -56,3 +56,18 @@ Candidate means eligible for a quarantined snapshot download only. It does not a
 | [flytech/python-codes-25k](https://huggingface.co/datasets/flytech/python-codes-25k) | MIT (card claim; Hub tag absent) | English | Python instruction | Hold; license and inconsistent row counts require verification. |
 
 All four new candidate entries are eligible only for quarantined download. None is approved for training. These sources are English-language; do not silently count them as Russian training examples. Keep evaluation splits separate to avoid test leakage.
+
+
+## Additional Russian mathematics, logic, and dialogue candidates (quarantine only)
+
+| Dataset | Declared license | Language | Planned role | Review status |
+|---|---|---|---|---|
+| [d0rj/mathematics_dataset](https://huggingface.co/datasets/d0rj/mathematics_dataset) | Apache-2.0 | Russian + English | Synthetic math reasoning; use the Russian split for Russian training | Candidate; Russian split reports 12.7M rows. Viewer preview was rate-limited; inspect generator provenance, answers, categories, and duplicates. |
+| [s85io/math-logic-ru](https://huggingface.co/datasets/s85io/math-logic-ru) | MIT | Russian | Formal logic and deduction SFT | Candidate; 3.96K train + 441 validation rows. Keep validation separate and verify formulas/proofs. |
+| [Fmluder/Tiny-Russian-Dialogs](https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs) | CC0-1.0 | Russian | Short dialogue SFT | Candidate; 125K synthetic q/a rows. Check naturalness, repetitions, and answer quality. |
+| [t-tech/T-math](https://huggingface.co/datasets/t-tech/T-math) | Apache-2.0 | Russian | Mathematics evaluation only | Candidate for quarantined acquisition; 325 rows. Keep all examples out of training and review source-text rights. |
+| [ru-dataset/ru-dataset-small](https://huggingface.co/datasets/ru-dataset/ru-dataset-small) | Apache-2.0 | Russian | Programming/math SFT | Hold; small corpus contains explicit reasoning-tag blocks; inspect content and decide whether to exclude such traces. |
+| [attn-signs/russian-code](https://huggingface.co/datasets/attn-signs/russian-code) | Not declared in Hub metadata | Russian | Python instruction SFT | Hold; 26.3K rows but no machine-readable license tag was exposed. |
+| [sup2ch/ru-en-code-curriculum](https://huggingface.co/datasets/sup2ch/ru-en-code-curriculum) | Other / non-standard | Russian + English + code | Code CPT/SFT | Hold; card describes redistributable-only records, but exact license terms must be reviewed before acquisition or training. |
+
+Dataset Viewer previews for the four new candidates were rate-limited during review. All four remain quarantine-only; none is approved for training. Hold entries are not offered by the download workflow.
