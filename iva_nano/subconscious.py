@@ -18,9 +18,23 @@ _STOPWORDS = {
 }
 
 
+def _normalize_word(word: str) -> str:
+    word = word.lower()
+    # A small suffix normalizer helps match common Russian case/number forms.
+    for suffix in (
+        "иями", "ями", "ами", "иями", "ого", "ему", "ому", "ыми",
+        "ими", "его", "ее", "ие", "ые", "ое", "ей", "ий", "ый",
+        "ой", "ая", "яя", "ую", "юю", "ам", "ям", "ах", "ях",
+        "ов", "ев", "ом", "ем", "ы", "и", "а", "я", "у", "ю", "е",
+    ):
+        if word.endswith(suffix) and len(word) - len(suffix) >= 4:
+            return word[:-len(suffix)]
+    return word
+
+
 def _terms(text: str) -> set[str]:
     return {
-        word.lower() for word in _WORD_RE.findall(str(text))
+        _normalize_word(word) for word in _WORD_RE.findall(str(text))
         if word.lower() not in _STOPWORDS
     }
 
