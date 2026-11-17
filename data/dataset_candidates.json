@@ -285,7 +285,7 @@
       "declared_license": "CC-BY-4.0",
       "reported_size": "8,319 rows (6.66K train; 1.7K validation)",
       "provenance_claim": "Dataset card describes Russian dialogues, speaker persona, and generated dialogue summaries.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Useful as a small dialogue and summarization candidate, not for large-scale pretraining.",
         "Inspect dialogue quality, factual claims, duplicated templates, and any personal information.",
@@ -294,8 +294,8 @@
       "review": {
         "checked_at": "2026-11-17",
         "evidence_url": "https://huggingface.co/datasets/zjkarina/matreshka",
-        "assessment": "Hugging Face metadata declares CC BY 4.0. Dataset structure exposes role, dialog, persona, and summary fields with train and validation splits.",
-        "decision": "candidate_pending_sample_quality_privacy_and_attribution_review",
+        "assessment": "A 100-row Dataset Viewer sample included a dialogue row with mismatched role/dialog lengths and an empty final turn; other rows contained outdated or unsupported factual claims (for example, a static year answer of 2021 and specific animal/astronomy claims). The card says dialogues/personas/summaries were generated with GPT-3.5. Require row-level role alignment, empty-turn removal, factual claim review and split leakage checks before reconsideration.",
+        "decision": "hold_due_role_alignment_empty_turns_and_unverified_factual_claims_in_sample",
         "sample_audit": {
           "method": "metadata_and_file_inspection",
           "sample_records": 0,
