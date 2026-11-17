@@ -11,14 +11,14 @@ import re
 
 
 _POSITIVE = re.compile(
-    r"\\b(спасибо|класс|круто|здорово|отлично|молодец|рад|супер|"
-    r"интересно|получилось|удачно|nice|great|thanks|awesome)\\b", re.I
+    r"\b(спасибо|класс|круто|здорово|отлично|молодец|рад|супер|"
+    r"интересно|получилось|удачно|nice|great|thanks|awesome)\b", re.I
 )
 _NEGATIVE = re.compile(
-    r"\\b(дурак|тупой|идиот|дебил|заткнись|ненавижу|бесполезный|"
-    r"кретин|урод|stupid|idiot|shut up|useless)\\b", re.I
+    r"\b(дурак|тупой|идиот|дебил|заткнись|ненавижу|бесполезный|"
+    r"кретин|урод|stupid|idiot|shut up|useless)\b", re.I
 )
-_CURIOUS = re.compile(r"\\b(почему|как|зачем|интересно|объясни|узнать|исследуем)\\b", re.I)
+_CURIOUS = re.compile(r"\b(почему|как|зачем|интересно|объясни|узнать|исследуем)\b", re.I)
 
 
 class EmotionEngine:
