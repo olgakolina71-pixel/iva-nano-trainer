@@ -414,3 +414,18 @@ python chat.py --subconscious --web-search
 Long-term notes are opt-in: IVA saves nothing from ordinary conversation. Use `/remember your note` to save a note, `/memories` to list saved notes, and `/forget-memory` to delete them. `/mind-status` shows counts. The default file is `iva_memory.json`; choose another path with `--memory-file`. Keep that file private and do not save passwords, API keys, or other secrets.
 
 Session observations are temporary and bounded. This is a small transparent baseline for later research, not a claim that IVA has a subconscious or subjective experience.
+
+
+## IVA EMOTION: simulated mood and respectful boundaries
+
+IVA EMOTION is enabled by default in chat. It tracks a small, transparent mood state (calm, interest, joy, irritation, or disappointment) using simple text cues and gentle decay. This is simulated dialogue behavior, not evidence of subjective feelings or consciousness.
+
+Commands:
+- `/emotion` — inspect the current simulated state.
+- `/resume` — resume after IVA has paused a repeatedly hostile exchange.
+- `/reset` — clear the chat history and reset the mood.
+- `python chat.py --no-emotion` — disable the module.
+
+After repeated hostile messages, IVA may set a calm boundary and pause replies until `/resume`. This is not a punishment or a claim that the model is a person; it is a configurable interaction rule. The model must not guilt-trip, threaten, demand loyalty, or pressure anyone to continue chatting.
+
+The module is separate from model weights and training data. It does not make the base model genuinely feel emotions.
