@@ -10,7 +10,7 @@
     ],
     "training_enabled": false,
     "last_license_review": "2026-11-17",
-    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights."
+    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training."
   },
   "datasets": [
     {
@@ -311,6 +311,167 @@
         "Check exact work/edition provenance and deduplication before acquisition.",
         "CC0 metadata is a publisher declaration, not independent verification of every underlying edition."
       ]
+    },
+    {
+      "id": "openai_gsm8k_math",
+      "hf_id": "openai/gsm8k",
+      "url": "https://huggingface.co/datasets/openai/gsm8k",
+      "language": "en",
+      "role": "math_reasoning_sft_and_eval",
+      "declared_license": "MIT",
+      "reported_size": "8,500 original math word problems; main train 7.5K and test 1.3K; socratic config also available",
+      "provenance_claim": "OpenAI dataset card describes original grade-school multi-step arithmetic word problems.",
+      "status": "candidate",
+      "reasons": [
+        "Useful for arithmetic word-problem reasoning and multi-step solutions.",
+        "English-only; translate only through a separately checked process, not by silently relabeling it Russian.",
+        "Keep test split out of training and use it for evaluation.",
+        "Dataset Viewer preview was rate-limited during review; inspect downloaded samples before approval."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/openai/gsm8k",
+        "assessment": "Hub metadata declares MIT and exposes main/socratic train and test splits with question and answer fields. Preview request returned HTTP 429; sample-level verification remains pending.",
+        "decision": "candidate_quarantine_only_pending_sample_and_answer_checks"
+      }
+    },
+    {
+      "id": "tigerlab_mathinstruct",
+      "hf_id": "TIGER-Lab/MathInstruct",
+      "url": "https://huggingface.co/datasets/TIGER-Lab/MathInstruct",
+      "language": "en",
+      "role": "math_instruction_sft",
+      "declared_license": "MIT",
+      "reported_size": "262,000 rows; 99.1 MB parquet",
+      "provenance_claim": "Dataset card says compiled from 13 math rationale datasets, including six newly curated sources.",
+      "status": "candidate",
+      "reasons": [
+        "Broad mathematics instruction and reasoning coverage.",
+        "Compiled from multiple upstream datasets; verify each upstream license and source before training.",
+        "English-only; do not treat as Russian examples.",
+        "Inspect downloaded examples and check solution correctness; viewer preview was rate-limited."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/TIGER-Lab/MathInstruct",
+        "assessment": "Hub metadata declares MIT, 262K train rows, fields source/output/instruction. Its multi-source composition requires upstream rights review; preview returned HTTP 429.",
+        "decision": "candidate_quarantine_only_pending_upstream_rights_and_quality_review"
+      }
+    },
+    {
+      "id": "microsoft_orca_math_200k",
+      "hf_id": "microsoft/orca-math-word-problems-200k",
+      "url": "https://huggingface.co/datasets/microsoft/orca-math-word-problems-200k",
+      "language": "en",
+      "role": "math_word_problem_sft",
+      "declared_license": "MIT",
+      "reported_size": "About 200,000 rows; 84.2 MB parquet",
+      "provenance_claim": "Microsoft dataset card says grade-school math word problems with answers generated using Azure GPT-4 Turbo.",
+      "status": "candidate",
+      "reasons": [
+        "Potential extra arithmetic and word-problem practice.",
+        "Generated answers need correctness checks; inspect samples and remove duplicates.",
+        "English-only; preserve language metadata.",
+        "Dataset Viewer preview was rate-limited."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/microsoft/orca-math-word-problems-200k",
+        "assessment": "Hub metadata declares MIT and reports 200K train rows; dataset card describes GPT-4-Turbo-generated answers. Preview returned HTTP 429.",
+        "decision": "candidate_quarantine_only_pending_sample_and_answer_checks"
+      }
+    },
+    {
+      "id": "convai_physics_reasoning",
+      "hf_id": "convaiinnovations/physics-reasoning-dataset",
+      "url": "https://huggingface.co/datasets/convaiinnovations/physics-reasoning-dataset",
+      "language": "en",
+      "role": "physics_reasoning_sft",
+      "declared_license": "MIT",
+      "reported_size": "10,000 rows; 3.5 MB parquet",
+      "provenance_claim": "Dataset card describes physics reasoning scenarios with prompt, answer, and concept fields.",
+      "status": "candidate",
+      "reasons": [
+        "Direct physics reasoning coverage with concept labels.",
+        "English-only; not a Russian physics corpus.",
+        "Inspect source provenance, numerical correctness, units, and reasoning quality before approval.",
+        "Dataset Viewer preview was rate-limited."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/convaiinnovations/physics-reasoning-dataset",
+        "assessment": "Hub metadata declares MIT and reports 10K train rows with prompt/answer/concept-style fields. Preview returned HTTP 429; item-level quality and provenance remain unverified.",
+        "decision": "candidate_quarantine_only_pending_sample_and_physics_validation"
+      }
+    },
+    {
+      "id": "allenai_sciq",
+      "hf_id": "allenai/sciq",
+      "url": "https://huggingface.co/datasets/allenai/sciq",
+      "language": "en",
+      "role": "science_physics_qa_evaluation",
+      "declared_license": "CC-BY-NC-3.0",
+      "reported_size": "13,679 science questions; 11.7K train, 1K validation, 1K test",
+      "provenance_claim": "AllenAI dataset card describes crowdsourced science questions across physics, chemistry, biology and related topics.",
+      "status": "hold",
+      "reasons": [
+        "Non-commercial license; do not mix into training unless the project's use is confirmed compatible.",
+        "Science questions are not exclusively physics.",
+        "Crowdsourced provenance and answer evidence need review.",
+        "Keep test split out of training."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/allenai/sciq",
+        "assessment": "Hub metadata declares CC BY-NC 3.0; this is not a general-purpose permissive license. Preview returned HTTP 429.",
+        "decision": "hold_license_and_upstream_review"
+      }
+    },
+    {
+      "id": "maximus_physicsqa",
+      "hf_id": "maximus-21/PhysicsQA",
+      "url": "https://huggingface.co/datasets/maximus-21/PhysicsQA",
+      "language": "en",
+      "role": "physics_evaluation",
+      "declared_license": "Apache-2.0 (declared)",
+      "reported_size": "370 high-school physics questions with step-by-step solutions",
+      "provenance_claim": "Dataset card says questions were sourced from online resources.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful physics evaluation set.",
+        "Underlying online source rights are not established by the repository-level license declaration.",
+        "Keep out of training until each source and item-level rights are verified.",
+        "Preview returned HTTP 429."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/maximus-21/PhysicsQA",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 370 examples, but the card says questions were sourced from online resources; upstream rights need checking.",
+        "decision": "hold_pending_item_level_source_rights"
+      }
+    },
+    {
+      "id": "flytech_python_codes_25k",
+      "hf_id": "flytech/python-codes-25k",
+      "url": "https://huggingface.co/datasets/flytech/python-codes-25k",
+      "language": "en",
+      "role": "python_instruction_sft",
+      "declared_license": "MIT (stated in dataset card; Hub tag not exposed)",
+      "reported_size": "About 24,813 examples in card; Hub structure reports 49.6K rows",
+      "provenance_claim": "Dataset card describes cleaned Python instructional tasks with instruction/input/output/text fields.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful Python instruction and code examples.",
+        "Hub metadata did not expose a machine-readable license tag; card says MIT, requiring verification.",
+        "Reported row counts differ (24,813 vs 49.6K); inspect exact files and deduplicate.",
+        "Review source provenance, code execution safety, and answer correctness."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/flytech/python-codes-25k",
+        "assessment": "Card says MIT and 24,813 entries, while Dataset Viewer structure reports 49.6K rows. Preview returned HTTP 429; discrepancy and license need resolution.",
+        "decision": "hold_pending_license_rowcount_and_sample_review"
+      }
     }
   ]
 }
