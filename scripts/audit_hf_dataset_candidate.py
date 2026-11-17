@@ -108,6 +108,7 @@ def audit(repo_id: str, config: str | None, split: str, max_rows: int) -> dict:
         if answer:
             normalized = " ".join(answer.casefold().split())
             seen_answers[normalized] += 1
+            answer_rows += 1
             answer_lengths.append(len(answer))
             generic_answers += int(any(phrase in normalized for phrase in GENERIC))
 
