@@ -23,7 +23,7 @@ GENERIC = (
     "обращайся", "добро пожаловать в чат", "sure, here is",
     "happy to help", "okay.",
 )
-ANSWER_KEYS = {"answer", "response", "output", "assistant", "completion", "target"}
+ANSWER_KEYS = {"a", "answer", "answer_text", "assistant", "assistant_response", "completion", "completion_text", "full_answer", "output", "response", "response_text", "target", "verifiable_answer"}
 DEFAULTS = {
     "d0rj_math_dataset_ru": ("default", "ru"),
     "s85io_math_logic_ru": ("default", "train"),
@@ -47,11 +47,19 @@ def answer_text(row: dict[str, Any]) -> str:
     for key, value in row.items():
         if key.lower() in ANSWER_KEYS:
             pieces.append(flatten(value))
-        elif key.lower() == "messages" and isinstance(value, list):
+        elif key.lower() in {"messages", "conversation", "conversations", "dialogue"} and isinstance(value, list):
             for message in value:
-                if isinstance(message, dict) and message.get("role") == "assistant":
-                    pieces.append(flatten(message.get("content", "")))
-    return " ".join(pieces).strip()
+                if isinstance(message, dict):
+                    role = str(message.get("role", message.get("from", message.get("speaker", "")))).lower()
+                    if role in {"assistant", "bot", "gpt", "iva"}:
+                        pieces.append(flatten(message.get("content", message.get("value", message.get("text", "")))))
+        elif key.lower() == "dialog" and isinstance(value, list):
+            roles = row.get("role", [])
+            if isinstance(roles, list) and len(roles) == len(value):
+                for role, utterance in zip(roles, value):
+                    if str(role).lower() in {"assistant", "bot", "gpt", "iva"}:
+                        pieces.append(flatten(utterance))
+    return " ".join(piece for piece in pieces if piece).strip()
 
 
 def audit(repo_id: str, config: str | None, split: str, max_rows: int) -> dict:
@@ -64,7 +72,7 @@ def audit(repo_id: str, config: str | None, split: str, max_rows: int) -> dict:
     seen_answers: Counter[str] = Counter()
     language_counts: Counter[str] = Counter()
     field_types: dict[str, set[str]] = {}
-    sampled = empty = chars = letters = cyrillic = duplicate_rows = 0
+    sampled = empty = chars = letters = cyrillic = duplicate_rows = answer_rows = 0
     email_rows = phone_rows = generic_answers = 0
     answer_lengths: list[int] = []
 
@@ -114,7 +122,7 @@ def audit(repo_id: str, config: str | None, split: str, max_rows: int) -> dict:
         "language_field_sample_counts": dict(language_counts),
         "cyrillic_letter_share": round(cyrillic / letters, 4) if letters else None,
         "average_record_characters": round(chars / sampled, 1) if sampled else 0,
-        "average_answer_characters": round(sum(answer_lengths) / len(answer_lengths), 1) if answer_lengths else None,
+        "answer_rows_detected": answer_rows,\n        "average_answer_characters": round(sum(answer_lengths) / len(answer_lengths), 1) if answer_lengths else None,
         "empty_rows": empty,
         "exact_duplicate_rows_in_sample": duplicate_rows,
         "repeated_answer_occurrences_in_sample": repeated_answers,
