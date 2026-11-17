@@ -9,7 +9,6 @@ on:
         type: choice
         options:
           - imperius_ru_classic
-          - sonexa_small_life_ru_eng
           - sonexa_medium_life_ru_eng
           - kukunechka_russian_everyday_dialogues
           - atbuba_ruwiki
