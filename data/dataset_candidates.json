@@ -383,6 +383,26 @@
             "Check each row's source and license fields and ensure train/evaluation partition is explicit.",
             "Use primarily as a held-out Russian grammar benchmark; any SFT subset must be separately reviewed."
           ]
+        },
+        "dataset_viewer_sample": {
+          "rows_inspected": 100,
+          "hub_config": "default",
+          "hub_split": "train",
+          "row_level_split_counts": {
+            "train": 90,
+            "validation": 10
+          },
+          "findings": [
+            "All 100 rows inspected through two bounded previews (0-79 and 80-99).",
+            "Ten rows are marked validation in the row-level split column despite residing in the Hub train split.",
+            "Rows declare expert_curated, CC BY 4.0, gold_unique=true and review_status=verified; these are publisher-provided metadata, not independent verification."
+          ],
+          "decision": "candidate_only_pending_human_answer_explanation_review_and_row_level_validation_isolation",
+          "actions": [
+            "Extract the 10 row-level validation records to evaluation only.",
+            "Never train on records marked validation, regardless of the Hub split name.",
+            "Human-review answers, explanations, provenance and license fields before any training decision."
+          ]
         }
       }
     },
@@ -688,6 +708,19 @@
             "Sample all 70 modules and difficulty categories; validate reference answers with the supplied checker and independent arithmetic/symbolic checks.",
             "Use only train-easy/medium/hard for training; keep interpolate/extrapolate strictly held out.",
             "Record exact revision and generator provenance; keep Apache-2.0 attribution."
+          ]
+        },
+        "dataset_viewer_sample": {
+          "rows_inspected": 12,
+          "config": "default",
+          "split": "ru",
+          "observed_category": "extrapolate",
+          "finding": "The first 12 rows are all extrapolate, so a first-N sample is category-biased and not representative.",
+          "decision": "candidate_only_category_stratified_sampling_required",
+          "actions": [
+            "Sample train-easy, train-medium and train-hard separately for possible training review.",
+            "Keep interpolate and extrapolate strictly evaluation-only.",
+            "Independently verify answers and robustly parse large algebraic expressions."
           ]
         }
       }
