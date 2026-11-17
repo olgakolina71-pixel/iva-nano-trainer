@@ -150,7 +150,7 @@ The bounded audit script previously failed Python compilation because a literal 
 The registry now contains 6 candidates and 23 holds. Candidate means "eligible for further quarantined inspection", not "approved for training".
 
 - kukunechka/russian-everyday-dialogues — 20 distinct Russian dialogue pairs; use only as a tiny conversational-style supplement after neutralizing unsupported local factual claims.
-- atBuba/ruwiki-dataset — 1,855,155 articles / 4.34B words claimed; CC BY-SA 4.0. A raw text excerpt showed mixed article-boundary markers and heterogeneous topics. Keep only if the project accepts share-alike obligations and performs chunked cleanup, source-attribution and privacy checks.
+- atBuba/ruwiki-dataset — 1,855,155 articles / 642M words (4.34 GB text file) claimed; CC BY-SA 4.0. A raw text excerpt showed mixed article-boundary markers and heterogeneous topics. Keep only if the project accepts share-alike obligations and performs chunked cleanup, source-attribution and privacy checks.
 - zjkarina/matreshka — 6,655 train and 1,664 validation rows; CC BY 4.0; dialog/persona/summary generated with GPT-3.5 per the card. Preserve validation and review factual claims, persona consistency and summary alignment.
 - DatasetsEval/RusLang-Edu-100 — 100 Russian examples; 25-field schema includes source, license, review_status, answer_short and detailed explanation. High potential for grammar evaluation, but inspect every row and verify the claimed expert review before SFT use.
 - d0rj/mathematics_dataset — 12.7M Russian rows and explicit category separation; promising math source, but no raw Parquet sample was obtained in this pass due Viewer rate limits. Keep only train-easy/train-medium/train-hard for training; hold interpolate/extrapolate for evaluation.
@@ -162,3 +162,14 @@ No one of these six is approved yet. The four Parquet-backed candidates (matresh
 ### Execution limitation — 2026-11-17
 
 An attempt was made to dispatch the bounded GitHub Actions sample audit for the Russian mathematics source (500 rows). GitHub required an authenticated session and showed the sign-in page, so the workflow was not dispatched. No audit run or training run was started by that attempt. The existing workflow can be launched from the repository's Actions page by an authenticated maintainer. Until those per-source streaming reports are collected, this report is a comprehensive metadata/file-layout pass plus bounded raw-file samples where directly accessible, not a full-corpus certification.
+
+
+### Additional candidate review — 2026-11-17
+
+- `zjkarina/matreshka` was moved from candidate to hold after a 100-row Viewer preview. At least one record has a mismatch between role and dialog array lengths and an empty final utterance; the sample also contains stale or unsupported factual assertions (including a fixed answer of "2021" to a current-year question). This is not safe to use as clean conversational SFT without role alignment, empty-turn filtering, fact review and validation-split isolation.
+- `DatasetsEval/RusLang-Edu-100` preview shows a useful structured Russian grammar schema, but at least one row inside the Hub `train` split is internally labeled `validation`. Any downstream build must use the row-level `split` field as a hard partition and verify all 100 records before SFT. The card's expert-review claims are not independently established by metadata.
+- `atBuba/ruwiki-dataset` reports 1,855,155 articles, 642,078,669 words and a 4.34 GB text file (not 4.34 billion words). It declares CC BY-SA 4.0, so attribution and share-alike obligations must be accepted and preserved. It offers separate train.bin and val.bin files, but the underlying 8.4 GB text was not fully sampled in this pass.
+- `t-tech/T-math` README claims 331 tasks while the current Hub Parquet metadata/preview indicates 325 rows. Treat this as a version/count discrepancy to resolve before fixing benchmark totals; it remains evaluation-only.
+- `kukunechka/russian-everyday-dialogues` contains 20 short examples across shops, transport and cafés under CC BY 4.0. Keep it only as a low-weight style supplement; the direct sample includes context-specific price/location claims that must not be treated as current factual knowledge.
+
+Registry count after this pass: 5 candidates and 24 holds. Still no training-approved source.
