@@ -102,3 +102,44 @@ A second pass against current Hub metadata confirmed several useful schema detai
 The manual workflow now lists all 29 registry IDs, not just the original 16. Its free-text config/split inputs are passed through environment variables rather than interpolated into shell source. The audit script recognizes common answer aliases (including `a`, `verifiable_answer`, and `full_answer`) and assistant turns in common message/dialog schemas. These changes improve audit coverage; they do not constitute a dataset approval.
 
 Dataset Viewer errors remain for some sources (including Medium-Life, ru_wiki, and physics-reasoning). A failed viewer preview is not evidence that the source is clean or empty; use a successful bounded stream or keep the source on hold.
+
+
+## Direct raw-file follow-up audit — 2026-11-17
+
+This pass used repository file listings and bounded direct reads from raw Hugging Face files. Dataset Viewer previews returned repeated HTTP 429/500/501 errors, so those errors are recorded as access limitations, not as evidence that data are empty or clean. The manual GitHub Actions streaming audit has not been dispatched across all 29 sources; the following are direct sample observations, not full-corpus statistics.
+
+### Findings from directly inspected raw samples
+
+| Source | Direct inspection | Finding | Decision / required action |
+|---|---|---|---|
+| SonexaAI/Small-Life-Dataset-ru-eng | 135 JSONL rows | 61 Russian and 74 English rows in the bounded sample; 79 unique prompts and 69 unique answers; repeated prompt/answer pairs; one malformed Russian technical answer | Remain hold; if reconsidered, filter language=Russian, deduplicate, correct grammar and check technical answers |
+| SonexaAI/Medium-Life-Dataset-ru-eng | 16 JSONL rows | Assistant messages repeat broad, generic multi-point templates across unrelated topics; several follow-up questions are answered with boilerplate rather than topic-specific content | Moved to hold; require template/near-duplicate filtering and a fresh human sample |
+| kukunechka/russian-everyday-dialogues | All 20 JSONL records | All 20 prompts and answers are distinct and readable; several answers assert specific shop prices, routes, stop locations or service details without source context | Candidate only as a tiny style supplement; remove/neutralize unsupported factual details or label them as fictional examples |
+| SonexaAI/ru_eng-dataset | 150 JSONL rows | 84 Russian and 66 English rows; 138 unique prompts and 114 unique responses; repeated prompts/responses and some weakly matched replies | Moved to hold; require Russian-only filtering, relevance review and deduplication |
+| s85io/math-logic-ru | 11 JSONL rows | Mixed reasoning tasks; at least one previously sampled proof contained an invalid inference. This later sample also contains a long chain of formal transformations that needs independent proof checking | Remains hold; validate every proof step with a symbolic checker and human review; do not repair upstream records silently |
+| convaiinnovations/physics-reasoning-dataset | 24 JSONL rows | All sampled problems are English; prompt variants (x_t, x_prime, x_cf) include paraphrases/counterfactuals. Several visible calculations are arithmetically consistent, but that does not validate the whole set | Moved to hold; Russian derivative only after translation review, dimensional checks and group-aware split isolation |
+| Fmluder/Tiny-Russian-Dialogs | Initial CSV segment | Russian dialogue rows include generic boilerplate and repeated patterns; CSV is q,a, so answer extraction must recognize the short a field | Moved to hold; full-file deduplication, language cleanup, safety filtering and relevance review |
+
+### Additional source-card and file-layout findings
+
+- IlyaGusev/ru_turbo_alpaca: 29,822 Russian ChatGPT-generated instruction examples. The dataset card reports only 63% of sampled instruction/output pairs as correct in one evaluation and includes an explicit legal disclaimer about competing-model development. Moved to hold; do not use for IVA unless the terms are independently resolved.
+- nyuuzyou/edutexts: 1,335,171 presentation records plus 47,474 document records; separate presentations and documents configs, with Russian, Ukrainian and English. The card declares CC0. Still held until document-level source, privacy, language and quality sampling is completed.
+- nyuuzyou/ruforum: 58,112,681 forum messages with message IDs and timestamps, distributed as 11 large Zstandard JSONL shards. CC0 is declared, but privacy, personal-data and source-provenance screening is mandatory; remains hold.
+- inkoziev/Conversations: repository contains a custom Python dataset-loading script and a 1.57 GB compressed JSONL file. Dataset Viewer does not support this arbitrary Python loading path. Keep hold until loader code is reviewed and raw data can be safely sampled without executing untrusted code.
+- samurainisa/Russian-PD: 11.8K rows across nine very large Parquet files (about 8.6 GB total); the viewer scan exceeded its 300 MB limit. No Hub license tag is exposed. Remains hold pending exact rights and bounded sampling.
+- sup2ch/ru-en-code-curriculum: 129.7K records across CPT/SFT train, reserve and validation splits. It has row-level license, source_id, source_revision, hashes and redistributability metadata. Its license notice explicitly says the collection has no single overriding license; each row and upstream notice controls. Remains hold until per-row license filtering is implemented and verified. Never mix reserve/validation into training.
+- TIGER-Lab/MathInstruct: its own README lists GSM8K-RFT as non-listed and Camel-Math as CC BY-NC 4.0 among MIT subsets. Moved to hold until row-level source/license filtering is demonstrated.
+- microsoft/orca-math-word-problems-200k: 200,035 English question/answer pairs; README says answers were generated with Azure GPT-4 Turbo. Moved to hold for Russian training until a reviewed Russian derivative and independent arithmetic checks exist.
+- d0rj/mathematics_dataset: 12,699,944 Russian rows in default/ru; fields are question, answer, category, module. Russian and English splits are not paired translations. Use only train-easy, train-medium, train-hard categories for training; keep interpolate and extrapolate exclusively for evaluation. Pin the reviewed revision and verify answers across all 70 modules.
+- t-tech/T-math: current Hub export has 325 rows and eight fields; the card describes 331 problems. It remains evaluation-only and must never be used for training.
+- Imperius/ru-classic: 6.9M rows, one text field, with a CC0 claim; README says material was collected from lib.ru and includes a broad set of authors/editions. Moved to hold until rights are checked at work/edition level. The uploader's CC0 label alone is not proof that every included work is public domain.
+
+### Registry changes in this pass
+
+The following sources were moved from candidate to hold based on direct sample evidence, language mismatch, or explicit licensing restrictions: imperius_ru_classic, sonexa_medium_life_ru_eng, ilyagusev_ru_turbo_alpaca, sonexa_ru_eng_prompt_response, openai_gsm8k_math, tigerlab_mathinstruct, microsoft_orca_math_200k, convai_physics_reasoning, and fmluder_tiny_russian_dialogs.
+
+This is a conservative quarantine decision, not a claim that every row is unusable. A source can be reconsidered only after the listed remediation and a new audit. No source is approved for training; training_enabled remains false.
+
+### Audit tooling correction
+
+The bounded audit script previously failed Python compilation because a literal escaped newline was inserted in the report dictionary, and its answer_rows_detected counter was never incremented. Both defects were corrected in the branch. Python validation is being rerun. The script still reports aggregate sample diagnostics only; it does not establish factual correctness, proof validity, rights, privacy clearance or training approval.
