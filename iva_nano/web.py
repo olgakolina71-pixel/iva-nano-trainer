@@ -64,6 +64,10 @@ def _validate_public_url(url: str) -> str:
 
 
 class _SafeRedirect(HTTPRedirectHandler):
+    def __init__(self):
+        super().__init__()
+        self.max_redirections = MAX_REDIRECTS
+
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         target = urljoin(req.full_url, newurl)
         _validate_public_url(target)
@@ -159,6 +163,7 @@ def search_web(query: str, limit: int = 5, timeout: float = 8.0) -> list[dict]:
         raw = _read_limited(response, 1_000_000)
     parser = _SearchResults()
     parser.feed(raw.decode(response.headers.get_content_charset() or "utf-8", errors="replace"))
+    parser.close()
     results = []
     for item in parser.items:
         try:
@@ -179,30 +184,36 @@ class _SearchResults(HTMLParser):
         self.items = []
         self._current = None
         self._capture = None
+        self._capture_tag = None
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         classes = set((attrs.get("class") or "").split())
         if tag == "a" and "result__a" in classes and attrs.get("href"):
-            self._current = {"url": attrs["href"], "title": ""}
+            if self._current is not None and self._current.get("url"):
+                self.items.append(self._current)
+            self._current = {"url": attrs["href"], "title": "", "snippet": ""}
             self._capture = "title"
-        elif self._current is not None and tag in {"a", "div", "td"} and (
-            "result__snippet" in classes
-        ):
+            self._capture_tag = "a"
+        elif self._current is not None and "result__snippet" in classes:
             self._capture = "snippet"
+            self._capture_tag = tag
 
     def handle_endtag(self, tag):
-        if tag == "a" and self._current is not None and self._capture == "title":
+        if self._capture_tag == tag:
             self._capture = None
-        if tag in {"div", "td"} and self._capture == "snippet":
-            self._capture = None
-            self.items.append(self._current)
-            self._current = None
+            self._capture_tag = None
 
     def handle_data(self, data):
         if self._current is not None and self._capture:
             key = self._capture
             self._current[key] = (self._current.get(key, "") + " " + data).strip()
+
+    def close(self):
+        super().close()
+        if self._current is not None and self._current.get("url"):
+            self.items.append(self._current)
+            self._current = None
 
 
 def read_web_page(url: str, timeout: float = 10.0,
