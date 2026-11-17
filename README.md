@@ -250,7 +250,7 @@ silently enabled for training.
 
 ## Download a catalogued candidate dataset
 
-Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run workflow** and select one of the twelve entries marked `candidate` in `data/dataset_candidates.json`. The workflow downloads the selected Hugging Face repository snapshot into a 7-day Actions artifact. It does not commit large data files into Git history and does not train the model.
+Use **Actions → IVA download candidate dataset snapshot (quarantine) → Run workflow** and select one of the sixteen entries marked `candidate` in `data/dataset_candidates.json`. The workflow downloads the selected Hugging Face repository snapshot into a 7-day Actions artifact. It does not commit large data files into Git history and does not train the model.
 
 The workflow deliberately excludes entries marked `hold` (including education text with previously detected personal-data risks, forum posts, and mixed-provenance conversations). All downloaded snapshots remain quarantined: a dataset-card license label is not independent rights verification. Review provenance, underlying rights, privacy, schema, and sample quality before any training use. The Wikipedia candidate is CC BY-SA and the Medium-Life/everyday-dialogue candidates are CC BY; preserve attribution and comply with their license conditions.
 
@@ -429,3 +429,14 @@ Commands:
 After repeated hostile messages, IVA may set a calm boundary and pause replies until `/resume`. This is not a punishment or a claim that the model is a person; it is a configurable interaction rule. The model must not guilt-trip, threaten, demand loyalty, or pressure anyone to continue chatting.
 
 The module is separate from model weights and training data. It does not make the base model genuinely feel emotions.
+
+
+### Additional Russian candidate sources
+
+The quarantine selector now includes four more sources:
+- [d0rj/mathematics_dataset](https://huggingface.co/datasets/d0rj/mathematics_dataset) — 12.7M-row Russian mathematics split (Apache-2.0 declared).
+- [s85io/math-logic-ru](https://huggingface.co/datasets/s85io/math-logic-ru) — Russian mathematical logic (MIT declared).
+- [Fmluder/Tiny-Russian-Dialogs](https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs) — 125K synthetic short dialogues (CC0-1.0 declared).
+- [t-tech/T-math](https://huggingface.co/datasets/t-tech/T-math) — small Russian olympiad-math evaluation set (Apache-2.0 declared); keep it out of training.
+
+Hub cards currently expose the licenses and dataset structures, but Dataset Viewer previews were rate-limited. These are quarantine candidates only, not training approvals. The evaluation-only T-Math source must remain held out.
