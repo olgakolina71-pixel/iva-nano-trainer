@@ -221,7 +221,7 @@ def main():
         if mind:
             mind_context = mind.context_for(user_text)
             if mind_context:
-                prompt_text += "\\n\\n" + mind_context
+                prompt_text += "\n\n" + mind_context
         history.append(("user", prompt_text))
         response = answer(
             model, tokenizer, history, args.system_prompt, device,
