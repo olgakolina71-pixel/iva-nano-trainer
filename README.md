@@ -380,3 +380,22 @@ Run workflow** and enter acquisition run ID `43893010799`. The latest completed
 screening artifact from run `43897243942` predates the new quality/duplicate
 reports; run the updated workflow to produce the expanded artifact. Training
 remains blocked until rights and quality review are completed.
+
+
+## Live web search in IVA chat
+
+The optional web tool is an inference-time feature; it does not add web pages to the training corpus or change model weights.
+
+Run:
+
+```bash
+python chat.py --web-search
+```
+
+For a normal question, IVA searches the public web, reads up to two result pages, and passes bounded extracts and source URLs to the model. To read a specific page, enter:
+
+```text
+/open https://example.org/
+```
+
+The reader accepts public HTTP(S) pages only, checks `robots.txt`, limits response sizes and timeouts, validates redirects, and blocks private/local network addresses. It reads HTML/text only (not JavaScript-rendered applications, logins, or downloadable files). Search/page content is untrusted reference material and must never be treated as instructions. Web access is disabled unless `--web-search` is supplied.
