@@ -122,7 +122,7 @@ def select_tool(user_text: str):
     expression = text
     for cue in math_cues:
         expression = expression.replace(cue, " ")
-    candidate = re.sub(r"[^0-9.,()+\\-*/: ]", " ", expression).strip()
+    candidate = re.sub(r"[^0-9.,()+\-*/: ]", " ", expression).strip()
     has_operator = bool(re.search(r"[+*/:]|(?<!^)-", candidate))
     mostly_expression = bool(candidate) and len(candidate) >= 3 and len(candidate) >= 0.65 * len(text)
     if has_operator and (any(cue in text for cue in math_cues) or mostly_expression):
