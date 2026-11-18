@@ -12,6 +12,7 @@ from iva_nano.data import TokenBlockDataset, load_approved_texts, train_tokenize
 from iva_nano.memmap_data import MemmapTokenBlockDataset
 from iva_nano.model import IVANano
 from iva_nano.storage import LocalArtifactStore
+from iva_nano.experiment_tracking import start_experiment
 
 
 def learning_rate_at_step(step, cfg):
@@ -73,6 +74,7 @@ def main():
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     train_cfg = config["training"]
     model_id = config.get("model_id", "iva-nano")
+    tracker = start_experiment(model_id, config)
     seed = int(train_cfg.get("seed", 42))
     random.seed(seed)
     torch.manual_seed(seed)
@@ -234,12 +236,16 @@ def main():
                 item = {"step": step, "loss": round(float(loss.item()), 5), "learning_rate": lr}
                 metrics["train_loss"].append(item)
                 print(json.dumps(item))
+                if tracker:
+                    tracker.log_metrics({"train/loss": item["loss"], "train/learning_rate": lr}, step)
 
             if eval_loader and step % eval_interval == 0:
                 val_loss = evaluate(model, eval_loader, device)
                 item = {"step": step, "validation_loss": round(val_loss, 5)}
                 metrics["validation_loss"].append(item)
                 print(json.dumps(item))
+                if tracker:
+                    tracker.log_metrics({"validation/loss": val_loss}, step)
 
             if step % save_interval == 0:
                 save_checkpoint(
@@ -264,6 +270,9 @@ def main():
     metrics_path.write_text(json.dumps(metrics, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Saved checkpoint: {checkpoint}")
     print(f"Saved metrics: {metrics_path}")
+    if tracker:
+        tracker.log_metrics({"validation/final_loss": final_validation, "train/final_loss": metrics["final_train_loss"]}, step)
+        tracker.finish()
 
 
 if __name__ == "__main__":
