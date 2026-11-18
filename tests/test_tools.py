@@ -9,6 +9,7 @@ class CalculatorTests(unittest.TestCase):
         self.assertEqual(calculate("2 + 3 * 4"), 14)
         self.assertEqual(calculate("(2 + 3) * 4"), 20)
         self.assertEqual(calculate("20 / 5"), 4)
+        self.assertEqual(calculate("20 : 5"), 4)
 
     def test_rejects_code_and_unknown_syntax(self):
         with self.assertRaises(ValueError):
