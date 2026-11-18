@@ -19,6 +19,9 @@ class FakeTokenizer:
     def eos_id(self):
         return 3
 
+    def decode(self, token_ids):
+        return "".join(chr(token_id) for token_id in token_ids)
+
 
 class EosModel(torch.nn.Module):
     context_length = 32
