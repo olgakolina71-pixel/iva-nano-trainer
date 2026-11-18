@@ -1,0 +1,84 @@
+name: IVA all-29 dataset sample audit (quarantine only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_rows:
+        description: "Maximum rows sampled per source (bounded; no raw samples saved)"
+        required: true
+        type: choice
+        options: ["100", "250", "500"]
+        default: "100"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iva-all-29-dataset-audit
+  cancel-in-progress: false
+
+jobs:
+  sample-audit:
+    name: Audit ${{ matrix.dataset_id }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        dataset_id:
+          - imperius_ru_classic
+          - sonexa_small_life_ru_eng
+          - sonexa_medium_life_ru_eng
+          - kukunechka_russian_everyday_dialogues
+          - atbuba_ruwiki
+          - nyuuzyou_edutexts
+          - nyuuzyou_ruforum
+          - inkoziev_conversations
+          - ilyagusev_ru_turbo_alpaca
+          - zjkarina_matreshka
+          - sonexa_ru_eng_prompt_response
+          - datasets_eval_ruslang_edu_100
+          - lksy_ru_instruct_gpt4
+          - samurainisa_russian_pd
+          - markpromaster_russian_classical_literature
+          - openai_gsm8k_math
+          - tigerlab_mathinstruct
+          - microsoft_orca_math_200k
+          - convai_physics_reasoning
+          - allenai_sciq
+          - maximus_physicsqa
+          - flytech_python_codes_25k
+          - d0rj_math_dataset_ru
+          - s85io_math_logic_ru
+          - fmluder_tiny_russian_dialogs
+          - ttech_tmath_ru_eval
+          - ru_dataset_small_hold
+          - attn_signs_russian_code_hold
+          - sup2ch_ru_en_code_curriculum_hold
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate exact registry and normalization-rule coverage
+        run: python scripts/validate_dataset_rules.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install bounded audit dependency
+        run: pip install "datasets>=3.0,<5.0"
+      - name: Stream a bounded sample without saving source text
+        env:
+          MAX_ROWS: ${{ inputs.max_rows }}
+        run: |
+          python scripts/audit_hf_dataset_candidate.py \
+            --dataset-id "${{ matrix.dataset_id }}" \
+            --max-rows "$MAX_ROWS" \
+            --output "reports/candidate-audits/${{ matrix.dataset_id }}.json"
+      - name: Upload aggregate diagnostics only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-candidate-audit-${{ matrix.dataset_id }}
+          path: reports/candidate-audits/${{ matrix.dataset_id }}.json
+          retention-days: 14
+          if-no-files-found: warn
