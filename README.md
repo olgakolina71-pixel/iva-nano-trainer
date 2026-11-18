@@ -503,3 +503,12 @@ is stored by MLflow in `mlruns/`. Override the experiment with
 keys to the repository. Set `IVA_TRACKER=none` (or leave it unset) to disable
 tracking. Tracking support is optional and does not change IVA's model,
 tokenizer, or checkpoint format.
+
+
+## Full 29-source candidate review (quarantine only)
+
+The complete candidate registry is in [data/dataset_candidates.json](data/dataset_candidates.json), with one source-specific policy for every entry in [data/dataset_normalization_rules.json](data/dataset_normalization_rules.json). The historical review and remediation notes are in [data/DATASET_READINESS_AUDIT.md](data/DATASET_READINESS_AUDIT.md); the latest read-only Hub file inventory is in [data/reviews/hf_file_inventory_2026-11-19.md](data/reviews/hf_file_inventory_2026-11-19.md).
+
+Run **Actions → IVA all-29 dataset sample audit (quarantine only)** to stream a bounded sample (100–500 rows per source). It emits aggregate diagnostics only and never stores raw samples, changes rights status, or trains IVA. The workflow must be dispatched by an authenticated GitHub maintainer. A failed source read is recorded as an audit failure, never as a clean result.
+
+Current gate: 29 sources, 5 candidates for further quarantine inspection, 24 holds, 0 approved for training. Keep `training_enabled=false`. Sample checks do not establish rights, privacy clearance, mathematical correctness, or full-corpus quality.
