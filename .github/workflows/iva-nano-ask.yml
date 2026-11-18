@@ -18,6 +18,21 @@ on:
         required: true
         default: "100"
         type: string
+      temperature:
+        description: "Температура генерации (0.1–1.5)"
+        required: true
+        default: "0.7"
+        type: string
+      repetition_penalty:
+        description: "Штраф повторений (1.0–1.4)"
+        required: true
+        default: "1.12"
+        type: string
+      top_p:
+        description: "Nucleus sampling (0.1–1.0)"
+        required: true
+        default: "0.9"
+        type: string
 
 permissions:
   contents: read
@@ -59,19 +74,35 @@ jobs:
         env:
           IVA_PROMPT: ${{ inputs.prompt }}
           IVA_MAX_NEW_TOKENS: ${{ inputs.max_new_tokens }}
+          IVA_TEMPERATURE: ${{ inputs.temperature }}
+          IVA_REPETITION_PENALTY: ${{ inputs.repetition_penalty }}
+          IVA_TOP_P: ${{ inputs.top_p }}
         run: |
           set -euo pipefail
           python - <<'PY'
           import os
           value = int(os.environ["IVA_MAX_NEW_TOKENS"])
+          temperature = float(os.environ["IVA_TEMPERATURE"])
+          repetition_penalty = float(os.environ["IVA_REPETITION_PENALTY"])
+          top_p = float(os.environ["IVA_TOP_P"])
           if not 1 <= value <= 160:
               raise SystemExit("max_new_tokens must be between 1 and 160")
+          if not 0.1 <= temperature <= 1.5:
+              raise SystemExit("temperature must be between 0.1 and 1.5")
+          if not 1.0 <= repetition_penalty <= 1.4:
+              raise SystemExit("repetition_penalty must be between 1.0 and 1.4")
+          if not 0.1 <= top_p <= 1.0:
+              raise SystemExit("top_p must be between 0.1 and 1.0")
           PY
           python generate.py \
             --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
             --tokenizer checkpoints/iva_tokenizer.model \
             --prompt "$IVA_PROMPT" \
             --max-new-tokens "$IVA_MAX_NEW_TOKENS" \
+            --temperature "$IVA_TEMPERATURE" \
+            --repetition-penalty "$IVA_REPETITION_PENALTY" \
+            --top-p "$IVA_TOP_P" \
+            --report-stats \
             --device cpu | tee iva-answer.txt
 
       - name: Publish answer in the run summary
