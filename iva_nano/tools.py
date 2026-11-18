@@ -1,6 +1,7 @@
 """Small, allow-listed tools that IVA can call without executing arbitrary code."""
 import ast
 import operator
+import re
 from datetime import datetime
 
 from iva_nano.search import search_wikipedia
@@ -92,3 +93,58 @@ def format_tool_result(result: dict) -> str:
             lines.append(f"- {item['title']}: {item['extract']} Источник: {item['url']}")
         return "\n".join(lines)
     raise ValueError("Нельзя отобразить неизвестный результат инструмента.")
+
+
+_TIME_HINTS = (
+    "который час", "сколько времени", "текущая дата", "какое сегодня число",
+    "какое сегодня день", "сегодняшняя дата", "сейчас время",
+)
+_SEARCH_HINTS = (
+    "найди", "поищи", "загугли", "проверь в интернете", "найди в интернете",
+    "последние новости", "свежие новости", "сегодня произошло", "сейчас происходит",
+    "актуальная информация", "последняя версия", "на данный момент",
+    "кто такой", "кто такая", "что такое", "где находится", "когда изобрели",
+)
+
+
+def select_tool(user_text: str):
+    """Choose a tool from conservative, transparent intent rules; return None for normal chat."""
+    text = " ".join(str(user_text).strip().lower().split())
+    if not text:
+        return None
+
+    if any(hint in text for hint in _TIME_HINTS):
+        return {"name": "current_time", "arguments": {}}
+
+    # Do not send ordinary prose to the calculator. Require an explicit math cue
+    # or a message that consists almost entirely of a numeric expression.
+    math_cues = ("сколько будет", "посчитай", "вычисли", "реши пример", "сколько получится")
+    expression = text
+    for cue in math_cues:
+        expression = expression.replace(cue, " ")
+    candidate = re.sub(r"[^0-9.,()+\\-*/: ]", " ", expression).strip()
+    has_operator = bool(re.search(r"[+*/:]|(?<!^)-", candidate))
+    mostly_expression = bool(candidate) and len(candidate) >= 3 and len(candidate) >= 0.65 * len(text)
+    if has_operator and (any(cue in text for cue in math_cues) or mostly_expression):
+        try:
+            calculate(candidate.replace(",", "."))
+            return {"name": "calculator", "arguments": {"expression": candidate.replace(",", ".")}}
+        except (ValueError, ArithmeticError):
+            pass
+
+    if any(hint in text for hint in _SEARCH_HINTS):
+        query = text
+        for prefix in ("найди в интернете", "проверь в интернете", "найди", "поищи", "загугли"):
+            if query.startswith(prefix):
+                query = query[len(prefix):].strip(" :,-")
+                break
+        return {"name": "web_search", "arguments": {"query": query or text}}
+    return None
+
+
+def run_selected_tool(user_text: str):
+    """Select and execute at most one allow-listed tool for a user message."""
+    selection = select_tool(user_text)
+    if selection is None:
+        return None
+    return run_tool(selection["name"], selection["arguments"])
