@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from iva_nano.model import IVANano
 from chat import answer as generate_answer
+from iva_nano.prompts import DEFAULT_SYSTEM_PROMPT
 
 app = FastAPI(title="IVA Nano Inference API", version="0.1.0")
 _model = None
@@ -94,8 +95,7 @@ def chat(request: ChatRequest, _auth: None = Depends(require_token)):
             messages = [(m.role, m.content) for m in request.messages]
             result = generate_answer(
                 _model, _tokenizer, messages,
-                "Ты IVA — Интеллектуальный Вычислительный Ассистент. "
-                "Отвечай по-русски, ясно и честно. Если не знаешь ответа, скажи об этом.",
+                DEFAULT_SYSTEM_PROMPT,
                 _device, request.max_new_tokens, request.temperature, request.top_k,
             )
         return {"model": "iva-nano-40m", "text": result}
