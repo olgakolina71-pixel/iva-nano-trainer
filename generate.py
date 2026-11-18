@@ -93,6 +93,7 @@ def generate(
         context = torch.cat([context, next_id.view(1, 1)], dim=1)
         partial = tokenizer.decode(generated)
         if "\n### Пользователь:" in partial or "\n### IVA:" in partial:
+            stop_reason = "chat_marker"
             break
     result = tokenizer.decode(generated).strip()
     for marker in ("\n### Пользователь:", "\n### IVA:"):
