@@ -7,6 +7,7 @@ import torch
 from generate import generate, sample_next_token
 from chat import build_chat_prompt, print_iva_answer
 from iva_nano.data import encode_training_texts
+from iva_nano.prompts import DEFAULT_SYSTEM_PROMPT
 
 
 class FakeTokenizer:
@@ -33,6 +34,11 @@ class EosModel(torch.nn.Module):
 
 
 class GenerationTests(unittest.TestCase):
+    def test_default_system_prompt_identifies_iva_and_forbids_empty_answers(self):
+        self.assertIn("Ты — IVA AI", DEFAULT_SYSTEM_PROMPT)
+        self.assertIn("представься как IVA AI", DEFAULT_SYSTEM_PROMPT)
+        self.assertIn("Не отвечай одной точкой или пустым сообщением", DEFAULT_SYSTEM_PROMPT)
+
     def test_generation_stops_on_tokenizer_eos_and_reports_reason(self):
         stats = {}
         answer = generate(
