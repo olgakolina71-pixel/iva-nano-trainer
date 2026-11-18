@@ -3,7 +3,7 @@
   "generated_by": "IVA Nano maintainer review",
   "reviewed_at": "2026-11-17",
   "training_enabled": false,
-  "policy": "No source is approved for training yet. This review confirms that War and Peace text is present in the classic candidate, but the complete source file contains edition-level editorial material and still needs rights, privacy, and quality review.",
+  "policy": "No source is approved for training yet. This review confirms that War and Peace text is present in the classic candidate, but the complete source file contains edition-level editorial material and still needs rights, privacy, and quality review. The original IVA-authored SFT dialogue draft is also pending maintainer content and license review.",
   "datasets": [
     {
       "id": "ru_classic_cc0",
@@ -53,6 +53,17 @@
       "license_review": "Dataset card declares CC0, but README contains placeholder creator metadata and the viewer currently reports a file/configuration error. Confirm creator identity/authority, repository history, actual file contents, and any upstream sources.",
       "review_status": "hold_pending_creator_provenance_and_sample_review",
       "notes": "Potential later SFT source only; do not use for base pretraining or instruction tuning until reviewed."
+    },
+    {
+      "id": "iva_original_dialogues_v1",
+      "path": "data/sft/iva_original_dialogues_v1.txt",
+      "license": "Project-authored original content; license decision pending maintainer confirmation",
+      "attribution": "Original Russian dialogue examples authored specifically for the IVA Nano project; no external dialogue corpus used.",
+      "source_url": "",
+      "use": "pending_maintainer_review",
+      "rights_status": "pending_maintainer_review",
+      "review_status": "awaiting_content_and_license_review",
+      "notes": "70 original Russian user-assistant pairs. Keep training disabled until the project maintainer reviews the examples and confirms the intended license."
     }
   ]
 }
