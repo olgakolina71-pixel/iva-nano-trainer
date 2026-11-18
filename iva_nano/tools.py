@@ -23,6 +23,8 @@ def calculate(expression: str):
     expression = str(expression).strip()
     if not expression or len(expression) > 120:
         raise ValueError("Введите выражение длиной от 1 до 120 символов.")
+    # IVA uses ":" as its preferred division notation in Russian examples.
+    expression = expression.replace(":", "/")
     try:
         root = ast.parse(expression, mode="eval").body
     except SyntaxError as exc:
