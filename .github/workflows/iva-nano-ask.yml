@@ -11,7 +11,7 @@ on:
       checkpoint_run_id:
         description: "GitHub Actions run ID, где сохранён checkpoint IVA Nano"
         required: true
-        default: "43934250985"
+        default: "44093760271"
         type: string
       max_new_tokens:
         description: "Максимальная длина ответа (1–160)"
