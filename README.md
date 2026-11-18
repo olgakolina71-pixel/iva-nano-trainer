@@ -380,3 +380,49 @@ Run workflow** and enter acquisition run ID `43893010799`. The latest completed
 screening artifact from run `43897243942` predates the new quality/duplicate
 reports; run the updated workflow to produce the expanded artifact. Training
 remains blocked until rights and quality review are completed.
+
+
+## Hugging Face interoperability
+
+IVA Nano keeps its original SentencePiece tokenizer: its token IDs are part of the
+checkpoint contract, so swapping in an unrelated Hugging Face tokenizer would
+corrupt inference. Run a compatibility audit before generation or export:
+
+```bash
+python audit_tokenizer.py --config configs/iva_nano_40m.yaml --tokenizer checkpoints/iva_tokenizer.model
+```
+
+The report records the tokenizer SHA-256, vocabulary size, special-token IDs,
+and a small encode/decode check. Generation also checks that the tokenizer
+vocabulary matches the checkpoint architecture before sampling.
+
+### Safetensors
+
+Export an existing PyTorch checkpoint to the weights-only Safetensors format:
+
+```bash
+python export_safetensors.py \
+  --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+  --output checkpoints/artifacts/iva_nano_40m.safetensors
+```
+
+Then use it with the existing generator:
+
+```bash
+python generate.py --checkpoint checkpoints/artifacts/iva_nano_40m.safetensors \
+  --tokenizer checkpoints/iva_tokenizer.model --prompt "Привет!" --max-new-tokens 128
+```
+
+Safetensors exports model weights and architecture metadata, not optimizer state.
+The original `.pt` checkpoint remains usable for resuming training. Tied input/output
+embeddings are stored once and reconstructed when loading. The exporter does not
+change model weights or make an undertrained checkpoint more capable.
+
+### PEFT / LoRA status
+
+The current IVA Nano model is a custom PyTorch Transformer, not a Transformers
+`PreTrainedModel`. The PEFT library cannot safely be assumed to work by simply
+adding it to `requirements.txt`; adapter injection, saving, loading, and a training
+smoke test must be implemented against IVA's own module names first. No PEFT adapter
+is silently applied to existing checkpoints. This is intentionally left as a
+separate integration step rather than shipping an untested training path.
