@@ -426,3 +426,50 @@ adding it to `requirements.txt`; adapter injection, saving, loading, and a train
 smoke test must be implemented against IVA's own module names first. No PEFT adapter
 is silently applied to existing checkpoints. This is intentionally left as a
 separate integration step rather than shipping an untested training path.
+
+
+### PEFT / LoRA supervised fine-tuning
+
+IVA Nano now has a separate PEFT-based LoRA path for assistant-response training.
+It keeps the base checkpoint frozen and trains low-rank adapters in attention
+and MLP linear layers. It does not rewrite the original checkpoint.
+
+First, approve a dialogue dataset in `data/manifest.json` with
+`use: training` and `rights_status: reviewed_approved`, and make sure the
+files contain pairs in this format:
+
+```text
+### Пользователь:
+Привет!
+### IVA:
+Здравствуйте! Чем могу помочь?
+```
+
+Then run:
+
+```bash
+pip install -r requirements.txt
+python train_lora.py \
+  --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+  --tokenizer checkpoints/iva_tokenizer.model \
+  --config configs/iva_nano_sft.yaml \
+  --output-dir checkpoints/iva-nano-lora
+```
+
+The trainer blocks if there is no reviewed/approved training manifest or too few
+assistant-response tokens. It records base-checkpoint and tokenizer SHA-256 hashes,
+approved dataset IDs, LoRA settings, and validation loss next to the adapter.
+
+Use the adapter during inference:
+
+```bash
+python generate.py \
+  --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+  --tokenizer checkpoints/iva_tokenizer.model \
+  --lora-adapter checkpoints/iva-nano-lora \
+  --prompt "Привет!" --max-new-tokens 128
+```
+
+LoRA cannot compensate for a weak or corrupted base model, a mismatched tokenizer,
+or low-quality dialogue data. Compare validation loss and a held-out prompt set
+before treating an adapter as an improvement.
