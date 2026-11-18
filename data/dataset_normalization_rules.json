@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-17",
+  "purpose": "Source-specific normalization and split policy for the 29 registry entries. This file does not grant training rights or approve any source.",
+  "policy": {
+    "never_auto_approve": true,
+    "never_translate_automatically": true,
+    "keep_eval_out_of_training": true,
+    "preserve_source_attribution": true,
+    "do_not_rewrite_answers_to_make_them_look_correct": true,
+    "training_requires": "Explicit maintainer review of rights, privacy, schema, quality and source revision; then an entry in data/manifest.json with use=training and rights_status=reviewed_approved."
+  },
+  "rules": [
+    {
+      "dataset_id": "imperius_ru_classic",
+      "destination": "pretraining_candidate",
+      "format": "text",
+      "transform": [
+        "normalize_unicode",
+        "repair_line_wrap",
+        "drop_ocr_fragments",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "work_and_edition_rights",
+        "editorial_material_review"
+      ],
+      "reason": "edition-level rights are unresolved"
+    },
+    {
+      "dataset_id": "sonexa_small_life_ru_eng",
+      "destination": "sft_candidate",
+      "format": "qa",
+      "transform": [
+        "keep_ru_only",
+        "normalize_turns",
+        "deduplicate",
+        "response_relevance"
+      ],
+      "required_checks": [
+        "creator_provenance",
+        "human_quality_review"
+      ],
+      "reason": "sample has mixed language, duplicates and a malformed technical answer"
+    },
+    {
+      "dataset_id": "sonexa_medium_life_ru_eng",
+      "destination": "excluded_pending_rework",
+      "format": "dialogue",
+      "transform": [
+        "keep_ru_only",
+        "remove_boilerplate",
+        "deduplicate_near_duplicates"
+      ],
+      "required_checks": [
+        "human_relevance_review"
+      ],
+      "reason": "sample is dominated by repetitive generic assistant templates"
+    },
+    {
+      "dataset_id": "kukunechka_russian_everyday_dialogues",
+      "destination": "sft_candidate",
+      "format": "qa",
+      "transform": [
+        "normalize_user_assistant_turns",
+        "deduplicate",
+        "neutralize_unsourced_local_facts"
+      ],
+      "required_checks": [
+        "manual_review_of_prices_routes_and_services"
+      ],
+      "reason": "20 distinct readable pairs; unsupported local factual claims need neutralization"
+    },
+    {
+      "dataset_id": "atbuba_ruwiki",
+      "destination": "pretraining_candidate",
+      "format": "text",
+      "transform": [
+        "streaming_utf8_decode",
+        "normalize_article_boundaries",
+        "deduplicate",
+        "pii_scan"
+      ],
+      "required_checks": [
+        "share_alike_acceptance",
+        "source_attribution",
+        "privacy_review"
+      ],
+      "reason": "CC BY-SA-4.0 and file-size discrepancy; no bulk ingestion until source audit"
+    },
+    {
+      "dataset_id": "nyuuzyou_edutexts",
+      "destination": "blocked_pending_review",
+      "format": "educational_text",
+      "transform": [
+        "decode_json_text_arrays",
+        "keep_ru_only",
+        "remove_slide_noise",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "document_level_rights",
+        "student_privacy",
+        "source_review"
+      ],
+      "reason": "presentations/documents may contain personal and school identifiers"
+    },
+    {
+      "dataset_id": "nyuuzyou_ruforum",
+      "destination": "blocked_pending_review",
+      "format": "forum_text",
+      "transform": [
+        "none_until_review"
+      ],
+      "required_checks": [
+        "privacy_and_provenance_review"
+      ],
+      "reason": "large user-generated forum corpus; do not import before privacy screening"
+    },
+    {
+      "dataset_id": "inkoziev_conversations",
+      "destination": "blocked_pending_review",
+      "format": "dialogue",
+      "transform": [
+        "review_loader_without_execution",
+        "bounded_jsonl_parse",
+        "normalize_turns"
+      ],
+      "required_checks": [
+        "loader_security",
+        "source_rights",
+        "privacy_review"
+      ],
+      "reason": "custom loader and compressed source need safe inspection"
+    },
+    {
+      "dataset_id": "ilyagusev_ru_turbo_alpaca",
+      "destination": "excluded_pending_legal_review",
+      "format": "sft",
+      "transform": [
+        "none_until_terms_resolved"
+      ],
+      "required_checks": [
+        "legal_terms",
+        "answer_quality",
+        "human_review"
+      ],
+      "reason": "dataset card reports low answer correctness and restrictive competing-model disclaimer"
+    },
+    {
+      "dataset_id": "zjkarina_matreshka",
+      "destination": "blocked_pending_rework",
+      "format": "dialogue",
+      "transform": [
+        "align_role_dialog_arrays",
+        "drop_empty_turns",
+        "deduplicate",
+        "check_summary_alignment"
+      ],
+      "required_checks": [
+        "factuality",
+        "persona_consistency",
+        "privacy_review"
+      ],
+      "reason": "sample contained role/dialog mismatch, empty turn and unsupported claims"
+    },
+    {
+      "dataset_id": "sonexa_ru_eng_prompt_response",
+      "destination": "excluded_pending_rework",
+      "format": "qa",
+      "transform": [
+        "keep_ru_only",
+        "filter_prompt_response_relevance",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "human_relevance_review"
+      ],
+      "reason": "mixed RU/EN sample and weak prompt-response matches"
+    },
+    {
+      "dataset_id": "datasets_eval_ruslang_edu_100",
+      "destination": "train_small_candidate_plus_eval",
+      "format": "grammar_qa",
+      "transform": [
+        "row_split_train_90_eval_10",
+        "normalize_instruction_output",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "human_answer_and_explanation_review",
+        "cc_by_attribution"
+      ],
+      "reason": "publisher marks all rows verified; 10 row-level validation examples must remain evaluation-only"
+    },
+    {
+      "dataset_id": "lksy_ru_instruct_gpt4",
+      "destination": "blocked_pending_review",
+      "format": "sft",
+      "transform": [
+        "inspect_raw_files_without_running_custom_code",
+        "normalize_messages"
+      ],
+      "required_checks": [
+        "source_rights",
+        "privacy",
+        "quality_review"
+      ],
+      "reason": "custom-code dataset; no direct sample clearance"
+    },
+    {
+      "dataset_id": "samurainisa_russian_pd",
+      "destination": "blocked_pending_rights",
+      "format": "text",
+      "transform": [
+        "bounded_parquet_sample",
+        "normalize_unicode",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "item_level_rights_review"
+      ],
+      "reason": "no Hub license tag; large Parquet files"
+    },
+    {
+      "dataset_id": "markpromaster_russian_classical_literature",
+      "destination": "blocked_pending_rights",
+      "format": "text",
+      "transform": [
+        "normalize_unicode",
+        "deduplicate_against_classics"
+      ],
+      "required_checks": [
+        "edition_level_rights",
+        "duplicate_review"
+      ],
+      "reason": "CC0 is a card claim; edition rights and overlap need verification"
+    },
+    {
+      "dataset_id": "openai_gsm8k_math",
+      "destination": "evaluation_or_english_only",
+      "format": "math_qa",
+      "transform": [
+        "keep_train_split_separate_from_test",
+        "verify_arithmetic",
+        "no_auto_translation"
+      ],
+      "required_checks": [
+        "english_only_for_original",
+        "translation_requires_review"
+      ],
+      "reason": "English source; test split never enters training"
+    },
+    {
+      "dataset_id": "tigerlab_mathinstruct",
+      "destination": "blocked_pending_row_license",
+      "format": "math_sft",
+      "transform": [
+        "filter_by_row_source_and_license",
+        "deduplicate",
+        "verify_math"
+      ],
+      "required_checks": [
+        "exclude_nonlisted_and_cc_by_nc_rows",
+        "source_rights_review"
+      ],
+      "reason": "mixed upstream licenses; cannot treat whole collection as MIT"
+    },
+    {
+      "dataset_id": "microsoft_orca_math_200k",
+      "destination": "english_math_candidate",
+      "format": "math_qa",
+      "transform": [
+        "normalize_question_answer",
+        "verify_arithmetic",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "english_only_for_original",
+        "translation_requires_review"
+      ],
+      "reason": "English generated answers require independent arithmetic checks"
+    },
+    {
+      "dataset_id": "convai_physics_reasoning",
+      "destination": "english_physics_candidate",
+      "format": "physics_qa",
+      "transform": [
+        "group_variants_by_problem",
+        "verify_units_and_dimensions",
+        "deduplicate_family"
+      ],
+      "required_checks": [
+        "english_only_for_original",
+        "translation_requires_review"
+      ],
+      "reason": "sample is English; x_t/x_prime/x_cf variants must stay in one split"
+    },
+    {
+      "dataset_id": "allenai_sciq",
+      "destination": "blocked_noncommercial",
+      "format": "science_qa",
+      "transform": [
+        "none_for_general_training"
+      ],
+      "required_checks": [
+        "cc_by_nc_3_terms",
+        "english_language"
+      ],
+      "reason": "non-commercial license and English source; only separately approved evaluation use"
+    },
+    {
+      "dataset_id": "maximus_physicsqa",
+      "destination": "blocked_pending_provenance",
+      "format": "physics_qa",
+      "transform": [
+        "bounded_sample",
+        "verify_source_text_and_answers"
+      ],
+      "required_checks": [
+        "upstream_rights",
+        "english_language"
+      ],
+      "reason": "online-source provenance is unclear"
+    },
+    {
+      "dataset_id": "flytech_python_codes_25k",
+      "destination": "blocked_pending_license",
+      "format": "code_instruction",
+      "transform": [
+        "parse_code_blocks",
+        "run_static_syntax_checks",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "license_confirmation",
+        "source_provenance"
+      ],
+      "reason": "Hub license tag absent; card claim alone is insufficient"
+    },
+    {
+      "dataset_id": "d0rj_math_dataset_ru",
+      "destination": "math_train_and_eval",
+      "format": "math_qa",
+      "transform": [
+        "keep_ru_split",
+        "train_categories_only",
+        "normalize_expressions",
+        "verify_answers",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "train_easy_medium_hard_only",
+        "interpolate_extrapolate_eval_only"
+      ],
+      "reason": "12.7M rows; category-stratified audit and answer verification required"
+    },
+    {
+      "dataset_id": "s85io_math_logic_ru",
+      "destination": "blocked_pending_proof_validation",
+      "format": "logic_sft",
+      "transform": [
+        "parse_formulas",
+        "symbolically_validate_each_proof",
+        "reject_invalid_steps"
+      ],
+      "required_checks": [
+        "human_proof_review",
+        "keep_validation_split"
+      ],
+      "reason": "known invalid inference; do not silently rewrite source proofs"
+    },
+    {
+      "dataset_id": "fmluder_tiny_russian_dialogs",
+      "destination": "excluded_pending_rework",
+      "format": "qa",
+      "transform": [
+        "normalize_q_a",
+        "keep_ru_only",
+        "deduplicate",
+        "filter_boilerplate"
+      ],
+      "required_checks": [
+        "human_response_relevance_review"
+      ],
+      "reason": "sample contains generic repetitive answers and malformed Russian"
+    },
+    {
+      "dataset_id": "ttech_tmath_ru_eval",
+      "destination": "evaluation_only",
+      "format": "math_benchmark",
+      "transform": [
+        "normalize_question_answer_solution",
+        "verify_answers",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "never_train_on_any_split"
+      ],
+      "reason": "benchmark only; never use examples for training"
+    },
+    {
+      "dataset_id": "ru_dataset_small_hold",
+      "destination": "blocked_pending_schema_review",
+      "format": "mixed_instruction",
+      "transform": [
+        "inspect_reasoning_tags",
+        "normalize_schema",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "content_quality_and_rights_review"
+      ],
+      "reason": "limited metadata and reasoning-format review required"
+    },
+    {
+      "dataset_id": "attn_signs_russian_code_hold",
+      "destination": "blocked_pending_license",
+      "format": "code_instruction",
+      "transform": [
+        "parse_code_blocks",
+        "static_syntax_checks"
+      ],
+      "required_checks": [
+        "license_required_before_import"
+      ],
+      "reason": "no declared license"
+    },
+    {
+      "dataset_id": "sup2ch_ru_en_code_curriculum_hold",
+      "destination": "blocked_pending_row_license",
+      "format": "code_text",
+      "transform": [
+        "filter_each_row_by_license_and_redistributable_flag",
+        "preserve_source_revision",
+        "deduplicate"
+      ],
+      "required_checks": [
+        "exclude_reserve_and_validation_from_training"
+      ],
+      "reason": "no collection-wide license; per-row rights filter required"
+    }
+  ]
+}
