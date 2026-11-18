@@ -10,7 +10,7 @@
     ],
     "training_enabled": false,
     "last_license_review": "2026-11-17",
-    "note": "No source in this registry is approved for training by this license-card review. CC0 labels are declarations to verify, not independent proof of upstream rights."
+    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language entries were initially added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru (now on hold after a sampled invalid proof), Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). No source is approved for training. Three additional programming-related sources are recorded as hold: ru-dataset/ru-dataset-small (reasoning-format review), attn-signs/russian-code (license metadata absent), and sup2ch/ru-en-code-curriculum (non-standard license terms). Direct sample/metadata audit completed on 2026-11-17 for the 16 original candidate entries. Findings and required filters are stored under review.sample_audit; sample access was not possible for every source. s85io/math-logic-ru moved to hold after an invalid inference was observed. No dataset was approved for training; all sources remain quarantined and training_enabled=false."
   },
   "datasets": [
     {
@@ -22,7 +22,7 @@
       "declared_license": "CC0-1.0",
       "reported_size": "866 MB; 6.9M rows",
       "provenance_claim": "Russian classical literature from lib.ru; card states original works are public domain and compilation is CC0.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Strongest current candidate for Russian prose pretraining.",
         "Old literary language; not a modern dialogue or factual-QA dataset.",
@@ -32,14 +32,28 @@
         "checked_at": "2026-11-17",
         "declared_license": "CC0-1.0",
         "evidence_url": "https://huggingface.co/datasets/Imperius/ru-classic",
-        "assessment": "Current dataset card declares CC0-1.0 for the compilation, describes 866 MB from lib.ru and 61 authors, and lists Leo Tolstoy among the included authors (38 MB). This supports Tolstoy material being present, but the card does not list individual titles, so it does not prove that War and Peace specifically is in the snapshot. Underlying text rights and edition-level provenance still need validation.",
-        "decision": "candidate_pending_item_level_provenance",
+        "assessment": "Current dataset card declares CC0-1.0 for the compilation, describes 866 MB from lib.ru and 61 authors, and lists Leo Tolstoy among the included authors (38 MB). This supports Tolstoy material being present, but the card does not list individual titles, so it does not prove that War and Peace specifically is in the snapshot. Underlying text rights and edition-level provenance still need validation. The uploader claims CC0, but the corpus is collected from lib.ru and includes authors/editions requiring item-level rights verification.",
+        "decision": "hold_pending_item_level_public_domain_and_edition_rights_review",
         "required_checks": [
           "Inspect corpus records or source manifest to confirm exact titles, including War and Peace.",
           "Verify each included work's author and public-domain status; check edition, translation, annotations, and editorial additions.",
           "Review OCR, replacement characters, long records, duplicate patterns, and samples from beginning, middle, and end.",
           "Keep all sources out of training until source-level rights, privacy, and quality review is complete."
-        ]
+        ],
+        "sample_audit": {
+          "method": "direct_text_sample",
+          "sample_records": 1,
+          "readiness": "needs_text_cleanup_and_item_level_rights",
+          "findings": [
+            "Beginning-of-file sample contains readable Russian prose but also broken fragments, isolated punctuation, unusual whitespace and line-wrap/OCR artefacts.",
+            "The sample is literary prose, not modern dialogue or factual QA."
+          ],
+          "actions": [
+            "Normalize whitespace and repair line-fragment boundaries without rewriting source meaning.",
+            "Measure replacement characters, malformed fragments and duplicate passages over the full corpus.",
+            "Verify author, exact work, edition, translator, annotations and public-domain status item by item."
+          ]
+        }
       }
     },
     {
@@ -79,11 +93,30 @@
       "declared_license": "CC-BY-4.0",
       "reported_size": "150,000 dialogues; 140,000 train and 10,000 test",
       "provenance_claim": "Dataset card describes programmatically generated bilingual coding and general-chat dialogues.",
-      "status": "candidate",
+      "status": "hold",
       "reasons": [
         "Potential supervised instruction data; preserve attribution and license notice.",
         "Filter Russian examples and inspect quality before approval."
-      ]
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "sample_audit": {
+          "method": "direct_jsonl_sample",
+          "sample_records": 5,
+          "readiness": "needs_template_filtering",
+          "findings": [
+            "Russian and English records are mixed and have a language field.",
+            "Inspected Russian assistant turns repeat generic three-point boilerplate across unrelated topics; some dialogue turns add little topic-specific information."
+          ],
+          "actions": [
+            "Filter language=ru for Russian-only SFT and preserve the original language field.",
+            "Score topic relevance and remove generic/repeated assistant completions; deduplicate near-identical dialogue templates.",
+            "Keep the declared test split completely out of training; preserve CC BY 4.0 attribution."
+          ]
+        },
+        "decision": "hold_due_repetitive_template_answers_in_direct_sample",
+        "assessment": "A direct sample of 16 rows showed repetitive generic assistant templates across unrelated topics; retain out of training until filtered and re-audited."
+      }
     },
     {
       "id": "kukunechka_russian_everyday_dialogues",
@@ -98,7 +131,24 @@
       "reasons": [
         "Useful modern everyday Russian style.",
         "Small; preserve author attribution and inspect examples."
-      ]
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "sample_audit": {
+          "method": "direct_jsonl_sample",
+          "sample_records": 20,
+          "readiness": "small_sft_supplement_after_fact_check",
+          "findings": [
+            "The inspected records are short, readable everyday Russian dialogues across shop, transport and cafe situations.",
+            "Some answers assert specific prices, routes, station names and service details that are scenario-specific and may be fabricated; corpus card describes only 20 dialogues."
+          ],
+          "actions": [
+            "Use only as a small style supplement, not pretraining.",
+            "Remove or neutralize unsupported time-sensitive/local factual claims unless verified against source context.",
+            "Preserve CC BY 4.0 attribution."
+          ]
+        }
+      }
     },
     {
       "id": "atbuba_ruwiki",
@@ -114,7 +164,24 @@
         "Large encyclopedic Russian text source.",
         "Requires attribution and ShareAlike compliance; not a no-conditions dataset.",
         "Review page-level imported-source notices and remove non-text/media material."
-      ]
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "sample_audit": {
+          "method": "metadata_and_file_inspection",
+          "sample_records": 0,
+          "readiness": "rights_and_format_review",
+          "findings": [
+            "Repository contains a multi-gigabyte plain-text dump plus train.bin and val.bin; binary token files are not suitable for direct text audit without tokenizer/config provenance.",
+            "Declared CC BY-SA 4.0 requires attribution and ShareAlike compliance."
+          ],
+          "actions": [
+            "Audit the plain-text dump in bounded streaming chunks; do not ingest binary files until tokenizer and split provenance are verified.",
+            "Check Wikipedia dump date, revision/source notices, non-Wikipedia imports and ShareAlike obligations.",
+            "Keep val.bin or a newly created holdout out of training."
+          ]
+        }
+      }
     },
     {
       "id": "nyuuzyou_edutexts",
@@ -172,6 +239,676 @@
         "Mixed upstream literary/forum sources require source-by-source rights review.",
         "Do not treat the repository-level CC-BY label as proof that every underlying text is reusable."
       ]
+    },
+    {
+      "id": "ilyagusev_ru_turbo_alpaca",
+      "hf_id": "IlyaGusev/ru_turbo_alpaca",
+      "url": "https://huggingface.co/datasets/IlyaGusev/ru_turbo_alpaca",
+      "language": "ru",
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "29,822 instruction examples",
+      "provenance_claim": "Dataset card describes Russian instructions generated with ChatGPT using a self-instruct/Alpaca-style pipeline.",
+      "status": "hold",
+      "reasons": [
+        "Potential Russian instruction-tuning source; not a base-pretraining corpus.",
+        "Published sample assessments report that only a portion of instruction/output pairs are fully correct; run factuality and quality filtering.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/IlyaGusev/ru_turbo_alpaca",
+        "assessment": "Hugging Face metadata declares CC BY 4.0 and the dataset card reports 29,822 generated Russian instruction examples. The card's own quality figures indicate imperfect outputs. The dataset card itself contains a legal disclaimer stating that its source terms prohibit developing competing models; do not use for IVA pending independent legal review.",
+        "decision": "hold_due_upstream_competition_restriction_in_dataset_card",
+        "sample_audit": {
+          "method": "metadata_and_file_inspection",
+          "sample_records": 0,
+          "readiness": "sample_and_answer_quality_review",
+          "findings": [
+            "The source is distributed as compressed JSONL; direct sample inspection was not completed in this pass.",
+            "Dataset card describes generated Russian instruction examples and reports imperfect answer quality."
+          ],
+          "actions": [
+            "Decode in a streaming process and inspect schema before normalization.",
+            "Run factuality, safety, duplication and prompt/answer completeness checks; retain only verified rows.",
+            "Preserve CC BY 4.0 attribution."
+          ]
+        }
+      }
+    },
+    {
+      "id": "zjkarina_matreshka",
+      "hf_id": "zjkarina/matreshka",
+      "url": "https://huggingface.co/datasets/zjkarina/matreshka",
+      "language": "ru",
+      "role": "sft_and_summarization",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "8,319 rows (6.66K train; 1.7K validation)",
+      "provenance_claim": "Dataset card describes Russian dialogues, speaker persona, and generated dialogue summaries.",
+      "status": "hold",
+      "reasons": [
+        "Useful as a small dialogue and summarization candidate, not for large-scale pretraining.",
+        "Inspect dialogue quality, factual claims, duplicated templates, and any personal information.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/zjkarina/matreshka",
+        "assessment": "A 100-row Dataset Viewer sample included a dialogue row with mismatched role/dialog lengths and an empty final turn; other rows contained outdated or unsupported factual claims (for example, a static year answer of 2021 and specific animal/astronomy claims). The card says dialogues/personas/summaries were generated with GPT-3.5. Require row-level role alignment, empty-turn removal, factual claim review and split leakage checks before reconsideration.",
+        "decision": "hold_due_role_alignment_empty_turns_and_unverified_factual_claims_in_sample",
+        "sample_audit": {
+          "method": "metadata_and_file_inspection",
+          "sample_records": 0,
+          "readiness": "parquet_sample_review",
+          "findings": [
+            "Repository exposes separate train and validation Parquet files; file structure confirms a holdout split, but row content was not read in this pass."
+          ],
+          "actions": [
+            "Read samples from both Parquet splits and confirm persona/dialog/summary alignment.",
+            "Check speaker consistency, summary faithfulness, personal data and duplicate dialogs.",
+            "Keep validation split excluded from training; preserve CC BY 4.0 attribution."
+          ]
+        }
+      }
+    },
+    {
+      "id": "sonexa_ru_eng_prompt_response",
+      "hf_id": "SonexaAI/ru_eng-dataset",
+      "url": "https://huggingface.co/datasets/SonexaAI/ru_eng-dataset",
+      "language": [
+        "ru",
+        "en"
+      ],
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "60,000 synthetic prompt-response rows (59,000 train; 1,000 validation, as stated by card)",
+      "provenance_claim": "Dataset card describes synthetic bilingual English/Russian prompt-response examples.",
+      "status": "hold",
+      "reasons": [
+        "Potential short-form instruction and conversation supplement.",
+        "Dataset Viewer currently fails to expose row/schema details; inspect downloaded JSONL and verify actual row counts and Russian share.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/SonexaAI/ru_eng-dataset",
+        "assessment": "Hugging Face metadata declares CC BY 4.0 and the card describes 60,000 synthetic bilingual rows. Dataset Viewer/parquet conversion did not provide usable row previews during review. A direct 150-row sample was mixed Russian/English (84 ru, 66 en), with repeated prompts/answers and weak prompt-response relevance already observed.",
+        "decision": "hold_due_mixed_language_duplicates_and_weak_response_relevance",
+        "sample_audit": {
+          "method": "direct_jsonl_sample",
+          "sample_records": 30,
+          "readiness": "needs_prompt_response_filtering",
+          "findings": [
+            "The sample mixes Russian and English and exposes lang, intent, prompt and response fields.",
+            "Several Russian prompts are vague or underspecified (for example, a bare 'сколько нужно?') and some responses are generic openers rather than answers to the prompt."
+          ],
+          "actions": [
+            "Filter lang=ru and validate that each response actually answers its prompt.",
+            "Remove vague prompts, generic filler and duplicate intent templates; use only as a small SFT supplement.",
+            "Preserve CC BY 4.0 attribution."
+          ]
+        }
+      }
+    },
+    {
+      "id": "datasets_eval_ruslang_edu_100",
+      "hf_id": "DatasetsEval/RusLang-Edu-100",
+      "url": "https://huggingface.co/datasets/DatasetsEval/RusLang-Edu-100",
+      "language": "ru",
+      "role": "evaluation_and_sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "100 expert-curated instruction cards",
+      "provenance_claim": "Dataset card describes Russian grammar, orthography, punctuation, morphology, syntax, and stylistics tasks.",
+      "status": "candidate",
+      "reasons": [
+        "Useful narrow evaluation set and possible small SFT supplement; far too small for pretraining.",
+        "Verify expert-review claims, answer correctness, and train/evaluation separation.",
+        "Preserve attribution and CC BY 4.0 license information."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/DatasetsEval/RusLang-Edu-100",
+        "assessment": "Hugging Face metadata declares CC BY 4.0; structure reports 100 rows and fields for instruction, input, output, short answer, explanation, and review metadata.",
+        "decision": "candidate_pending_independent_answer_and_provenance_review",
+        "sample_audit": {
+          "method": "dataset_card_and_schema_inspection",
+          "sample_records": 0,
+          "readiness": "independent_answer_audit",
+          "findings": [
+            "Card advertises 100 curated Russian grammar tasks and fields for short answer, explanation, source, license and review metadata; actual Parquet rows were not sampled in this pass.",
+            "Review-status fields are publisher-provided metadata, not independent verification."
+          ],
+          "actions": [
+            "Sample every row because the set is only 100 records; independently verify answer_short, output and explanations.",
+            "Check each row's source and license fields and ensure train/evaluation partition is explicit.",
+            "Use primarily as a held-out Russian grammar benchmark; any SFT subset must be separately reviewed."
+          ]
+        },
+        "dataset_viewer_sample": {
+          "rows_inspected": 100,
+          "hub_config": "default",
+          "hub_split": "train",
+          "row_level_split_counts": {
+            "train": 90,
+            "validation": 10
+          },
+          "findings": [
+            "All 100 rows inspected through two bounded previews (0-79 and 80-99).",
+            "Ten rows are marked validation in the row-level split column despite residing in the Hub train split.",
+            "Rows declare expert_curated, CC BY 4.0, gold_unique=true and review_status=verified; these are publisher-provided metadata, not independent verification."
+          ],
+          "decision": "candidate_only_pending_human_answer_explanation_review_and_row_level_validation_isolation",
+          "actions": [
+            "Extract the 10 row-level validation records to evaluation only.",
+            "Never train on records marked validation, regardless of the Hub split name.",
+            "Human-review answers, explanations, provenance and license fields before any training decision."
+          ]
+        }
+      }
+    },
+    {
+      "id": "lksy_ru_instruct_gpt4",
+      "hf_id": "lksy/ru_instruct_gpt4",
+      "url": "https://huggingface.co/datasets/lksy/ru_instruct_gpt4",
+      "language": "ru",
+      "role": "sft",
+      "declared_license": "CC-BY-4.0",
+      "reported_size": "About 23.3 MB; row count not verified",
+      "provenance_claim": "Dataset card describes GPT-4-generated Russian instructions.",
+      "status": "hold",
+      "reasons": [
+        "Dataset Viewer is disabled because the repository requires arbitrary Python code execution.",
+        "Inspect repository files, schema, source provenance, and examples before making it downloadable through the candidate workflow.",
+        "CC BY 4.0 metadata is a publisher declaration, not independent rights verification."
+      ]
+    },
+    {
+      "id": "samurainisa_russian_pd",
+      "hf_id": "samurainisa/Russian-PD",
+      "url": "https://huggingface.co/datasets/samurainisa/Russian-PD",
+      "language": "ru",
+      "role": "pretraining",
+      "declared_license": "not_declared_in_hub_metadata",
+      "reported_size": "8.6 GB parquet; card claims 8,525 titles and about 995 million words",
+      "provenance_claim": "Dataset card says the collection contains public-domain Russian monographs and periodicals recovered from Internet Archive, with a pre-1884 cutoff described as a curation criterion.",
+      "status": "hold",
+      "reasons": [
+        "No machine-readable license was exposed in the inspected Hub metadata; do not infer a license from the public-domain description.",
+        "Very large snapshot and item-level edition/provenance checks are required.",
+        "Dataset Viewer schema preview failed due a parquet scan-size limit."
+      ]
+    },
+    {
+      "id": "markpromaster_russian_classical_literature",
+      "hf_id": "MarkProMaster229/Russian_classical_literature",
+      "url": "https://huggingface.co/datasets/MarkProMaster229/Russian_classical_literature",
+      "language": "ru",
+      "role": "pretraining_candidate",
+      "declared_license": "CC0-1.0",
+      "reported_size": "11,960 rows; about 6.72 MB",
+      "provenance_claim": "Dataset card describes public-domain Russian classics in input/target format.",
+      "status": "hold",
+      "reasons": [
+        "Likely substantial overlap with the existing Imperius/ru-classic corpus and other public-domain literature sources.",
+        "Check exact work/edition provenance and deduplication before acquisition.",
+        "CC0 metadata is a publisher declaration, not independent verification of every underlying edition."
+      ]
+    },
+    {
+      "id": "openai_gsm8k_math",
+      "hf_id": "openai/gsm8k",
+      "url": "https://huggingface.co/datasets/openai/gsm8k",
+      "language": "en",
+      "role": "math_reasoning_sft_and_eval",
+      "declared_license": "MIT",
+      "reported_size": "8,500 original math word problems; main train 7.5K and test 1.3K; socratic config also available",
+      "provenance_claim": "OpenAI dataset card describes original grade-school multi-step arithmetic word problems.",
+      "status": "hold",
+      "reasons": [
+        "Useful for arithmetic word-problem reasoning and multi-step solutions.",
+        "English-only; translate only through a separately checked process, not by silently relabeling it Russian.",
+        "Keep test split out of training and use it for evaluation.",
+        "Dataset Viewer preview was rate-limited during review; inspect downloaded samples before approval."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/openai/gsm8k",
+        "assessment": "Hub metadata declares MIT and exposes main/socratic train and test splits with question and answer fields. Preview request returned HTTP 429; sample-level verification remains pending. The source is English-only; only a separately translated and human-verified derivative could be considered for Russian training. Test split must remain evaluation-only.",
+        "decision": "hold_english_only_until_reviewed_russian_derivative_exists",
+        "sample_audit": {
+          "method": "metadata_and_file_inspection",
+          "sample_records": 0,
+          "readiness": "english_math_sft_candidate",
+          "findings": [
+            "Repository provides separate main/train and main/test Parquet files; this is English-language math data, not Russian text.",
+            "The test split is a valuable independent evaluation set."
+          ],
+          "actions": [
+            "Use only main/train for any SFT experiment; never mix main/test into training.",
+            "If translating to Russian, store translation as a separate derivative with source attribution and independently verified answers.",
+            "Run arithmetic answer checks and near-duplicate checks."
+          ]
+        }
+      }
+    },
+    {
+      "id": "tigerlab_mathinstruct",
+      "hf_id": "TIGER-Lab/MathInstruct",
+      "url": "https://huggingface.co/datasets/TIGER-Lab/MathInstruct",
+      "language": "en",
+      "role": "math_instruction_sft",
+      "declared_license": "MIT",
+      "reported_size": "262,000 rows; 99.1 MB parquet",
+      "provenance_claim": "Dataset card says compiled from 13 math rationale datasets, including six newly curated sources.",
+      "status": "hold",
+      "reasons": [
+        "Broad mathematics instruction and reasoning coverage.",
+        "Compiled from multiple upstream datasets; verify each upstream license and source before training.",
+        "English-only; do not treat as Russian examples.",
+        "Inspect downloaded examples and check solution correctness; viewer preview was rate-limited."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/TIGER-Lab/MathInstruct",
+        "assessment": "Hub metadata declares MIT, 262K train rows, fields source/output/instruction. Its multi-source composition requires upstream rights review; preview returned HTTP 429. The card lists non-listed and CC BY-NC upstream subsets alongside MIT subsets; row-level provenance/license filtering is mandatory, and the dataset is English.",
+        "decision": "hold_until_row_level_upstream_license_filter_and_language_scope_review",
+        "sample_audit": {
+          "method": "dataset_card_and_schema_inspection",
+          "sample_records": 0,
+          "readiness": "upstream_rights_filter_required",
+          "findings": [
+            "The card says the corpus combines 13 upstream datasets. Its own license table includes a non-listed source (GSM8K-RFT) and a CC BY-NC 4.0 source (Camel-Math), despite the repository-level MIT label.",
+            "The `source` field can potentially support row-level filtering, but source-to-row mapping must be validated."
+          ],
+          "actions": [
+            "Do not treat the top-level MIT label as clearing every row.",
+            "Map every source value to its upstream license; exclude non-listed and non-commercial rows from commercial/uncertain use unless separately cleared.",
+            "Verify answer correctness, deduplicate and keep English language labels."
+          ]
+        }
+      }
+    },
+    {
+      "id": "microsoft_orca_math_200k",
+      "hf_id": "microsoft/orca-math-word-problems-200k",
+      "url": "https://huggingface.co/datasets/microsoft/orca-math-word-problems-200k",
+      "language": "en",
+      "role": "math_word_problem_sft",
+      "declared_license": "MIT",
+      "reported_size": "About 200,000 rows; 84.2 MB parquet",
+      "provenance_claim": "Microsoft dataset card says grade-school math word problems with answers generated using Azure GPT-4 Turbo.",
+      "status": "hold",
+      "reasons": [
+        "Potential extra arithmetic and word-problem practice.",
+        "Generated answers need correctness checks; inspect samples and remove duplicates.",
+        "English-only; preserve language metadata.",
+        "Dataset Viewer preview was rate-limited."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/microsoft/orca-math-word-problems-200k",
+        "assessment": "Hub metadata declares MIT and reports 200K train rows; dataset card describes GPT-4-Turbo-generated answers. Preview returned HTTP 429. The source is English-only and answers are generated by Azure GPT-4 Turbo; any Russian derivative requires translation review and independent arithmetic verification.",
+        "decision": "hold_english_only_until_russian_derivative_and_answer_validation",
+        "sample_audit": {
+          "method": "dataset_card_and_schema_inspection",
+          "sample_records": 0,
+          "readiness": "answer_verification_required",
+          "findings": [
+            "The card says all answers were generated using Azure GPT-4 Turbo; the example is a multi-step percentage problem with arithmetic that should be independently checked.",
+            "English-only question/answer schema."
+          ],
+          "actions": [
+            "Run deterministic arithmetic verification where possible and independent review for nontrivial solutions.",
+            "Deduplicate paraphrased problems and keep English language metadata.",
+            "Use as math SFT only after filtering; retain source attribution."
+          ]
+        }
+      }
+    },
+    {
+      "id": "convai_physics_reasoning",
+      "hf_id": "convaiinnovations/physics-reasoning-dataset",
+      "url": "https://huggingface.co/datasets/convaiinnovations/physics-reasoning-dataset",
+      "language": "en",
+      "role": "physics_reasoning_sft",
+      "declared_license": "MIT",
+      "reported_size": "10,000 rows; 3.5 MB parquet",
+      "provenance_claim": "Dataset card describes physics reasoning scenarios with prompt, answer, and concept fields.",
+      "status": "hold",
+      "reasons": [
+        "Direct physics reasoning coverage with concept labels.",
+        "English-only; not a Russian physics corpus.",
+        "Inspect source provenance, numerical correctness, units, and reasoning quality before approval.",
+        "Dataset Viewer preview was rate-limited."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/convaiinnovations/physics-reasoning-dataset",
+        "assessment": "Hub metadata declares MIT and reports 10K train rows with prompt/answer/concept-style fields. Preview returned HTTP 429; item-level quality and provenance remain unverified. A direct 24-row sample was English-only; near-paraphrase and counterfactual variants create split-leakage risk, and calculations require independent physics checks.",
+        "decision": "hold_english_only_until_russian_derivative_and_physics_validation",
+        "sample_audit": {
+          "method": "direct_jsonl_sample",
+          "sample_records": 4,
+          "readiness": "unit_and_solution_validation",
+          "findings": [
+            "Inspected sample solutions for spring extension, Venturi flow, heat conduction and an inclined-plane problem; the visible numerical results are consistent with the stated formulas and units.",
+            "Rows include original prompt, worked answer, paraphrase and counterfactual; these can create near-duplicate leakage."
+          ],
+          "actions": [
+            "Run dimensional/unit checks and independent calculation on all rows.",
+            "Deduplicate prompt/paraphrase/counterfactual families before splitting; split by problem family to prevent leakage.",
+            "Keep English language label and preserve MIT attribution."
+          ]
+        }
+      }
+    },
+    {
+      "id": "allenai_sciq",
+      "hf_id": "allenai/sciq",
+      "url": "https://huggingface.co/datasets/allenai/sciq",
+      "language": "en",
+      "role": "science_physics_qa_evaluation",
+      "declared_license": "CC-BY-NC-3.0",
+      "reported_size": "13,679 science questions; 11.7K train, 1K validation, 1K test",
+      "provenance_claim": "AllenAI dataset card describes crowdsourced science questions across physics, chemistry, biology and related topics.",
+      "status": "hold",
+      "reasons": [
+        "Non-commercial license; do not mix into training unless the project's use is confirmed compatible.",
+        "Science questions are not exclusively physics.",
+        "Crowdsourced provenance and answer evidence need review.",
+        "Keep test split out of training."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/allenai/sciq",
+        "assessment": "Hub metadata declares CC BY-NC 3.0; this is not a general-purpose permissive license. Preview returned HTTP 429.",
+        "decision": "hold_license_and_upstream_review"
+      }
+    },
+    {
+      "id": "maximus_physicsqa",
+      "hf_id": "maximus-21/PhysicsQA",
+      "url": "https://huggingface.co/datasets/maximus-21/PhysicsQA",
+      "language": "en",
+      "role": "physics_evaluation",
+      "declared_license": "Apache-2.0 (declared)",
+      "reported_size": "370 high-school physics questions with step-by-step solutions",
+      "provenance_claim": "Dataset card says questions were sourced from online resources.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful physics evaluation set.",
+        "Underlying online source rights are not established by the repository-level license declaration.",
+        "Keep out of training until each source and item-level rights are verified.",
+        "Preview returned HTTP 429."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/maximus-21/PhysicsQA",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 370 examples, but the card says questions were sourced from online resources; upstream rights need checking.",
+        "decision": "hold_pending_item_level_source_rights"
+      }
+    },
+    {
+      "id": "flytech_python_codes_25k",
+      "hf_id": "flytech/python-codes-25k",
+      "url": "https://huggingface.co/datasets/flytech/python-codes-25k",
+      "language": "en",
+      "role": "python_instruction_sft",
+      "declared_license": "MIT (stated in dataset card; Hub tag not exposed)",
+      "reported_size": "About 24,813 examples in card; Hub structure reports 49.6K rows",
+      "provenance_claim": "Dataset card describes cleaned Python instructional tasks with instruction/input/output/text fields.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful Python instruction and code examples.",
+        "Hub metadata did not expose a machine-readable license tag; card says MIT, requiring verification.",
+        "Reported row counts differ (24,813 vs 49.6K); inspect exact files and deduplicate.",
+        "Review source provenance, code execution safety, and answer correctness."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/flytech/python-codes-25k",
+        "assessment": "Card says MIT and 24,813 entries, while Dataset Viewer structure reports 49.6K rows. Preview returned HTTP 429; discrepancy and license need resolution.",
+        "decision": "hold_pending_license_rowcount_and_sample_review"
+      }
+    },
+    {
+      "id": "d0rj_math_dataset_ru",
+      "hf_id": "d0rj/mathematics_dataset",
+      "url": "https://huggingface.co/datasets/d0rj/mathematics_dataset",
+      "language": [
+        "ru",
+        "en"
+      ],
+      "role": "math_reasoning_pretraining_and_evaluation",
+      "declared_license": "Apache-2.0",
+      "reported_size": "125.4M total rows; Russian split 12.7M rows (~510.6 MB), English split 112.7M rows",
+      "provenance_claim": "Dataset card says English rows come from the original DeepMind mathematics_dataset release; Russian questions were independently generated from rewritten Russian templates, not machine-translated row-by-row.",
+      "status": "candidate",
+      "reasons": [
+        "Large Russian-language synthetic mathematics corpus with topic and difficulty metadata.",
+        "Use only the Russian split for Russian training; do not mix the English split without an explicit multilingual plan.",
+        "Keep evaluation categories/splits out of training and inspect answer correctness, formatting, and duplicates.",
+        "Dataset Viewer preview returned HTTP 429 during review; sample-level verification remains pending."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/d0rj/mathematics_dataset",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 12.7M Russian rows plus 112.7M English rows. The card describes synthetic Russian generation based on a translated fork of the DeepMind generator. Viewer preview was rate-limited; upstream repository and sample quality still need human review.",
+        "decision": "candidate_quarantine_only_pending_sample_generator_and_split_review",
+        "sample_audit": {
+          "method": "dataset_card_and_shard_inspection",
+          "sample_records": 0,
+          "readiness": "promising_after_sample_and_answer_validation",
+          "findings": [
+            "The card declares 12,699,944 Russian rows in five Parquet shards and separates train-easy/medium/hard from interpolate and extrapolate categories.",
+            "The author says Russian data was generated independently with a translated generator and is not row-by-row paired with the English split; historical generator flags are not established.",
+            "Parquet shards and metadata were inspected, but actual rows were not sampled in this pass."
+          ],
+          "actions": [
+            "Sample all 70 modules and difficulty categories; validate reference answers with the supplied checker and independent arithmetic/symbolic checks.",
+            "Use only train-easy/medium/hard for training; keep interpolate/extrapolate strictly held out.",
+            "Record exact revision and generator provenance; keep Apache-2.0 attribution."
+          ]
+        },
+        "dataset_viewer_sample": {
+          "rows_inspected": 12,
+          "config": "default",
+          "split": "ru",
+          "observed_category": "extrapolate",
+          "finding": "The first 12 rows are all extrapolate, so a first-N sample is category-biased and not representative.",
+          "decision": "candidate_only_category_stratified_sampling_required",
+          "actions": [
+            "Sample train-easy, train-medium and train-hard separately for possible training review.",
+            "Keep interpolate and extrapolate strictly evaluation-only.",
+            "Independently verify answers and robustly parse large algebraic expressions."
+          ]
+        }
+      }
+    },
+    {
+      "id": "s85io_math_logic_ru",
+      "hf_id": "s85io/math-logic-ru",
+      "url": "https://huggingface.co/datasets/s85io/math-logic-ru",
+      "language": "ru",
+      "role": "math_logic_instruction_sft_and_eval",
+      "declared_license": "MIT",
+      "reported_size": "3.96K train rows and 441 validation rows",
+      "provenance_claim": "Dataset card describes a synthetic Russian dataset for formalizing natural-language statements into mathematical logic and constructing deduction chains.",
+      "status": "hold",
+      "reasons": [
+        "Adds Russian-language formal logic and proof-structure tasks not covered by arithmetic-only datasets.",
+        "Keep validation split separate from training.",
+        "Review formula correctness, notation consistency, and generated proof validity before approval.",
+        "Dataset Viewer preview returned HTTP 429 during review.",
+        "Sampled proof contains an invalid inference; block acquisition for training until proof-level validation and filtering are demonstrated."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/s85io/math-logic-ru",
+        "assessment": "Hub metadata declares MIT and reports 3,961 train rows plus 441 validation rows. Dataset card describes synthetic Russian logic formalization. Sample preview was rate-limited; answer-level correctness remains unverified.",
+        "decision": "candidate_quarantine_only_pending_formula_and_sample_review",
+        "sample_audit": {
+          "method": "direct_jsonl_sample",
+          "sample_records": 2,
+          "readiness": "hold_until_logic_validation",
+          "findings": [
+            "A sampled proof incorrectly infers not-R from (P and Q) implies R and not-Q; that inference is invalid.",
+            "Another sampled answer contains a stray non-Russian token, suggesting a text-cleaning issue.",
+            "The dataset is synthetic and its declared MIT license does not validate proof correctness."
+          ],
+          "actions": [
+            "Keep blocked from training until a proof/logic validation pass is implemented and run.",
+            "Reject invalid inference chains and malformed/mixed-language outputs; manually review a stratified sample.",
+            "Keep validation split out of training and preserve MIT attribution."
+          ]
+        }
+      }
+    },
+    {
+      "id": "fmluder_tiny_russian_dialogs",
+      "hf_id": "Fmluder/Tiny-Russian-Dialogs",
+      "url": "https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs",
+      "language": "ru",
+      "role": "short_dialogue_sft",
+      "declared_license": "CC0-1.0",
+      "reported_size": "125K question-answer rows; one train split",
+      "provenance_claim": "Dataset card describes a synthetic Russian-language short-dialogue corpus in question-answer format.",
+      "status": "hold",
+      "reasons": [
+        "Adds a sizeable Russian dialogue source with a simple question-answer schema.",
+        "Treat as supplementary SFT data, not a substitute for broad Russian pretraining.",
+        "Check repetition, generic-answer frequency, conversational naturalness, and safety before approval.",
+        "Dataset Viewer preview returned HTTP 429 during review.",
+        "Direct sample inspection found repeated generic answers and at least one malformed Russian answer; use only after full-corpus deduplication and response-quality filtering."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/Fmluder/Tiny-Russian-Dialogs",
+        "assessment": "Hub metadata declares CC0-1.0 and reports 125K rows with q/a fields. Dataset card describes synthetic dialogue generation. Sample preview was rate-limited; quality and duplicate checks remain pending. The direct CSV sample shows generic boilerplate and repeated dialogue patterns; a full deduplication and answer-quality pass is required.",
+        "decision": "hold_due_repeated_generic_answers_and_malformed_samples",
+        "sample_audit": {
+          "method": "direct_csv_sample",
+          "sample_records": 50,
+          "readiness": "needs_dedup_and_response_quality_filter",
+          "findings": [
+            "The CSV schema is q/a and the sample contains repeated generic replies and templated greetings across different prompts.",
+            "One sampled answer is grammatically malformed ('Это России'); several replies are generic rather than responsive.",
+            "This source should not be used as a major dialogue corpus without strong filtering."
+          ],
+          "actions": [
+            "Measure answer-frequency concentration and exact/near duplicates across the full file.",
+            "Filter malformed Russian and generic filler; verify prompt-response relevance and safety.",
+            "Use only as a low-weight SFT supplement after filtering; retain CC0 declaration as unverified publisher metadata."
+          ]
+        }
+      }
+    },
+    {
+      "id": "ttech_tmath_ru_eval",
+      "hf_id": "t-tech/T-math",
+      "url": "https://huggingface.co/datasets/t-tech/T-math",
+      "language": "ru",
+      "role": "math_reasoning_evaluation_only",
+      "declared_license": "Apache-2.0",
+      "reported_size": "325 train rows (331 tasks described on the card)",
+      "provenance_claim": "Dataset card describes Russian olympiad mathematics tasks from All-Russian School Olympiad and Moscow Olympiad, 1998-2025; answers reportedly checked by human assessors.",
+      "status": "candidate",
+      "reasons": [
+        "Useful as a small Russian mathematics evaluation set; not large enough to serve as a training corpus.",
+        "Do not put its evaluation examples into training; keep the full set held out for evaluation.",
+        "Review source-text rights and manually spot-check solutions before using benchmark scores."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/t-tech/T-math",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 325 rows with question, verifiable_answer, full_answer, year, grade, complexity, olympiad, and solutions fields. Card reports human verification. Viewer preview was rate-limited.",
+        "decision": "candidate_quarantine_only_evaluation_not_training_pending_rights_and_sample_review",
+        "sample_audit": {
+          "method": "dataset_card_and_shard_inspection",
+          "sample_records": 0,
+          "readiness": "evaluation_only_rights_review",
+          "findings": [
+            "The card reports 331 Russian olympiad tasks, with numeric verifiable answers and human review; extraction originally used a vision-language model and LLM filtering before human checks.",
+            "The Parquet file exists, but rows were not sampled in this pass.",
+            "This is a benchmark, not a training source."
+          ],
+          "actions": [
+            "Keep every row permanently out of SFT/pretraining manifests and use only as a held-out evaluation benchmark.",
+            "Verify source-text rights and manually spot-check question/answer pairs before publishing benchmark scores.",
+            "Record exact revision and attribution."
+          ]
+        }
+      }
+    },
+    {
+      "id": "ru_dataset_small_hold",
+      "hf_id": "ru-dataset/ru-dataset-small",
+      "url": "https://huggingface.co/datasets/ru-dataset/ru-dataset-small",
+      "language": "ru",
+      "role": "programming_math_instruction_sft",
+      "declared_license": "Apache-2.0",
+      "reported_size": "2.7K train rows; ~70.8 MB parquet",
+      "provenance_claim": "Dataset card describes Russian programming, algorithms, software architecture, mathematics, and instruction-following tasks; answers contain explicit reasoning-tag blocks.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful Russian SFT material, but inspect the explicit reasoning traces and decide whether this output format is appropriate.",
+        "Dataset Viewer preview was rate-limited; sample quality and source provenance remain unverified.",
+        "Do not expose hidden reasoning traces as a target format without a deliberate policy decision."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/ru-dataset/ru-dataset-small",
+        "assessment": "Hub metadata declares Apache-2.0 and reports 2.7K rows. Card describes explicit reasoning-tag blocks; viewer preview returned HTTP 429.",
+        "decision": "hold_pending_reasoning_format_and_sample_review"
+      }
+    },
+    {
+      "id": "attn_signs_russian_code_hold",
+      "hf_id": "attn-signs/russian-code",
+      "url": "https://huggingface.co/datasets/attn-signs/russian-code",
+      "language": "ru",
+      "role": "python_instruction_sft",
+      "declared_license": "not_declared_in_hub_metadata",
+      "reported_size": "26.3K train rows; ~50.2 MB parquet",
+      "provenance_claim": "Dataset card describes Russian-language Python code examples, algorithms, functions, classes, and explanations.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful Russian programming material.",
+        "Hub metadata did not expose a machine-readable license tag; do not assume the data is freely reusable.",
+        "Inspect samples, provenance, code correctness, and unsafe or non-runnable examples."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/attn-signs/russian-code",
+        "assessment": "Hub structure reports 26.3K rows, but no license metadata was exposed. Viewer preview returned HTTP 429.",
+        "decision": "hold_pending_license_provenance_and_sample_review"
+      }
+    },
+    {
+      "id": "sup2ch_ru_en_code_curriculum_hold",
+      "hf_id": "sup2ch/ru-en-code-curriculum",
+      "url": "https://huggingface.co/datasets/sup2ch/ru-en-code-curriculum",
+      "language": [
+        "ru",
+        "en",
+        "code"
+      ],
+      "role": "code_cpt_and_sft",
+      "declared_license": "other",
+      "reported_size": "129.7K records; 38.6M tokenizer tokens across CPT and SFT splits",
+      "provenance_claim": "Dataset card says the public release includes only records classified as redistributable and excludes local-training-only sources.",
+      "status": "hold",
+      "reasons": [
+        "Potentially useful bilingual coding curriculum with train, reserve, and validation splits.",
+        "Hub license is marked other; obtain and review the exact terms before acquisition or training.",
+        "Do not combine reserve or validation splits with training; inspect source provenance and code quality."
+      ],
+      "review": {
+        "checked_at": "2026-11-17",
+        "evidence_url": "https://huggingface.co/datasets/sup2ch/ru-en-code-curriculum",
+        "assessment": "Hub metadata reports license other and 129.7K rows across CPT/SFT splits. Card claims redistributable-only records, but exact license terms need verification.",
+        "decision": "hold_pending_exact_license_and_provenance_review"
+      }
     }
   ]
 }
