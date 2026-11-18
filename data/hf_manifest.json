@@ -63,7 +63,7 @@
       "use": "pending_maintainer_review",
       "rights_status": "pending_maintainer_review",
       "review_status": "awaiting_content_and_license_review",
-      "notes": "70 original Russian user-assistant pairs. Keep training disabled until the project maintainer reviews the examples and confirms the intended license."
+      "notes": "191 original Russian user-assistant pairs, including 121 elementary-math examples. Keep training disabled until the project maintainer reviews the examples and confirms the intended license."
     }
   ]
 }
