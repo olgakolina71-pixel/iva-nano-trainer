@@ -27,7 +27,7 @@ class EosModel(torch.nn.Module):
     context_length = 32
 
     def forward(self, input_ids):
-        logits = torch.zeros((input_ids.shape[0], input_ids.shape[1], 8))
+        logits = torch.zeros((input_ids.shape[0], input_ids.shape[1], 128))
         logits[:, :, 3] = 10.0
         return logits, None
 
