@@ -473,3 +473,33 @@ python generate.py \
 LoRA cannot compensate for a weak or corrupted base model, a mismatched tokenizer,
 or low-quality dialogue data. Compare validation loss and a held-out prompt set
 before treating an adapter as an improvement.
+
+
+## Optional experiment tracking
+
+IVA Nano can record training metrics with MLflow or Weights & Biases. Tracking is
+**off by default** and is not needed to train or run the model.
+
+Install the optional packages:
+
+```bash
+pip install -r requirements-tracking.txt
+```
+
+Choose one backend:
+
+```bash
+# Local MLflow tracking (no account required)
+IVA_TRACKER=mlflow python train.py --smoke-test
+
+# Weights & Biases (requires your own account/API key)
+IVA_TRACKER=wandb WANDB_PROJECT=iva-nano python train.py --smoke-test
+```
+
+For MLflow, the default experiment is `IVA Nano` and the local tracking data
+is stored by MLflow in `mlruns/`. Override the experiment with
+`MLFLOW_EXPERIMENT_NAME`. For W&B, authenticate using the official
+`wandb login` command or your environment's secret manager; never commit API
+keys to the repository. Set `IVA_TRACKER=none` (or leave it unset) to disable
+tracking. Tracking support is optional and does not change IVA's model,
+tokenizer, or checkpoint format.
