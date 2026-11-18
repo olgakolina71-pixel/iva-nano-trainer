@@ -13,6 +13,7 @@ from iva_nano.model import IVANano
 from generate import sample_next_token
 from iva_nano.search import format_search_context, search_wikipedia
 from iva_nano.prompts import DEFAULT_SYSTEM_PROMPT
+from iva_nano.tools import run_tool, format_tool_result
 
 
 def build_chat_prompt(tokenizer, messages, system_prompt, context_length, reserve_tokens):
@@ -115,7 +116,7 @@ def main():
     print(f"Parameters: {model.parameter_count():,}")
     print(f"Device: {device}")
     print("Поиск Wikipedia: " + ("включён" if args.wiki_search else "выключен"))
-    print("Введите /reset для очистки истории, /exit для выхода.")
+    print("Команды: /search запрос, /calc выражение, /time, /reset, /exit.")
     history = []
     while True:
         try:
@@ -130,6 +131,30 @@ def main():
         if user_text.lower() == "/reset":
             history.clear()
             print("История очищена.")
+            continue
+        if user_text.startswith("/calc "):
+            try:
+                result = format_tool_result(run_tool("calculator", {"expression": user_text[6:]}))
+            except (ValueError, ArithmeticError) as exc:
+                result = f"Калькулятор: {exc}"
+            history.append(("user", user_text))
+            history.append(("assistant", result))
+            print_iva_answer(result)
+            continue
+        if user_text == "/time":
+            result = format_tool_result(run_tool("current_time"))
+            history.append(("user", user_text))
+            history.append(("assistant", result))
+            print_iva_answer(result)
+            continue
+        if user_text.startswith("/search "):
+            try:
+                result = format_tool_result(run_tool("web_search", {"query": user_text[8:]}))
+            except Exception as exc:
+                result = f"Поиск временно недоступен ({type(exc).__name__})."
+            history.append(("user", user_text))
+            history.append(("assistant", result))
+            print_iva_answer(result)
             continue
         prompt_text = user_text
         if args.wiki_search:
