@@ -110,6 +110,7 @@ def main():
     parser.add_argument("--top-k", type=int, default=40)
     parser.add_argument("--top-p", type=float, default=0.9)
     parser.add_argument("--repetition-penalty", type=float, default=1.12)
+    parser.add_argument("--lora-adapter", help="Optional PEFT LoRA adapter directory")
     parser.add_argument("--device", default="auto")
     args = parser.parse_args()
 
@@ -140,6 +141,9 @@ def main():
     audit_sentencepiece_tokenizer(tokenizer_path, int(model_config["vocab_size"]))
     model = IVANano(model_config).to(device)
     model.load_state_dict(model_state, strict=True)
+    if args.lora_adapter:
+        from peft import PeftModel
+        model = PeftModel.from_pretrained(model, args.lora_adapter, is_trainable=False)
     tokenizer = spm.SentencePieceProcessor(model_file=str(tokenizer_path))
     print(generate(
         model, tokenizer, args.prompt, device, args.max_new_tokens,
