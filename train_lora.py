@@ -16,6 +16,7 @@ from iva_nano.data import (
     validate_reviewed_training_manifest,
 )
 from iva_nano.hf_compat import audit_sentencepiece_tokenizer, load_safetensors_checkpoint
+from iva_nano.experiment_tracking import start_experiment
 
 
 def sha256_file(path):
@@ -72,6 +73,7 @@ def main():
 
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     train_cfg = config["training"]
+    tracker = start_experiment("iva-nano-lora-sft", config)
     seed = int(train_cfg.get("seed", 42))
     random.seed(seed)
     torch.manual_seed(seed)
@@ -167,6 +169,8 @@ def main():
             item = {"step": step, "train_loss": round(sum(losses) / len(losses), 6)}
             print(json.dumps(item))
             metrics.append(item)
+            if tracker:
+                tracker.log_metrics({"train/loss": item["train_loss"]}, step)
 
     validation_loss = evaluate(model, eval_loader, device)
     output_dir = Path(args.output_dir)
@@ -193,6 +197,9 @@ def main():
     print(f"Saved IVA LoRA adapter: {output_dir}")
     if validation_loss is not None:
         print(f"Validation loss: {validation_loss:.6f}")
+    if tracker:
+        tracker.log_metrics({"validation/loss": validation_loss}, steps)
+        tracker.finish()
 
 
 if __name__ == "__main__":
