@@ -4,7 +4,7 @@ from io import StringIO
 
 import torch
 
-from generate import sample_next_token
+from generate import generate, sample_next_token
 from chat import build_chat_prompt, print_iva_answer
 from iva_nano.data import encode_training_texts
 
@@ -20,7 +20,46 @@ class FakeTokenizer:
         return 3
 
 
+class EosModel(torch.nn.Module):
+    context_length = 32
+
+    def forward(self, input_ids):
+        logits = torch.zeros((input_ids.shape[0], input_ids.shape[1], 8))
+        logits[:, :, 3] = 10.0
+        return logits, None
+
+
 class GenerationTests(unittest.TestCase):
+    def test_generation_stops_on_tokenizer_eos_and_reports_reason(self):
+        stats = {}
+        answer = generate(
+            EosModel(), FakeTokenizer(), "prompt", "cpu",
+            max_new_tokens=12, temperature=0.7, top_k=1, top_p=1.0,
+            stats=stats,
+        )
+        self.assertEqual(answer, "")
+        self.assertEqual(stats["eos_id"], 3)
+        self.assertEqual(stats["generated_tokens"], 0)
+        self.assertEqual(stats["stop_reason"], "eos")
+
+    def test_generation_reports_length_limit_when_eos_not_emitted(self):
+        class NonEosModel(torch.nn.Module):
+            context_length = 32
+
+            def forward(self, input_ids):
+                logits = torch.zeros((input_ids.shape[0], input_ids.shape[1], 128))
+                logits[:, :, 65] = 10.0
+                return logits, None
+
+        stats = {}
+        generate(
+            NonEosModel(), FakeTokenizer(), "prompt", "cpu",
+            max_new_tokens=2, temperature=0.7, top_k=1, top_p=1.0,
+            no_repeat_ngram_size=0, stats=stats,
+        )
+        self.assertEqual(stats["generated_tokens"], 2)
+        self.assertEqual(stats["stop_reason"], "max_new_tokens")
+
     def test_iva_answer_is_printed_as_a_standalone_final_block(self):
         output = StringIO()
         with redirect_stdout(output):
