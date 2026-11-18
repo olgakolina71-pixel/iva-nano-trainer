@@ -20,7 +20,7 @@ jobs:
           python-version: "3.11"
           cache: "pip"
       - name: Install runtime test dependencies
-        run: pip install torch sentencepiece pyyaml safetensors
+        run: pip install torch sentencepiece pyyaml safetensors peft
       - name: Compile Python modules
         run: python -m compileall -q .
       - name: Run generation and chat tests
