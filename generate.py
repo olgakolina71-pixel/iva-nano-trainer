@@ -127,9 +127,19 @@ def main():
     if not tokenizer_path.exists():
         raise FileNotFoundError(f"Tokenizer not found: {tokenizer_path}. Train the tokenizer first.")
 
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    model = IVANano(checkpoint["model_config"]).to(device)
-    model.load_state_dict(checkpoint["model"])
+    if checkpoint_path.suffix.lower() == ".safetensors":
+        from iva_nano.hf_compat import load_safetensors_checkpoint
+        model_state, model_config, metadata = load_safetensors_checkpoint(
+            checkpoint_path, device=device
+        )
+    else:
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+        model_state = checkpoint["model"]
+        model_config = checkpoint["model_config"]
+    from iva_nano.hf_compat import audit_sentencepiece_tokenizer
+    audit_sentencepiece_tokenizer(tokenizer_path, int(model_config["vocab_size"]))
+    model = IVANano(model_config).to(device)
+    model.load_state_dict(model_state, strict=True)
     tokenizer = spm.SentencePieceProcessor(model_file=str(tokenizer_path))
     print(generate(
         model, tokenizer, args.prompt, device, args.max_new_tokens,
