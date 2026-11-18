@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from iva_nano.tools import calculate, run_tool, format_tool_result
+from iva_nano.tools import calculate, run_tool, format_tool_result, select_tool
 
 
 class CalculatorTests(unittest.TestCase):
@@ -34,6 +34,21 @@ class CalculatorTests(unittest.TestCase):
         result = run_tool("web_search", {"query": "тест"})
         self.assertEqual(result["results"][0]["title"], "Тест")
         self.assertIn("Источник:", format_tool_result(result))
+
+    def test_automatic_selection_routes_math_time_and_search(self):
+        self.assertEqual(
+            select_tool("Сколько будет 7 * 8?")["name"], "calculator"
+        )
+        self.assertEqual(
+            select_tool("Который час?")["name"], "current_time"
+        )
+        selected = select_tool("Найди в интернете историю космонавтики")
+        self.assertEqual(selected["name"], "web_search")
+        self.assertIn("историю космонавтики", selected["arguments"]["query"])
+
+    def test_automatic_selection_leaves_small_talk_to_the_model(self):
+        self.assertIsNone(select_tool("Привет, как дела?"))
+        self.assertIsNone(select_tool("Расскажи шутку"))
 
     def test_unknown_tool_is_rejected(self):
         with self.assertRaises(ValueError):
