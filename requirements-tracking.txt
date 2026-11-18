@@ -1,0 +1,3 @@
+# Optional experiment tracking only. Core IVA works without these packages.
+mlflow>=2.12,<4
+wandb>=0.17,<1
