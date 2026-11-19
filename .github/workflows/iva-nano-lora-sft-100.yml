@@ -43,9 +43,9 @@ jobs:
       - name: Verify base files
         run: |
           set -euo pipefail
-          test -s checkpoints/iva_nano_40m_checkpoint.pt
+          test -s checkpoints/artifacts/iva_nano_40m_checkpoint.pt
           test -s checkpoints/iva_tokenizer.model
-          ls -lh checkpoints/iva_nano_40m_checkpoint.pt checkpoints/iva_tokenizer.model
+          ls -lh checkpoints/artifacts/iva_nano_40m_checkpoint.pt checkpoints/iva_tokenizer.model
 
       - name: Convert the 20,000 synthetic dialogues to IVA SFT format
         run: |
@@ -108,7 +108,7 @@ jobs:
           MKL_NUM_THREADS: "2"
         run: |
           python train_lora.py \
-            --checkpoint checkpoints/iva_nano_40m_checkpoint.pt \
+            --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
             --tokenizer checkpoints/iva_tokenizer.model \
             --config /tmp/iva_nano_sft_100.yaml \
             --data-dir data/raw/approved \
