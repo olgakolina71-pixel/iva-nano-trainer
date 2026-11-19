@@ -5,7 +5,7 @@ from collections import Counter
 from datasets import load_dataset
 
 EMAIL = re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b")
-PHONE = re.compile(r"(?<!\w)(?:\+?\\d[\\d ()-]{8,}\\d)(?!\w)")
+PHONE = re.compile(r"(?<!\w)(?:\+?\d[\d ()-]{8,}\d)(?!\w)")
 CYR = re.compile(r"[А-Яа-яЁё]")
 DEFAULTS = {
  "d0rj_math_dataset_ru":("default","ru"), "s85io_math_logic_ru":("default","train"),
