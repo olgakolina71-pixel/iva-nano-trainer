@@ -1,0 +1,37 @@
+name: IVA full-corpus streaming scan (aggregate only)
+on:
+  workflow_dispatch:
+    inputs:
+      max_rows:
+        description: "Rows per dataset (0 means entire stream; full scan may take a long time)"
+        required: true
+        type: string
+        default: "0"
+permissions:
+  contents: read
+concurrency:
+  group: iva-full-corpus-scan
+  cancel-in-progress: false
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install "datasets>=3.0,<5.0"
+      - name: Validate registry and normalization policies
+        run: python scripts/validate_dataset_rules.py
+      - name: Scan every candidate and hold source in streaming mode
+        run: python scripts/iva_full_corpus_scan.py --max-rows "${{ inputs.max_rows }}" --output reports/full-corpus-scan.json
+      - name: Upload aggregate report only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-full-corpus-scan-report
+          path: reports/full-corpus-scan.json
+          retention-days: 14
+          if-no-files-found: warn
