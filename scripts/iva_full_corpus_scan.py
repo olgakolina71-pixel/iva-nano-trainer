@@ -44,7 +44,7 @@ def main():
  out={"started_utc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"mode":"full_stream" if a.max_rows==0 else "capped_stream","max_rows_per_source":a.max_rows or None,"registry_count":len(reg["datasets"]),"results":[]}
  for e in reg["datasets"]:
   if wanted and e["id"] not in wanted: continue
-  if e.get("status") not in ("candidate","hold"): 
+  if e.get("status") not in ("candidate","hold"):
    out["results"].append({"id":e["id"],"status":"skipped_registry_status","raw_text_saved":False}); continue
   try: out["results"].append(run_one(e,a.max_rows))
   except Exception as ex: out["results"].append({"id":e["id"],"hf_id":e.get("hf_id"),"status":"scan_failed","error_type":type(ex).__name__,"error":str(ex)[:400],"raw_text_saved":False})
@@ -52,6 +52,6 @@ def main():
  out["completed_utc"]=time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime())
  out["success_count"]=sum(x.get("status") in ("full_stream_scanned","stream_scanned_with_cap") for x in out["results"])
  out["failed_count"]=sum(x.get("status")=="scan_failed" for x in out["results"])
- Path(a.output).parent.mkdir(parents=True,exist_ok=True); Path(a.output).write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\\n")
+ Path(a.output).parent.mkdir(parents=True,exist_ok=True); Path(a.output).write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\\n",encoding="utf8")
  print(json.dumps({"success":out["success_count"],"failed":out["failed_count"],"registry":out["registry_count"]}))
 if __name__=="__main__": main()
