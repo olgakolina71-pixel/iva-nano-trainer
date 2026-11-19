@@ -10,7 +10,7 @@
     ],
     "training_enabled": false,
     "last_license_review": "2026-11-19",
-    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language entries were initially added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru (now on hold after a sampled invalid proof), Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). No source is approved for training. Three additional programming-related sources are recorded as hold: ru-dataset/ru-dataset-small (reasoning-format review), attn-signs/russian-code (license metadata absent), and sup2ch/ru-en-code-curriculum (non-standard license terms). Direct sample/metadata audit completed on 2026-11-17 for the 16 original candidate entries. Findings and required filters are stored under review.sample_audit; sample access was not possible for every source. s85io/math-logic-ru moved to hold after an invalid inference was observed. No dataset was approved for training; all sources remain quarantined and training_enabled=false. On 2026-11-19 a cleaned 20-pair Kukunechka derivative was added under data/sft_candidates; it remains unapproved pending maintainer/source-rights confirmation and is too small for standalone SFT. No dataset was promoted to training; training_enabled remains false."
+    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language entries were initially added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru (now on hold after a sampled invalid proof), Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). No source is approved for training. Three additional programming-related sources are recorded as hold: ru-dataset/ru-dataset-small (reasoning-format review), attn-signs/russian-code (license metadata absent), and sup2ch/ru-en-code-curriculum (non-standard license terms). Direct sample/metadata audit completed on 2026-11-17 for the 16 original candidate entries. Findings and required filters are stored under review.sample_audit; sample access was not possible for every source. s85io/math-logic-ru moved to hold after an invalid inference was observed. No dataset was approved for training; all sources remain quarantined and training_enabled=false. On 2026-11-19 a cleaned 20-pair Kukunechka derivative was added under data/sft_candidates; it remains unapproved pending maintainer/source-rights confirmation and is too small for standalone SFT. No dataset was promoted to training; training_enabled remains false. RusLang-Edu-100 received a 100-row structural review on 2026-11-19: row-level split is 90 train/10 validation. Targeted semantic spot-check found unsupported additions in rl-000088 and rl-000089; all remaining training rows still need independent answer/explanation review. Candidate remains unapproved; validation rows must stay evaluation-only."
   },
   "datasets": [
     {
@@ -380,27 +380,34 @@
       "provenance_claim": "Dataset card describes Russian grammar, orthography, punctuation, morphology, syntax, and stylistics tasks.",
       "status": "candidate",
       "reasons": [
-        "Useful narrow evaluation set and possible small SFT supplement; far too small for pretraining.",
-        "Verify expert-review claims, answer correctness, and train/evaluation separation.",
-        "Preserve attribution and CC BY 4.0 license information."
+        "100-row structure inspected; row-level split is 90 train / 10 validation even though Hub exposes one train split.",
+        "Targeted answer audit found at least two unsupported/invented additions in training records rl-000088 and rl-000089.",
+        "The other 88 training rows still require independent answer and explanation review; publisher-provided verified flags are not independent validation.",
+        "Use only as a small Russian grammar/style SFT supplement after full row audit and rights/provenance confirmation; not for general pretraining."
       ],
       "review": {
-        "checked_at": "2026-11-17",
+        "checked_at": "2026-11-19",
         "evidence_url": "https://huggingface.co/datasets/DatasetsEval/RusLang-Edu-100",
         "assessment": "Hugging Face metadata declares CC BY 4.0; structure reports 100 rows and fields for instruction, input, output, short answer, explanation, and review metadata.",
-        "decision": "candidate_pending_independent_answer_and_provenance_review",
+        "decision": "conditional_candidate_not_approved",
         "sample_audit": {
-          "method": "dataset_card_and_schema_inspection",
-          "sample_records": 0,
-          "readiness": "independent_answer_audit",
+          "method": "dataset_viewer_full_100_row_structural_review_and_targeted_semantic_spot_check",
+          "sample_records": 100,
+          "readiness": "conditional_candidate_needs_row_level_answer_review",
           "findings": [
-            "Card advertises 100 curated Russian grammar tasks and fields for short answer, explanation, source, license and review metadata; actual Parquet rows were not sampled in this pass.",
-            "Review-status fields are publisher-provided metadata, not independent verification."
+            "Dataset Viewer exposes 100 records in one Hub train split; row-level split column contains exactly 90 train and 10 validation records.",
+            "All 10 row-level validation records are rl-000010, rl-000020, rl-000030, rl-000040, rl-000050, rl-000060, rl-000070, rl-000080, rl-000090, rl-000100.",
+            "Rows declare language=ru, certainty=high, source=expert_curated, license=cc-by-4.0, gold_unique=true and meta.review_status=verified; these are publisher-supplied fields, not independent proof.",
+            "Targeted semantic spot-check found rl-000088 invents a specific deadline and a morning meeting not present in the input; rl-000089 adds an unsupported claim that the car is of excellent quality.",
+            "At least these two training rows must be excluded or corrected. Remaining 88 training rows have not all received independent linguistic verification.",
+            "This is a narrow Russian grammar/style instruction set, not a general-knowledge pretraining corpus."
           ],
           "actions": [
-            "Sample every row because the set is only 100 records; independently verify answer_short, output and explanations.",
-            "Check each row's source and license fields and ensure train/evaluation partition is explicit.",
-            "Use primarily as a held-out Russian grammar benchmark; any SFT subset must be separately reviewed."
+            "Keep the dataset as a candidate; do not promote the entire source to training.",
+            "Keep all ten row-level validation records evaluation-only and split them out before training, despite the Hub split being named train.",
+            "Exclude or correct rl-000088 and rl-000089 before considering the 88 remaining training records.",
+            "Complete row-by-row checking of answer_short, output and explanation, including contextual grammar exceptions and source/provenance.",
+            "Confirm uploader authority and attribution obligations under the declared CC BY 4.0 license."
           ]
         },
         "dataset_viewer_sample": {
