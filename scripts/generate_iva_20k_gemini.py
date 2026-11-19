@@ -92,22 +92,23 @@ def validate(obj, allowed_ids):
         if not isinstance(m, dict):
             raise ValueError("message is not an object")
         role = m.get("role")
-        if role in ("user", "assistant"):
-            if not isinstance(m.get("content"), str) or not m["content"].strip():
-                if not (role == "assistant" and "tool_call" in m):
-                    raise ValueError("empty message")
-            if role == "user":
-                saw_user = True
-            else:
-                saw_assistant = True
-        elif role == "assistant" and "tool_call" in m:
+        if role == "assistant" and "tool_call" in m:
             call = m["tool_call"]
             if not isinstance(call, dict) or call.get("name") not in TOOLS:
                 raise ValueError("unknown tool")
             if not isinstance(call.get("arguments", {}), dict):
                 raise ValueError("bad tool arguments")
+            if pending:
+                raise ValueError("nested tool call before previous result")
             pending = call["name"]
             saw_assistant = True
+        elif role in ("user", "assistant"):
+            if not isinstance(m.get("content"), str) or not m["content"].strip():
+                raise ValueError("empty message")
+            if role == "user":
+                saw_user = True
+            else:
+                saw_assistant = True
         elif role == "tool":
             if not pending or m.get("name") != pending or not isinstance(m.get("content"), str):
                 raise ValueError("unmatched tool result")
