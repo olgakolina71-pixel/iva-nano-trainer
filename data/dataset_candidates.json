@@ -9,8 +9,8 @@
       "excluded"
     ],
     "training_enabled": false,
-    "last_license_review": "2026-11-17",
-    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language entries were initially added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru (now on hold after a sampled invalid proof), Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). No source is approved for training. Three additional programming-related sources are recorded as hold: ru-dataset/ru-dataset-small (reasoning-format review), attn-signs/russian-code (license metadata absent), and sup2ch/ru-en-code-curriculum (non-standard license terms). Direct sample/metadata audit completed on 2026-11-17 for the 16 original candidate entries. Findings and required filters are stored under review.sample_audit; sample access was not possible for every source. s85io/math-logic-ru moved to hold after an invalid inference was observed. No dataset was approved for training; all sources remain quarantined and training_enabled=false."
+    "last_license_review": "2026-11-19",
+    "note": "No source in this registry is approved for training. Candidate entries may only be downloaded into quarantine; hold entries are blocked. Dataset-card license declarations are not independent proof of upstream rights. New mathematics, physics, and programming datasets are candidates/holds for quarantine and review only; none is approved for training. Four additional Russian-language entries were initially added on 2026-11-17: d0rj mathematics_dataset (Russian split), s85io math-logic-ru (now on hold after a sampled invalid proof), Fmluder Tiny-Russian-Dialogs, and t-tech T-math (evaluation-only). No source is approved for training. Three additional programming-related sources are recorded as hold: ru-dataset/ru-dataset-small (reasoning-format review), attn-signs/russian-code (license metadata absent), and sup2ch/ru-en-code-curriculum (non-standard license terms). Direct sample/metadata audit completed on 2026-11-17 for the 16 original candidate entries. Findings and required filters are stored under review.sample_audit; sample access was not possible for every source. s85io/math-logic-ru moved to hold after an invalid inference was observed. No dataset was approved for training; all sources remain quarantined and training_enabled=false. On 2026-11-19 a cleaned 20-pair Kukunechka derivative was added under data/sft_candidates; it remains unapproved pending maintainer/source-rights confirmation and is too small for standalone SFT. No dataset was promoted to training; training_enabled remains false."
   },
   "datasets": [
     {
@@ -129,11 +129,12 @@
       "provenance_claim": "Author says dialogues were written by a native Russian speaker.",
       "status": "candidate",
       "reasons": [
-        "Useful modern everyday Russian style.",
-        "Small; preserve author attribution and inspect examples."
+        "A cleaned 20-pair SFT derivative is available at data/sft_candidates/kukunechka_russian_everyday_dialogues_clean_v1.txt.",
+        "Use only as a tiny low-weight dialogue-style supplement after maintainer confirmation of CC BY 4.0 attribution and rights.",
+        "Do not treat local prices, routes, service availability, food freshness, allergen safety or return conditions as factual knowledge."
       ],
       "review": {
-        "checked_at": "2026-11-17",
+        "checked_at": "2026-11-19",
         "sample_audit": {
           "method": "direct_jsonl_sample",
           "sample_records": 20,
@@ -146,6 +147,24 @@
             "Use only as a small style supplement, not pretraining.",
             "Remove or neutralize unsupported time-sensitive/local factual claims unless verified against source context.",
             "Preserve CC BY 4.0 attribution."
+          ]
+        },
+        "cleaned_derivative": {
+          "path": "data/sft_candidates/kukunechka_russian_everyday_dialogues_clean_v1.txt",
+          "sample_records": 20,
+          "method": "full_jsonl_read_and_manual_response_normalization",
+          "decision": "cleaned_derivative_pending_maintainer_and_rights_approval",
+          "transformations": [
+            "normalized all 20 records to IVA user/assistant turn format",
+            "neutralized unsupported store prices, payment/service claims, local routes and schedules",
+            "removed unverified food freshness claims and changed gluten-free response to require ingredient and cross-contact verification",
+            "removed blanket return-period claim and directed to product/store terms",
+            "corrected punctuation without adding new factual claims"
+          ],
+          "limitations": [
+            "only 20 dialogue pairs; style supplement only",
+            "source card declares CC BY 4.0 but uploader authority was not independently established",
+            "far below the SFT pipeline minimum of 200,000 supervised assistant tokens"
           ]
         }
       }
