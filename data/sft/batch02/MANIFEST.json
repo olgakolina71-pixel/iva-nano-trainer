@@ -1,0 +1,96 @@
+{
+  "batch": "02",
+  "additional_dialogues": 20000,
+  "total_target_with_batch01": 22000,
+  "format": "JSONL",
+  "language": "ru",
+  "source": "original_synthetic",
+  "parts": [
+    {
+      "path": "data/sft/batch02/part01.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part02.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part03.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part04.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part05.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part06.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part07.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part08.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part09.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part10.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part11.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part12.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part13.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part14.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part15.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part16.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part17.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part18.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part19.jsonl",
+      "records": 1000
+    },
+    {
+      "path": "data/sft/batch02/part20.jsonl",
+      "records": 1000
+    }
+  ],
+  "tool_allowlist": [
+    "calculator",
+    "current_time",
+    "web_search"
+  ],
+  "note": "web_search observations are illustrative placeholders, not verified live results. Review compatibility with IVA's tool-call parser before training."
+}
