@@ -1,0 +1,126 @@
+name: IVA Nano LoRA SFT (100 steps)
+
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Optimizer steps"
+        required: true
+        default: "100"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: iva-nano-lora-sft
+  cancel-in-progress: false
+
+jobs:
+  lora-sft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download IVA Nano 40M base checkpoint and tokenizer
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-nano-first-training-checkpoint
+          run-id: 44093760271
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .
+
+      - name: Verify base files
+        run: |
+          set -euo pipefail
+          test -s checkpoints/iva_nano_40m_checkpoint.pt
+          test -s checkpoints/iva_tokenizer.model
+          ls -lh checkpoints/iva_nano_40m_checkpoint.pt checkpoints/iva_tokenizer.model
+
+      - name: Convert the 20,000 synthetic dialogues to IVA SFT format
+        run: |
+          python scripts/convert_iva_jsonl_to_sft.py \
+            --input-dir data/sft/batch02 \
+            --output data/raw/approved/iva_synthetic_batch02.txt \
+            --expected-dialogues 20000
+
+      - name: Create provenance manifest for original synthetic data
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = {
+              "schema_version": 1,
+              "generated_by": "IVA Nano LoRA SFT workflow",
+              "training_enabled": True,
+              "datasets": [{
+                  "id": "iva_original_synthetic_batch02",
+                  "path": "data/raw/approved/iva_synthetic_batch02.txt",
+                  "license": "Original synthetic text generated for the IVA project",
+                  "attribution": "IVA project — original synthetic training dialogues",
+                  "source_url": "https://github.com/olgakolina71-pixel/iva-nano-trainer/tree/main/data/sft/batch02",
+                  "use": "training",
+                  "rights_status": "reviewed_approved",
+                  "review_status": "project_generated_synthetic_data"
+              }]
+          }
+          Path("data/iva_synthetic_manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          PY
+
+      - name: Configure exactly the requested number of optimizer steps
+        env:
+          IVA_STEPS: ${{ inputs.steps }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import yaml
+          steps = int(os.environ["IVA_STEPS"])
+          if steps != 100:
+              raise SystemExit("This run is intentionally locked to exactly 100 optimizer steps.")
+          config = yaml.safe_load(Path("configs/iva_nano_sft.yaml").read_text(encoding="utf-8"))
+          config["training"]["max_steps"] = steps
+          config["training"]["minimum_training_tokens"] = 1
+          config["training"]["batch_size"] = 1
+          config["training"]["gradient_accumulation_steps"] = 1
+          config["training"]["device"] = "cpu"
+          Path("/tmp/iva_nano_sft_100.yaml").write_text(
+              yaml.safe_dump(config, allow_unicode=True, sort_keys=False), encoding="utf-8"
+          )
+          print(f"Configured exactly {steps} optimizer steps on CPU.")
+          PY
+
+      - name: Run 100-step LoRA fine-tuning
+        env:
+          OMP_NUM_THREADS: "2"
+          MKL_NUM_THREADS: "2"
+        run: |
+          python train_lora.py \
+            --checkpoint checkpoints/iva_nano_40m_checkpoint.pt \
+            --tokenizer checkpoints/iva_tokenizer.model \
+            --config /tmp/iva_nano_sft_100.yaml \
+            --data-dir data/raw/approved \
+            --manifest data/iva_synthetic_manifest.json \
+            --output-dir checkpoints/iva-nano-lora-100-steps \
+            --steps 100
+
+      - name: Upload IVA LoRA adapter and training metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-lora-sft-100-steps
+          path: checkpoints/iva-nano-lora-100-steps/
+          retention-days: 30
+          if-no-files-found: warn
