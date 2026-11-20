@@ -49,11 +49,11 @@ def main():
                             if pending_user is not None:
                                 raise SystemExit(f"{path}:{line_no}: tool result before assistant tool call")
                             tool_name = str(message.get("name", "tool"))
-                            pending_user = f"[Результат инструмента {tool_name}]\\n{content}"
+                            pending_user = f"[Результат инструмента {tool_name}]\n{content}"
                         elif role == "assistant":
                             if pending_user is None:
                                 raise SystemExit(f"{path}:{line_no}: assistant message without user/tool context")
-                            blocks.append(f"### Пользователь:\\n{pending_user}\\n### IVA:\\n{content}")
+                            blocks.append(f"### Пользователь:\n{pending_user}\n### IVA:\n{content}")
                             pending_user = None
                         else:
                             raise SystemExit(f"{path}:{line_no}: unsupported role {role!r}")
@@ -62,7 +62,7 @@ def main():
                     if not blocks:
                         raise SystemExit(f"{path}:{line_no}: no usable user-assistant pairs")
                     pairs += len(blocks)
-                    dst.write("\\n\\n".join(blocks) + "\\n\\n")
+                    dst.write("\n\n".join(blocks) + "\n\n")
 
     if count != args.expected_dialogues:
         raise SystemExit(f"Expected {args.expected_dialogues} dialogues, converted {count}")
