@@ -79,8 +79,8 @@ jobs:
           : > iva-base-vs-lora.txt
           for i in 0 1 2; do
             {
-              printf '## Вопрос: %s\\n' "${labels[$i]}"
-              printf 'Эталон из обучающего примера: %s\\n\\n' "${expected[$i]}"
+              printf '## Вопрос: %s\n' "${labels[$i]}"
+              printf 'Эталон из обучающего примера: %s\n\n' "${expected[$i]}"
             } | tee -a iva-base-vs-lora.txt
 
             for variant in base lora; do
@@ -89,17 +89,17 @@ jobs:
                 adapter_args+=(--lora-adapter lora)
               fi
 
-              printf '### %s\\n' "$variant" | tee -a iva-base-vs-lora.txt
-              python generate.py \\
-                --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \\
-                --tokenizer checkpoints/iva_tokenizer.model \\
-                "${adapter_args[@]}" \\
-                --prompt "${prompts[$i]}" \\
-                --max-new-tokens 48 \\
-                --temperature 1.0 \\
-                --top-k 1 \\
-                --top-p 1.0 \\
-                --repetition-penalty 1.12 \\
+              printf '### %s\n' "$variant" | tee -a iva-base-vs-lora.txt
+              python generate.py \
+                --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+                --tokenizer checkpoints/iva_tokenizer.model \
+                "${adapter_args[@]}" \
+                --prompt "${prompts[$i]}" \
+                --max-new-tokens 48 \
+                --temperature 1.0 \
+                --top-k 1 \
+                --top-p 1.0 \
+                --repetition-penalty 1.12 \
                 --device cpu 2>&1 | tee -a iva-base-vs-lora.txt
               echo | tee -a iva-base-vs-lora.txt
             done
