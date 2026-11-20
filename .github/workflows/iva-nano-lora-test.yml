@@ -57,9 +57,105 @@ jobs:
         run: |
           set -euo pipefail
           PROMPTS=(
-            "### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nПривет! Кто ты?\\n### IVA:\\n"
-            "### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nКак тебя зовут?\\n### IVA:\\n"
-            "### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nСколько будет 2+2?\\n### IVA:\\n"
+            
+          LABELS=("Кто ты?" "Как тебя зовут?" "2+2?")
+          : > iva-lora-test.txt
+          for i in 0 1 2; do
+            echo "## ${LABELS[$i]}" | tee -a iva-lora-test.txt
+            python generate.py \\
+              --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \\
+              --tokenizer checkpoints/iva_tokenizer.model \\
+              --lora-adapter lora \\
+              --prompt "${PROMPTS[$i]}" \\
+              --max-new-tokens 48 \\
+              --temperature 0.35 \\
+              --top-p 0.85 \\
+              --repetition-penalty 1.12 \\
+              --device cpu 2>&1 | tee -a iva-lora-test.txt
+            echo | tee -a iva-lora-test.txt
+          done
+      - name: Publish answers in summary
+        if: always()
+        run: |
+          {
+            echo "## IVA Nano LoRA — тест ответов"
+            echo
+            if [ -s iva-lora-test.txt ]; then cat iva-lora-test.txt; else echo "No output generated; inspect logs."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test answers
+        if: always() && hashFiles('iva-lora-test.txt') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-lora-test-${{ github.run_number }}
+          path: iva-lora-test.txt
+          retention-days: 7
+### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nПривет! Кто ты?\\n### IVA:\\n'
+            
+          LABELS=("Кто ты?" "Как тебя зовут?" "2+2?")
+          : > iva-lora-test.txt
+          for i in 0 1 2; do
+            echo "## ${LABELS[$i]}" | tee -a iva-lora-test.txt
+            python generate.py \\
+              --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \\
+              --tokenizer checkpoints/iva_tokenizer.model \\
+              --lora-adapter lora \\
+              --prompt "${PROMPTS[$i]}" \\
+              --max-new-tokens 48 \\
+              --temperature 0.35 \\
+              --top-p 0.85 \\
+              --repetition-penalty 1.12 \\
+              --device cpu 2>&1 | tee -a iva-lora-test.txt
+            echo | tee -a iva-lora-test.txt
+          done
+      - name: Publish answers in summary
+        if: always()
+        run: |
+          {
+            echo "## IVA Nano LoRA — тест ответов"
+            echo
+            if [ -s iva-lora-test.txt ]; then cat iva-lora-test.txt; else echo "No output generated; inspect logs."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test answers
+        if: always() && hashFiles('iva-lora-test.txt') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-lora-test-${{ github.run_number }}
+          path: iva-lora-test.txt
+          retention-days: 7
+### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nКак тебя зовут?\\n### IVA:\\n'
+            
+          LABELS=("Кто ты?" "Как тебя зовут?" "2+2?")
+          : > iva-lora-test.txt
+          for i in 0 1 2; do
+            echo "## ${LABELS[$i]}" | tee -a iva-lora-test.txt
+            python generate.py \\
+              --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \\
+              --tokenizer checkpoints/iva_tokenizer.model \\
+              --lora-adapter lora \\
+              --prompt "${PROMPTS[$i]}" \\
+              --max-new-tokens 48 \\
+              --temperature 0.35 \\
+              --top-p 0.85 \\
+              --repetition-penalty 1.12 \\
+              --device cpu 2>&1 | tee -a iva-lora-test.txt
+            echo | tee -a iva-lora-test.txt
+          done
+      - name: Publish answers in summary
+        if: always()
+        run: |
+          {
+            echo "## IVA Nano LoRA — тест ответов"
+            echo
+            if [ -s iva-lora-test.txt ]; then cat iva-lora-test.txt; else echo "No output generated; inspect logs."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test answers
+        if: always() && hashFiles('iva-lora-test.txt') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-lora-test-${{ github.run_number }}
+          path: iva-lora-test.txt
+          retention-days: 7
+### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nСколько будет 2+2?\\n### IVA:\\n'
           )
           LABELS=("Кто ты?" "Как тебя зовут?" "2+2?")
           : > iva-lora-test.txt
