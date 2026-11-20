@@ -52,7 +52,7 @@ jobs:
           python scripts/convert_iva_jsonl_to_sft.py \
             --input-dir data/sft/batch02 \
             --output data/raw/approved/iva_synthetic_batch02.txt \
-            --expected-dialogues 20000
+            --expected-dialogues 20004
 
       - name: Validate converted assistant-only SFT pairs before training
         run: |
@@ -87,7 +87,7 @@ jobs:
               "generated_by": "IVA Nano LoRA SFT workflow",
               "training_enabled": True,
               "datasets": [{
-                  "id": "iva_original_synthetic_batch02",
+                  "id": "iva_original_synthetic_batches_02_03",
                   "path": "data/raw/approved/iva_synthetic_batch02.txt",
                   "license": "Original synthetic text generated for the IVA project",
                   "attribution": "IVA project — original synthetic training dialogues",
