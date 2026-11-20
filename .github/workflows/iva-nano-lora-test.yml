@@ -1,4 +1,4 @@
-name: IVA Nano — test trained LoRA
+name: IVA Nano — compare base and LoRA
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ permissions:
   actions: read
 
 jobs:
-  test-lora:
+  compare-base-and-lora:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -59,49 +59,69 @@ jobs:
           test -s lora/adapter_model.safetensors
           test -s lora/adapter_config.json
 
-      - name: Ask IVA three questions with the trained adapter
+      - name: Compare base model and LoRA on exact training prompts
         shell: bash
         run: |
           set -euo pipefail
+
           prompts=(
-            $'### Система:\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\n### Пользователь:\nПривет! Кто ты?\n### IVA:'
-            $'### Система:\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\n### Пользователь:\nКак тебя зовут?\n### IVA:'
-            $'### Система:\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\n### Пользователь:\nСколько будет 2+2?\n### IVA:'
+            $'### Пользователь:\nПривет! Кто ты и как тебя зовут?\n### IVA:\n'
+            $'### Пользователь:\nКак тебя зовут?\n### IVA:\n'
+            $'### Пользователь:\nСколько будет 2+2?\n### IVA:\n'
           )
-          labels=("Кто ты?" "Как тебя зовут?" "2+2?")
-          : > iva-lora-test.txt
+          labels=("Кто ты и как тебя зовут?" "Как тебя зовут?" "Сколько будет 2+2?")
+          expected=(
+            "Привет! Я IVA — небольшая языковая модель, созданная в рамках проекта IVA. Я учусь отвечать на вопросы и помогать в диалоге."
+            "Меня зовут IVA. Я ИИ-модель проекта IVA Nano."
+            "2 + 2 = 4."
+          )
+
+          : > iva-base-vs-lora.txt
           for i in 0 1 2; do
-            echo "## ${labels[$i]}" | tee -a iva-lora-test.txt
-            python generate.py \
-              --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
-              --tokenizer checkpoints/iva_tokenizer.model \
-              --lora-adapter lora \
-              --prompt "${prompts[$i]}" \
-              --max-new-tokens 48 \
-              --temperature 0.35 \
-              --top-p 0.85 \
-              --repetition-penalty 1.12 \
-              --device cpu 2>&1 | tee -a iva-lora-test.txt
-            echo | tee -a iva-lora-test.txt
+            {
+              printf '## Вопрос: %s\\n' "${labels[$i]}"
+              printf 'Эталон из обучающего примера: %s\\n\\n' "${expected[$i]}"
+            } | tee -a iva-base-vs-lora.txt
+
+            for variant in base lora; do
+              adapter_args=()
+              if [[ "$variant" == "lora" ]]; then
+                adapter_args+=(--lora-adapter lora)
+              fi
+
+              printf '### %s\\n' "$variant" | tee -a iva-base-vs-lora.txt
+              python generate.py \\
+                --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \\
+                --tokenizer checkpoints/iva_tokenizer.model \\
+                "${adapter_args[@]}" \\
+                --prompt "${prompts[$i]}" \\
+                --max-new-tokens 48 \\
+                --temperature 1.0 \\
+                --top-k 1 \\
+                --top-p 1.0 \\
+                --repetition-penalty 1.12 \\
+                --device cpu 2>&1 | tee -a iva-base-vs-lora.txt
+              echo | tee -a iva-base-vs-lora.txt
+            done
           done
 
-      - name: Publish answers in summary
+      - name: Publish comparison in summary
         if: always()
         run: |
           {
-            echo "## IVA Nano LoRA — тест ответов"
+            echo "## IVA Nano — сравнение base и LoRA"
             echo
-            if [ -s iva-lora-test.txt ]; then
-              cat iva-lora-test.txt
+            if [ -s iva-base-vs-lora.txt ]; then
+              cat iva-base-vs-lora.txt
             else
               echo "No output generated; inspect logs."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload test answers
-        if: always() && hashFiles('iva-lora-test.txt') != ''
+      - name: Upload comparison artifact
+        if: always() && hashFiles('iva-base-vs-lora.txt') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: iva-nano-lora-test-${{ github.run_number }}
-          path: iva-lora-test.txt
+          name: iva-nano-base-vs-lora-${{ github.run_number }}
+          path: iva-base-vs-lora.txt
           retention-days: 7
