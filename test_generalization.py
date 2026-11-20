@@ -43,7 +43,7 @@ def main():
     tokenizer = spm.SentencePieceProcessor(model_file=args.tokenizer)
     results = []
     for prompt in PROMPTS:
-        full_prompt = f"### Пользователь:\\n{prompt}\\n### IVA:\\n"
+        full_prompt = f"### Пользователь:\n{prompt}\n### IVA:\n"
         answer = generate(
             model, tokenizer, full_prompt, device,
             max_new_tokens=48, temperature=1.0, top_k=1, top_p=1.0,
