@@ -64,7 +64,7 @@ jobs:
           if "\\n" in text:
               raise SystemExit("Dataset contains literal backslash-n sequences; converter is still broken.")
           pattern = re.compile(
-              r"### Пользователь:\\s*\\n(.*?)\\n### IVA:\\s*\\n(.*?)(?=\\n### Пользователь:\\s*\\n|$)",
+            r"### Пользователь:\s*\n(.*?)\n### IVA:\s*\n(.*?)(?=\n### Пользователь:\s*\n|$)",
               re.DOTALL,
           )
           pairs = list(pattern.finditer(text))
