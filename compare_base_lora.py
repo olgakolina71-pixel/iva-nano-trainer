@@ -42,19 +42,17 @@ def main():
     tokenizer = spm.SentencePieceProcessor(model_file=args.tokenizer)
     results = []
     for prompt in PROMPTS:
-        full_prompt = f"### Пользователь:\\n{prompt}\\n### IVA:\\n"
-        # Disable the adapter to evaluate the untouched base weights.
+        full_prompt = f"### Пользователь:\n{prompt}\n### IVA:\n"
         with model.disable_adapter():
             base_answer = generate(
                 model, tokenizer, full_prompt, device,
                 max_new_tokens=48, temperature=1.0, top_k=1, top_p=1.0,
                 repetition_penalty=1.0, no_repeat_ngram_size=0,
             )
-        # Then evaluate the same model with LoRA active.
         lora_answer = generate(
             model, tokenizer, full_prompt, device,
             max_new_tokens=48, temperature=1.0, top_k=1, top_p=1.0,
-            repetition_penalty=1.0, no_repeat_ngram_size=0,
+                repetition_penalty=1.0, no_repeat_ngram_size=0,
         )
         item = {
             "prompt": prompt,
