@@ -1,4 +1,4 @@
-name: IVA Nano — unseen prompt generalization test
+name: IVA Nano — compare base checkpoint vs LoRA (inference only)
 
 on:
   workflow_dispatch:
@@ -24,13 +24,14 @@ permissions:
   actions: read
 
 jobs:
-  inference-only-test:
+  compare-base-and-lora:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -57,7 +58,7 @@ jobs:
           repository: ${{ github.repository }}
           path: adapter-artifact
 
-      - name: Verify files
+      - name: Verify downloaded files
         run: |
           set -euo pipefail
           test -s base-checkpoint/checkpoints/artifacts/iva_nano_40m_checkpoint.pt
@@ -65,35 +66,36 @@ jobs:
           test -s adapter-artifact/diagnostic-lora/adapter_config.json
           test -s adapter-artifact/diagnostic-lora/adapter_model.safetensors
 
-      - name: Run unseen prompts without training
+      - name: Compare identical prompts with base and LoRA
         run: |
           set -euo pipefail
-          python test_generalization.py \
+          python compare_base_lora.py \
             --checkpoint base-checkpoint/checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
             --tokenizer base-checkpoint/checkpoints/iva_tokenizer.model \
             --adapter adapter-artifact/diagnostic-lora \
-            --output generalization_report.json 2>&1 | tee generalization.log
+            --output base_vs_lora_report.json 2>&1 | tee base_vs_lora.log
 
-      - name: Publish report
+      - name: Publish comparison summary
         if: always()
         run: |
           {
-            echo "## IVA Nano — проверка новых вопросов (без обучения)"
-            if [ -f generalization_report.json ]; then
-              cat generalization_report.json
-            elif [ -f generalization.log ]; then
-              tail -n 100 generalization.log
+            echo "## IVA Nano — исходная модель против LoRA"
+            echo "Проверка выполняется без обучения и без изменения весов."
+            if [ -f base_vs_lora_report.json ]; then
+              cat base_vs_lora_report.json
+            elif [ -f base_vs_lora.log ]; then
+              tail -n 100 base_vs_lora.log
             else
-              echo "No inference output. Inspect job logs."
+              echo "No output. Inspect job logs."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload inference report
-        if: always() && hashFiles('generalization.log') != ''
+      - name: Upload comparison report
+        if: always() && hashFiles('base_vs_lora.log') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: iva-nano-generalization-report-${{ github.run_number }}
+          name: iva-nano-base-vs-lora-${{ github.run_number }}
           path: |
-            generalization.log
-            generalization_report.json
+            base_vs_lora.log
+            base_vs_lora_report.json
           retention-days: 7
