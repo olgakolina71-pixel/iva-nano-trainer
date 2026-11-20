@@ -1,0 +1,94 @@
+name: IVA Nano — test trained LoRA
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_run_id:
+        description: "Run ID containing the base IVA Nano checkpoint"
+        required: true
+        default: "44093760271"
+        type: string
+      lora_run_id:
+        description: "Run ID containing the LoRA adapter"
+        required: true
+        default: "44783312219"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  test-lora:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install inference dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - name: Download base checkpoint and tokenizer
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-nano-first-training-checkpoint
+          run-id: ${{ inputs.base_run_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: .
+      - name: Download trained LoRA adapter
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-nano-lora-sft-100-steps
+          run-id: ${{ inputs.lora_run_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: lora
+      - name: Verify files
+        run: |
+          set -euo pipefail
+          test -s checkpoints/artifacts/iva_nano_40m_checkpoint.pt
+          test -s checkpoints/iva_tokenizer.model
+          test -s lora/adapter_model.safetensors
+          test -s lora/adapter_config.json
+          ls -lh checkpoints/artifacts/iva_nano_40m_checkpoint.pt checkpoints/iva_tokenizer.model lora/adapter_model.safetensors
+      - name: Ask IVA three questions with the trained adapter
+        run: |
+          set -euo pipefail
+          PROMPTS=(
+            "### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nПривет! Кто ты?\\n### IVA:\\n"
+            "### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nКак тебя зовут?\\n### IVA:\\n"
+            "### Система:\\nТы IVA — языковая модель проекта IVA Nano. Отвечай по-русски кратко и естественно.\\n### Пользователь:\\nСколько будет 2+2?\\n### IVA:\\n"
+          )
+          LABELS=("Кто ты?" "Как тебя зовут?" "2+2?")
+          : > iva-lora-test.txt
+          for i in 0 1 2; do
+            echo "## ${LABELS[$i]}" | tee -a iva-lora-test.txt
+            python generate.py \\
+              --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \\
+              --tokenizer checkpoints/iva_tokenizer.model \\
+              --lora-adapter lora \\
+              --prompt "${PROMPTS[$i]}" \\
+              --max-new-tokens 48 \\
+              --temperature 0.35 \\
+              --top-p 0.85 \\
+              --repetition-penalty 1.12 \\
+              --device cpu 2>&1 | tee -a iva-lora-test.txt
+            echo | tee -a iva-lora-test.txt
+          done
+      - name: Publish answers in summary
+        if: always()
+        run: |
+          {
+            echo "## IVA Nano LoRA — тест ответов"
+            echo
+            if [ -s iva-lora-test.txt ]; then cat iva-lora-test.txt; else echo "No output generated; inspect logs."; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload test answers
+        if: always() && hashFiles('iva-lora-test.txt') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-lora-test-${{ github.run_number }}
+          path: iva-lora-test.txt
+          retention-days: 7
