@@ -13,8 +13,8 @@ def main():
 
     input_dir = Path(args.input_dir)
     files = sorted(input_dir.glob("part*.jsonl"))
-    if len(files) != 20:
-        raise SystemExit(f"Expected 20 JSONL parts, found {len(files)}")
+    if len(files) < 20:
+        raise SystemExit(f"Expected at least 20 JSONL parts, found {len(files)}")
 
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
