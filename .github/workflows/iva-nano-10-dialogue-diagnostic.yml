@@ -1,0 +1,84 @@
+name: IVA Nano — 10 dialogue memorization diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_run_id:
+        description: "Run ID containing the base IVA Nano checkpoint"
+        required: true
+        default: "44093760271"
+        type: string
+      steps:
+        description: "LoRA memorization steps (diagnostic only)"
+        required: true
+        default: "250"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  ten-dialogue-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Download base checkpoint and tokenizer
+        uses: actions/download-artifact@v4
+        with:
+          name: iva-nano-first-training-checkpoint
+          run-id: ${{ inputs.base_run_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: .
+
+      - name: Verify checkpoint files
+        run: |
+          set -euo pipefail
+          test -s checkpoints/artifacts/iva_nano_40m_checkpoint.pt
+          test -s checkpoints/iva_tokenizer.model
+
+      - name: Overfit ten tiny dialogues and test exact prompts
+        run: |
+          set -euo pipefail
+          python diagnose_ten_dialogues.py \
+            --checkpoint checkpoints/artifacts/iva_nano_40m_checkpoint.pt \
+            --tokenizer checkpoints/iva_tokenizer.model \
+            --steps "${{ inputs.steps }}" \
+            --output-dir diagnostic-lora \
+            --device cpu 2>&1 | tee diagnostic.log
+
+      - name: Publish diagnostic summary
+        if: always()
+        run: |
+          {
+            echo "## IVA Nano — диагностика запоминания 10 диалогов"
+            echo
+            if [ -f diagnostic-lora/diagnostic_report.json ]; then
+              cat diagnostic-lora/diagnostic_report.json
+            elif [ -f diagnostic.log ]; then
+              tail -n 100 diagnostic.log
+            else
+              echo "No diagnostic output. Inspect job logs."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagnostic report and adapter
+        if: always() && hashFiles('diagnostic.log') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: iva-nano-10-dialogue-diagnostic-${{ github.run_number }}
+          path: |
+            diagnostic.log
+            diagnostic-lora/
+          retention-days: 7
