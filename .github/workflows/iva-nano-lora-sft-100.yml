@@ -54,6 +54,29 @@ jobs:
             --output data/raw/approved/iva_synthetic_batch02.txt \
             --expected-dialogues 20000
 
+      - name: Validate converted assistant-only SFT pairs before training
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          path = Path("data/raw/approved/iva_synthetic_batch02.txt")
+          text = path.read_text(encoding="utf-8")
+          if "\\n" in text:
+              raise SystemExit("Dataset contains literal backslash-n sequences; converter is still broken.")
+          pattern = re.compile(
+              r"### Пользователь:\\s*\\n(.*?)\\n### IVA:\\s*\\n(.*?)(?=\\n### Пользователь:\\s*\\n|$)",
+              re.DOTALL,
+          )
+          pairs = list(pattern.finditer(text))
+          print(f"Detected SFT conversation pairs: {len(pairs):,}")
+          if len(pairs) < 20_000:
+              raise SystemExit(f"Expected at least 20,000 pairs; found {len(pairs)}.")
+          for match in pairs[:3]:
+              print("--- SAMPLE ---")
+              print("USER:", match.group(1)[:300])
+              print("IVA:", match.group(2)[:300])
+          PY
+
       - name: Create provenance manifest for original synthetic data
         run: |
           python - <<'PY'
